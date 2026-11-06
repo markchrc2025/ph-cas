@@ -1,0 +1,52 @@
+name: CI
+on:
+  pull_request:
+  push:
+    branches: [main]
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: No em or en dashes under docs/
+        run: |
+          if grep -rnP '[\x{2013}\x{2014}]' docs/ README.md VERSIONS.md; then
+            echo "Em or en dash found"; exit 1; fi
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    services:
+      mariadb:
+        image: mariadb:10.11
+        env:
+          MARIADB_ROOT_PASSWORD: root
+        ports: ["3306:3306"]
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=10s --health-timeout=5s --health-retries=10
+      redis:
+        image: redis:7
+        ports: ["6379:6379"]
+    steps:
+      - uses: actions/checkout@v4
+        with: { path: ph_cas }
+      - uses: actions/setup-node@v4
+        with: { node-version: 24 }
+      - name: Install uv
+        run: curl -LsSf https://astral.sh/uv/install.sh | sh
+      - name: MariaDB charset
+        run: |
+          mysql -h127.0.0.1 -uroot -proot -e "SET GLOBAL character_set_server='utf8mb4'; SET GLOBAL collation_server='utf8mb4_unicode_ci';"
+      - name: System packages
+        run: sudo apt-get install -y -q libmariadb-dev libmariadb-dev-compat pkg-config
+      - name: Bootstrap bench
+        env: { SKIP_ASSETS: "1", DB_ROOT_PASSWORD: root }
+        run: |
+          export PATH="$HOME/.local/bin:$PATH"
+          bash ph_cas/scripts/bootstrap.sh "$HOME/bench"
+      - name: Run tests
+        run: |
+          export PATH="$HOME/.local/bin:$PATH"
+          cd "$HOME/bench"
+          bench --site test_site set-config allow_tests true
+          bench --site test_site run-tests --app ph_cas
