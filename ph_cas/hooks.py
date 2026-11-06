@@ -8,3 +8,5 @@ required_apps = ["frappe/erpnext"]
 
 after_install = "ph_cas.setup.install.after_install"
 after_migrate = "ph_cas.setup.install.after_migrate"
+
+before_tests = "ph_cas.tests.setup.before_tests"

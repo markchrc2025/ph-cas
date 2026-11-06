@@ -47,6 +47,11 @@ if [ ! -d "$BENCH_DIR" ]; then
   bench init "$BENCH_DIR" --python "$PY" --frappe-branch "$FRAPPE_TAG" ${SKIP_ASSETS:+--skip-assets} --no-backups
 fi
 cd "$BENCH_DIR"
+# Use the system Redis (bench start would run its own on 11000 and 13000)
+REDIS_URL="${REDIS_URL:-redis://127.0.0.1:6379}"
+bench set-config -g redis_cache "$REDIS_URL" >/dev/null
+bench set-config -g redis_queue "$REDIS_URL" >/dev/null
+bench set-config -g redis_socketio "$REDIS_URL" >/dev/null
 [ -d apps/erpnext ] || bench get-app erpnext https://github.com/frappe/erpnext --branch "$ERPNEXT_TAG" ${SKIP_ASSETS:+--skip-assets}
 [ -d apps/ph_cas ] || bench get-app ph_cas "$APP_DIR" ${SKIP_ASSETS:+--skip-assets}
 
