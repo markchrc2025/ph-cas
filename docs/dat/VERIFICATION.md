@@ -8,6 +8,6 @@ Status of each alphalist layout the CAS writes. "verified" means byte-for-byte a
 | QAP 1601-EQ | ph_cas.dat.qap.build_1601eq | layout verified against the validator rules; golden file pending | Schedules 1 and 2 in one file; Schedule 2 ATCs DI900 (individual) and EI900 (non-individual) are an assumption (RDO 8c). |
 | 1604-E | ph_cas.dat.qap.build_1604e | sample | H, D3, C3 (total withheld), D4, C4 (total income). |
 | MAP 1600-VT | ph_cas.dat.qap.build_1600vt | sample | Names unquoted per the sample; non-resident providers without a TIN are written as 000000000. |
-| RELIEF S / P / I | ph_cas.dat.relief | pending B29 | The BIR's own format (gate G7) overrides the sample. |
+| RELIEF S / P / I | ph_cas.dat.relief | sample | Rows merged per TIN; the purchases header's non-creditable input VAT is the quarter's 2550Q item 53 when computed; the BIR's own format (gate G7) overrides the sample. |
 
 Procedure to verify a layout: type the dummy scenario into the BIR Data Entry module, generate the file, run the Validation module, commit the file and report under tests/golden/, and point the layout's test at it.

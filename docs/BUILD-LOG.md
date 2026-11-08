@@ -2,6 +2,13 @@
 
 One entry per bundle, newest first. Counts are the test totals on main after the merge.
 
+## B29 SLSP (RELIEF): summary lists of sales, purchases and importations (9 Nov 2026)
+- PR: #27
+- Built: ph_cas.dat.relief builds the three RELIEF files named TIN9 + S, P or I + MMYYYY from the quarter's invoices and bills, rows merged per TIN, with the header totals (sales: exempt, zero-rated, taxable, output VAT; purchases: exempt, zero-rated, services, capital goods, goods, input VAT, creditable and non-creditable input VAT, the non-creditable part taken from the quarter's 2550Q item 53 when computed) and the importation rows (entry number, assessment date, supplier, importation date, country, dutiable value, charges, exempt, taxable, VAT, OR number, payment date). Purchase Invoice gets the importation fields; an import bill books the VAT paid to Customs to Input VAT - Importation, and the 2550Q items 46A and 46B now fill from them.
+- Tests: 199 on main (+4).
+- Assumed: Layouts are from the sample doc (status sample): the BIR's own RELIEF format and module (gate G7) override them, in particular the purchases detail row, which the sample described only through its header.
+- Known limit: Customers and suppliers without a TIN are written as 000000000, which the BIR module may reject; the owner's golden files decide.
+
 ## B28 QAP 1601-EQ, 1604-E, MAP 1600-VT (9 Nov 2026)
 - PR: #26
 - Built: ph_cas.dat.qap. build_1601eq writes Schedules 1 and 2 in one file (HQAP header; D1 rows per payee and ATC from bills and advances with the rate as tax over income; C1 totals; D2 rows for bills booked without withholding under DI900 for individuals and EI900 for non-individuals; C2 total). build_1604e writes the annual file (H1604E with the N amended flag, D3 rows with the payee's TIN and branch, C3 total withheld, D4 rows for income not subjected, C4 total income) named with the 12/31 date. build_1600vt writes the MAP from the reverse-charge fields (HMAP, DMAP with unquoted names, non-resident providers without a TIN as 000000000, CMAP totals). generate stores each file as a PH Alphalist File with its layout status. unknown_atcs lists the codes in use that module 7.4 lacks (WV080 and the 840 to 860 series) for RDO question 8c.

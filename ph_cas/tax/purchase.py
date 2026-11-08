@@ -119,7 +119,7 @@ def before_validate(doc, method=None):
     # ---- input VAT
     bases = {"goods": 0.0, "services": 0.0, "capital": 0.0}
     exempt = 0.0
-    supplier_vat = (supplier.get("ph_vat_status") or "Non-VAT") == "VAT" and not supplier.get("ph_is_nonresident_dsp") and not supplier.get("ph_is_rbe")
+    supplier_vat = (supplier.get("ph_vat_status") or "Non-VAT") == "VAT" and not supplier.get("ph_is_nonresident_dsp") and not supplier.get("ph_is_rbe") and not doc.get("ph_is_import")
     for row in doc.get("items") or []:
         base = _line_base(row)
         cls = _line_vat_class(row)
@@ -151,6 +151,10 @@ def before_validate(doc, method=None):
             amount = flt(total_base * flt(rule.rate) / 100, 2)
             doc.append("taxes", {"charge_type": "Actual", "add_deduct_tax": "Add", "category": "Total", "account_head": account_for(doc.company, "percentage_tax_expense"), "description": VAT_COST_DESCRIPTION, "tax_amount": amount, "cost_center": cost_center})
             doc.ph_vat_cost = amount
+
+    if doc.get("ph_is_import") and flt(doc.get("ph_input_vat_import")) and (company.get("ph_vat_status") or "Non-VAT") == "VAT":
+        # VAT paid to the Bureau of Customs is input VAT on importation; booked against the import VAT account
+        doc.append("taxes", {"charge_type": "Actual", "add_deduct_tax": "Add", "category": "Total", "account_head": account_for(doc.company, "input_vat_import"), "description": f"{INPUT_VAT_PREFIX} (importation)", "tax_amount": flt(doc.ph_input_vat_import, 2), "cost_center": cost_center})
 
     # ---- expanded withholding
     doc.ph_ewt_atc = None
