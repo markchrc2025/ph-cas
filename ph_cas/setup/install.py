@@ -36,4 +36,7 @@ def setup_all():
     from ph_cas.setup import master_data
 
     master_data.setup()  # B09
+    from ph_cas.tax import rules
+
+    rules.seed()  # B11
     frappe.db.commit()
