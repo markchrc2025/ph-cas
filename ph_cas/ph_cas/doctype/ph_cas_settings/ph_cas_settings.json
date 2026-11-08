@@ -1,0 +1,33 @@
+{
+ "actions": [],
+ "creation": "2026-11-09 00:10:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "product_section",
+  "product_name",
+  "security_section",
+  "failed_signins_before_deactivation"
+ ],
+ "fields": [
+  {"fieldname": "product_section", "fieldtype": "Section Break", "label": "Product"},
+  {"fieldname": "product_name", "fieldtype": "Data", "label": "Product name (as registered with the BIR)", "default": "PH CAS", "description": "Printed in the header of every book, report and export. Decision D9."},
+  {"fieldname": "security_section", "fieldtype": "Section Break", "label": "Security"},
+  {"fieldname": "failed_signins_before_deactivation", "fieldtype": "Int", "label": "Failed sign-ins before the user is deactivated", "default": "5", "description": "Counted since the user's last successful sign-in. Reactivation is done by a System Manager and is logged."}
+ ],
+ "index_web_pages_for_search": 0,
+ "issingle": 1,
+ "links": [],
+ "modified": "2026-11-09 00:10:00.000000",
+ "modified_by": "Administrator",
+ "module": "PH CAS",
+ "name": "PH CAS Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {"create": 1, "email": 1, "print": 1, "read": 1, "role": "System Manager", "share": 1, "write": 1},
+  {"read": 1, "role": "Accounts Manager"}
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

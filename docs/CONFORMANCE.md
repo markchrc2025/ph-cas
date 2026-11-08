@@ -21,5 +21,5 @@ One row per Annex B item, as itemised in docs/reference/erpnext-bir-cas-review.m
 | 10f | Users cannot override program edits | built (no bypass role: closed periods exempt nobody, back-dating needs the manager role and a reason, drafts never print) | B02 to B04 | ph_cas.tests.test_b02_locks, test_b04_dates |
 | 10g | Creator's user ID on every record | pending (ERPNext meets as shipped; B07 records the evidence) | B07 | |
 | 10h | Automatic totals, out-of-balance detection | pending (ERPNext meets as shipped; B23 records the evidence) | B23 | |
-| 11 | Security: one session per user, deactivation after failed sign-ons, 30-day password change, letters and numbers, role-based access, protected audit trail, infrastructure | pending | B05, B07, B31 | |
+|| 11 | Security: one session per user, deactivation after failed sign-ons, 30-day password change, letters and numbers, role-based access, protected audit trail, infrastructure | built (sign-in controls; audit trail in B07, infrastructure in B31) | B05, B07, B31 | ph_cas.tests.test_b05_security ||
 | 12 | Sales adjustments through supplementary documents with unique serials | pending | B06, B21 | |

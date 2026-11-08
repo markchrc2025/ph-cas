@@ -2,6 +2,13 @@
 
 One entry per bundle, newest first. Counts are the test totals on main after the merge.
 
+## B05 Security baseline (9 Nov 2026)
+- PR: #4
+- Built: ph_cas.controls.security. System Settings forced and refused weaker: one session per user, password change every 30 days at most, strong password policy (score 3 or more), Frappe's lock after 5 consecutive failures for 300 seconds or more, two-factor sign-in with an OTP app. Deactivation after N failed sign-ins since the last successful one (N from the new single DocType PH CAS Settings, default 5, minimum 3), done from the Activity Log after_insert event, with an Info comment on the User and an email to System Managers; reactivation is a User edit by a System Manager, recorded in Version history. PH CAS Settings also carries the product name (D9) and refuses the ERPNext trademark in it.
+- Tests: 48 on main (+7).
+- Assumed: Two-factor sign-in is turned on for every user at once; on a new site the first sign-in shows the OTP setup. Stricter values than the baseline are allowed and are not loosened by migrate.
+- Known limit: Infrastructure items of Annex B 11 (firewall, encryption at rest, server room) belong to B31.
+
 ## B04 Lock-down 3: dates, drafts, periods, inventory (8 Nov 2026)
 - PR: #3
 - Built: ph_cas.controls.dates. Sales Invoice, POS Invoice, Payment Entry and the stock documents carry today's date (Asia/Manila; the System Settings time zone is forced) and Edit Posting Date and Time is refused; an amendment is a new document and takes today's date. Journal Entry and Purchase Invoice may be back-dated only by the role PH Accounting Manager (created here) with a written reason in the new field "Reason for earlier posting date"; future dates are refused for every posted voucher type. Drafts of posted voucher types cannot be printed or turned into PDFs (before_print refuses). Accounting Period: creating or changing one needs the manager role; every posted voucher type is closed; no exempted role. Company: perpetual inventory off for new companies and refused on (D7). Stock Reconciliation needs the manager role.

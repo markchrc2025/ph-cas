@@ -24,4 +24,7 @@ def setup_all():
     from ph_cas.controls import dates
 
     dates.setup()  # B04
+    from ph_cas.controls.security import force_system_settings
+
+    force_system_settings()  # B05
     frappe.db.commit()
