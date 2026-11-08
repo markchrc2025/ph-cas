@@ -1,0 +1,7 @@
+{"actions": [], "creation": "2026-11-09 05:00:00.000000", "doctype": "DocType", "editable_grid": 1, "engine": "InnoDB", "field_order": ["item", "label", "amount", "source", "reason"], "fields": [
+ {"fieldname": "item", "fieldtype": "Data", "label": "Item", "in_list_view": 1, "reqd": 1, "columns": 1},
+ {"fieldname": "label", "fieldtype": "Data", "label": "Label", "in_list_view": 1, "columns": 4},
+ {"fieldname": "amount", "fieldtype": "Currency", "label": "Amount", "in_list_view": 1, "columns": 2},
+ {"fieldname": "source", "fieldtype": "Data", "label": "Source", "in_list_view": 1, "columns": 2, "description": "computed, typed, carried"},
+ {"fieldname": "reason", "fieldtype": "Small Text", "label": "Reason (typed rows)"}
+], "istable": 1, "links": [], "modified": "2026-11-09 05:00:00.000000", "modified_by": "Administrator", "module": "PH CAS", "name": "PH Tax Return Line", "owner": "Administrator", "permissions": [], "sort_field": "modified", "sort_order": "DESC", "states": []}
