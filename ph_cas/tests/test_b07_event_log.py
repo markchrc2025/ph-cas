@@ -30,8 +30,10 @@ class TestB07EventLog(IntegrationTestCase):
         self.assertIn("submit", events)
         si.cancel()
         self.assertIn("cancel", [r.event for r in _rows(ref_name=si.name)])
-        amended = frappe.copy_doc(si)
-        amended.amended_from = si.name
+        je = make_journal_entry()
+        je.cancel()
+        amended = frappe.copy_doc(je)
+        amended.amended_from = je.name
         amended.docstatus = 0
         amended.insert()
         amended.submit()

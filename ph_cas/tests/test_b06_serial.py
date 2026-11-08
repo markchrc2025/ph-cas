@@ -39,13 +39,9 @@ class TestB06Serial(IntegrationTestCase):
         serial = si.get(SERIAL_FIELD)
         si.cancel()
         self.assertEqual(frappe.db.get_value("Sales Invoice", si.name, SERIAL_FIELD), serial)
-        amended = frappe.copy_doc(si)
-        amended.amended_from = si.name
-        amended.docstatus = 0
-        amended.insert()
-        self.assertFalse(amended.get(SERIAL_FIELD))
-        amended.submit()
-        self.assertEqual(int(amended.get(SERIAL_FIELD)), int(serial) + 1)
+        # an issued invoice is never amended (B21): the replacement is a new invoice
+        replacement = make_sales_invoice()
+        self.assertEqual(int(replacement.get(SERIAL_FIELD)), int(serial) + 1)
 
     def test_credit_note_uses_its_own_series(self):
         si = make_sales_invoice()

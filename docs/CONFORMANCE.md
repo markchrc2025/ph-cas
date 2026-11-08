@@ -22,4 +22,4 @@ One row per Annex B item, as itemised in docs/reference/erpnext-bir-cas-review.m
 || 10g | Creator's user ID on every record | verified (Frappe owner, creation, modified_by, modified on every row; the event log adds the user to every event) | B07 | frappe.model.base_document standard fields ||
 | 10h | Automatic totals, out-of-balance detection | pending (ERPNext meets as shipped; B23 records the evidence) | B23 | |
 || 11 | Security: one session per user, deactivation after failed sign-ons, 30-day password change, letters and numbers, role-based access, protected audit trail, infrastructure | built (sign-in controls; audit trail in B07, infrastructure in B31) | B05, B07, B31 | ph_cas.tests.test_b05_security ||
-|| 12 | Sales adjustments through supplementary documents with unique serials | built (own series per credit note, debit note and collection receipt; the rules in B21) | B06, B21 | ph_cas.tests.test_b06_serial ||
+||| 12 | Sales adjustments through supplementary documents with unique serials | built | B06, B21 | ph_cas.tests.test_b06_serial, test_b21_invoicing_rules |||

@@ -2,6 +2,13 @@
 
 One entry per bundle, newest first. Counts are the test totals on main after the merge.
 
+## B21 Invoicing rules (9 Nov 2026)
+- PR: #19
+- Built: ph_cas.invoicing.rules. A VAT seller's invoice of 1,000 or more (threshold from INV-BUYER-DETAILS-1000) to a VAT-registered customer is refused until the customer record carries TIN, registered name and address. An issued invoice is never amended: amendment of a Sales Invoice is refused; the credit note (decrease) and a new invoice (increase) are the correction path (D6). make_end_of_day_invoice builds the Non-VAT seller's one invoice for the day's small sales (threshold INV-NONVAT-500) to the walk-in customer set on the Company, by VAT class, dated today. The Collection Receipt is a per-company switch (default on, RDO question 9): off, a customer payment takes no serial and cannot be printed. Earlier tests that amended invoices now amend journal entries.
+- Tests: 167 on main (+6).
+- Assumed: Printing a Collection Receipt or a sales invoice for a sale below the threshold on the buyer's request is simply printing it; the ph_on_request flag records that it was asked for.
+- Known limit: The end-of-day totals are typed from the cash count or POS tape (POS itself is out of release 1).
+
 ## B20 Invoice print formats and REPRINT (9 Nov 2026)
 - PR: #18
 - Built: Standard Jinja print formats PH Sales Invoice (Sales Invoice, credit note and debit note by title) and PH Collection Receipt (Payment Entry of type Receive), set as the default formats. Each prints an ORIGINAL and a DUPLICATE page with: seller's registered name, business style, address, VAT or NON-VAT REG TIN with 5-digit branch; the BIR serial, date, document title; buyer name, TIN-branch and address; lines with quantity, unit, description, VAT class, unit price, amount; the VAT buckets (VATable, VAT-exempt, zero-rated, VAT amount) or the percentage-tax base, EXEMPT, VAT-EXEMPT SALE and ZERO-RATED SALE marks; total, the RR 6-2026 Less: Withholding Tax line and the net amount due when applicable; the SC/PWD block when B22 fills it; ACCN, date issued and the registered series range; the five-year validity note; the Annex B header on the duplicate. The collection receipt lists the invoices paid by serial and carries THIS DOCUMENT IS NOT VALID FOR CLAIM OF INPUT TAX. ph_cas.invoicing.printing counts every server-side render of a submitted document in the insert-only PH Print Record; the second print onward shows REPRINT with its number and the date of the first print.

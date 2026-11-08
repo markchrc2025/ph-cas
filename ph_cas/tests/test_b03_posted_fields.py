@@ -80,14 +80,16 @@ class TestB03PostedFields(IntegrationTestCase):
         self.assertEqual(frappe.db.count("Repost Accounting Ledger"), before)
 
     def test_amendment_keeps_the_original_cancelled(self):
-        si = make_sales_invoice()
-        si.cancel()
-        amended = frappe.copy_doc(si)
-        amended.amended_from = si.name
+        from ph_cas.tests.fixtures import make_journal_entry
+
+        je = make_journal_entry()
+        je.cancel()
+        amended = frappe.copy_doc(je)
+        amended.amended_from = je.name
         amended.docstatus = 0
         amended.insert()
-        self.assertEqual(amended.name, f"{si.name}-1")
-        self.assertEqual(frappe.db.get_value("Sales Invoice", si.name, "docstatus"), 2)
+        self.assertEqual(amended.name, f"{je.name}-1")
+        self.assertEqual(frappe.db.get_value("Journal Entry", je.name, "docstatus"), 2)
 
     def test_series_counter_cannot_be_moved(self):
         settings = frappe.get_doc("Document Naming Settings")

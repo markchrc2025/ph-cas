@@ -7,6 +7,7 @@ date of the first print. The count lives in PH Print Record, insert-only.
 """
 
 import frappe
+from frappe import _
 from frappe.utils import now_datetime
 
 COUNTED = ("Sales Invoice", "Payment Entry")
@@ -16,8 +17,13 @@ def before_print(doc, method=None, print_settings=None, *args, **kwargs):
     """doc_events['*'].before_print, after the draft refusal."""
     if doc.doctype not in COUNTED or doc.docstatus != 1:
         return
-    if doc.doctype == "Payment Entry" and doc.get("payment_type") != "Receive":
-        return
+    if doc.doctype == "Payment Entry":
+        if doc.get("payment_type") != "Receive":
+            return
+        from ph_cas.invoicing.rules import collection_receipts_enabled
+
+        if not collection_receipts_enabled(doc.company):
+            frappe.throw(_("Collection Receipts are switched off for {0}; the invoice is the only document issued.").format(doc.company))
     if frappe.flags.get("ph_in_print_preview"):
         return
     last = _last(doc.doctype, doc.name)

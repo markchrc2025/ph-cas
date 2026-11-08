@@ -27,7 +27,11 @@ def document_type_of(doc) -> str | None:
             return "Debit Note"
         return "Sales Invoice"
     if doc.doctype == "Payment Entry":
-        return "Collection Receipt" if doc.get("payment_type") == "Receive" else None
+        if doc.get("payment_type") != "Receive":
+            return None
+        from ph_cas.invoicing.rules import collection_receipts_enabled
+
+        return "Collection Receipt" if collection_receipts_enabled(doc.company) else None
     return None
 
 
