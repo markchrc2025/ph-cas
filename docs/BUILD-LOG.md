@@ -2,6 +2,13 @@
 
 One entry per bundle, newest first. Counts are the test totals on main after the merge.
 
+## B24 Books 2: Sales Journal, Purchase Journal, Inventory Book (9 Nov 2026)
+- PR: #22
+- Built: Script reports PH Sales Journal (one line per invoice: date, serial, type, customer TIN and name, address, description, VATable or percentage-tax base, exempt, zero-rated, output VAT, tax withheld by the customer, total; credit notes negative; totals and a tie-out of output VAT against the ledger), PH Purchase Journal (one line per bill: date, supplier invoice number, supplier TIN and name, net purchases by kind, purchases without input VAT, input VAT, EWT ATC and amount, reverse-charge VAT, amount payable; tie-out of EWT against the ledger) and PH Inventory Book (periodic per D7: per item and warehouse, opening quantity, in, out, closing quantity, last valuation rate and closing value). The SLSP (B29) reads the two journals' sources.
+- Tests: 180 on main (+4).
+- Assumed: The Purchase Journal shows a Non-VAT buyer's VAT-inclusive cost under services (net) since no input VAT exists; importations join once B29 adds the import fields.
+- Known limit: Inventory value uses the last Stock Ledger valuation rate, which ERPNext maintains even with perpetual inventory off.
+
 ## B23 Books 1: General Journal, General Ledger, Cash Receipts, Cash Disbursements (9 Nov 2026)
 - PR: #21
 - Built: Script reports PH General Journal (every posting in date order: date, reference as the BIR serial where one exists, document, particulars with party, account, debit, credit; a TOTAL line and a tie-out line against the ledger), PH General Ledger Book (per account: opening balance, each posting with running balance, closing balance checked against the ledger), PH Cash Receipts Book (receipts into cash and bank accounts: date, Collection Receipt serial, payor and TIN, particulars, cash debit, each account credited) and PH Cash Disbursements Book (payments out of cash and bank: voucher and check number, payee and TIN, cash credit, each account debited). All print with the BIR Header letter head and export with the header lines through ph_cas.audit.export.download_report. ph_cas.books.common holds the shared queries and the tie-out.

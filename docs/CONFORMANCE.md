@@ -6,9 +6,9 @@ One row per Annex B item, as itemised in docs/reference/erpnext-bir-cas-review.m
 |---|---|---|---|---|
 ||| 1 | Invoice face: seller details, VAT or NON-VAT REG TIN with 5-digit branch, serial of at least 6 digits, date, buyer details, lines, VAT split, EXEMPT, SC/PWD block, ACCN and series range, REPRINT | built (SC/PWD block fills in B22) | B06, B09, B12, B20, B22 | ph_cas.tests.test_b20_prints |||
 || 2 | Commercial invoices at least in duplicate | built (ORIGINAL and DUPLICATE pages on every print) | B20 | ph_cas.tests.test_b20_prints ||
-|| 3 | Books: General Journal, General Ledger, Sales Journal, Purchase Journal, Inventory Book with the RR 9-2009 columns | built (GJ, GL, CRB, CDB; sales, purchase and inventory books in B24) | B23, B24 | ph_cas.tests.test_b23_books ||
+||| 3 | Books: General Journal, General Ledger, Sales Journal, Purchase Journal, Inventory Book with the RR 9-2009 columns | built | B23, B24 | ph_cas.tests.test_b23_books, test_b24_books_2 |||
 || 4 | Every printout or e-copy shows name, address, TIN-branch, software name and version, user ID, date and time | built (default letter head and export helpers; the product name waits for D9) | B08 | ph_cas.tests.test_b08_audit_header ||
-| 5 | Books and reports saved as .csv or .dat; annual e-books per RR 16-2006 | pending | B23, B24, B25 | |
+|| 5 | Books and reports saved as .csv or .dat; annual e-books per RR 16-2006 | built (.csv and .xlsx with the header for every book; the RR 16-2006 record format waits for the spec, B25) | B23, B24, B25 | ph_cas.audit.export ||
 | 6 | Sales data sent to the BIR in its format (EIS) | pending | CAS-13 (not bundled yet) | |
 | 7 | Backups kept ten years | pending | B31 | |
 ||| 8 | Printable audit trail of all transactions and activities | built | B07, B08 | ph_cas.tests.test_b07_event_log, test_b08_audit_header |||
