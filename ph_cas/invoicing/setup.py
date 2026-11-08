@@ -4,7 +4,7 @@ from frappe.custom.doctype.property_setter.property_setter import make_property_
 
 def setup():
     """The PH print formats become the default print formats of their DocTypes."""
-    for doctype, fmt in (("Sales Invoice", "PH Sales Invoice"), ("Payment Entry", "PH Collection Receipt")):
+    for doctype, fmt in (("Sales Invoice", "PH Sales Invoice"), ("Payment Entry", "PH Collection Receipt"), ("PH 2307 Issued", "PH BIR 2307")):
         if not frappe.db.exists("Print Format", fmt):
             continue
         existing = frappe.db.get_value("Property Setter", {"doc_type": doctype, "property": "default_print_format"}, "value")

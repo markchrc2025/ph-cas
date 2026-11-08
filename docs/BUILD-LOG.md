@@ -2,6 +2,13 @@
 
 One entry per bundle, newest first. Counts are the test totals on main after the merge.
 
+## B26 2307 on the BIR layout (9 Nov 2026)
+- PR: #24
+- Built: Submittable DocType PH 2307 Issued (payor company, payee supplier, one quarter, payee TIN-branch, name as the form wants it for individuals and non-individuals, address, ZIP; Part III lines per ATC with the three months' bases, total and tax withheld, block A or B) generated from the bills and advances of the quarter; one issued certificate per payee per quarter, reissue only after cancellation (the reissue gets a numbered name and records what it replaces). generate_quarter creates the missing certificates for every payee withheld from. Print format PH BIR 2307 reproduces the January 2018 ENCS face from the project's cell-by-cell reference: header block, items 1 to 8A with digit boxes (14 for TINs, 8 for dates, 4 for ZIP), Part III with blocks A and B of ten rows and totals in the reference's column proportions, the declaration, both signature blocks with the tax-agent lines, the data-privacy note; default print format of the DocType.
+- Tests: 186 on main (+4).
+- Assumed: The face is rebuilt in HTML at the reference's dimensions (538 pt wide, legal paper) rather than overlaid on the BIR PDF, so the owner's paper check decides whether it passes as the BIR's blank or whether an overlay is needed. Block B stays empty (business-tax withholding by a private payor does not arise in release 1).
+- Known limit: Page 2 (the ATC schedules) is not printed with the certificate.
+
 ## B25 Year-end e-books pack and transmittal (format pending) (9 Nov 2026)
 - PR: #23
 - Built: ph_cas.books.yearend. build_pack writes the seven books for the year as CSV files named TIN+branch_year_code with the Annex B header, a MANIFEST.json with SHA-256 hashes and sizes, and the RMO 9-2021 transmittal text (taxpayer, TIN, year, due date 30 days after year-end, file list with hashes, software and version, a placeholder for the ORUS QR stamp, signature block). download_pack zips it and logs the export; verify_pack reads a pack back and checks every hash. FORMAT_WRITERS is the slot where the RR 16-2006 record-format writer goes per book when the spec arrives (gate G7), without changing the pack.

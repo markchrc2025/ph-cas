@@ -12,7 +12,7 @@ One row per Annex B item, as itemised in docs/reference/erpnext-bir-cas-review.m
 | 6 | Sales data sent to the BIR in its format (EIS) | pending | CAS-13 (not bundled yet) | |
 | 7 | Backups kept ten years | pending | B31 | |
 ||| 8 | Printable audit trail of all transactions and activities | built | B07, B08 | ph_cas.tests.test_b07_event_log, test_b08_audit_header |||
-| 9 | Generates 2306, 2307, 2316 | pending | B26 (2307); 2306 and 2316 out of release 1 | |
+|| 9 | Generates 2306, 2307, 2316 | built for the 2307 (2306 and 2316 out of release 1) | B26 | ph_cas.tests.test_b26_2307 ||
 || 10a | System controls invoice numbering; no reuse, no reset | built | B03, B06 | ph_cas.tests.test_b03_posted_fields, test_b06_serial ||
 | 10b | Posting date is the date entered | built | B04 | ph_cas.tests.test_b04_dates |
 | 10c | Void, not modify, once posted; no ledger rewrite | built | B02, B03 | ph_cas.tests.test_b02_locks, test_b03_posted_fields |
