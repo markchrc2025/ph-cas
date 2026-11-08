@@ -2,6 +2,13 @@
 
 One entry per bundle, newest first. Counts are the test totals on main after the merge.
 
+## B23 Books 1: General Journal, General Ledger, Cash Receipts, Cash Disbursements (9 Nov 2026)
+- PR: #21
+- Built: Script reports PH General Journal (every posting in date order: date, reference as the BIR serial where one exists, document, particulars with party, account, debit, credit; a TOTAL line and a tie-out line against the ledger), PH General Ledger Book (per account: opening balance, each posting with running balance, closing balance checked against the ledger), PH Cash Receipts Book (receipts into cash and bank accounts: date, Collection Receipt serial, payor and TIN, particulars, cash debit, each account credited) and PH Cash Disbursements Book (payments out of cash and bank: voucher and check number, payee and TIN, cash credit, each account debited). All print with the BIR Header letter head and export with the header lines through ph_cas.audit.export.download_report. ph_cas.books.common holds the shared queries and the tie-out.
+- Tests: 176 on main (+5).
+- Assumed: Columns follow RR 9-2009 as read in the review: date, reference, particulars, account, debit, credit, with party TIN on the cash books.
+- Known limit: Page numbering is the report print's own; a dedicated paginated PDF per book is left to B25's year-end pack if the RDO asks for it.
+
 ## B22 Senior citizen and PWD discounts (9 Nov 2026)
 - PR: #20
 - Built: ph_cas.tax.sc_pwd. A Sales Invoice flagged as a sale to a senior citizen or PWD requires the holder type, name and OSCA or PWD ID; every line becomes VAT-exempt and the 20% discount (rule SC-PWD-20) on the VAT-exclusive price is booked as a negative tax row to the Senior Citizen and PWD Discounts expense account, so revenue stays gross and the discount is a deduction from gross income. The 5% special discount on basic necessities (SC-PWD-5-SPECIAL) keeps the VAT and refuses sales over the weekly cap. The invoice print shows the holder block with a signature line. Report PH SC PWD Sales is the record the law requires.
