@@ -2,6 +2,13 @@
 
 One entry per bundle, newest first. Counts are the test totals on main after the merge.
 
+## B22 Senior citizen and PWD discounts (9 Nov 2026)
+- PR: #20
+- Built: ph_cas.tax.sc_pwd. A Sales Invoice flagged as a sale to a senior citizen or PWD requires the holder type, name and OSCA or PWD ID; every line becomes VAT-exempt and the 20% discount (rule SC-PWD-20) on the VAT-exclusive price is booked as a negative tax row to the Senior Citizen and PWD Discounts expense account, so revenue stays gross and the discount is a deduction from gross income. The 5% special discount on basic necessities (SC-PWD-5-SPECIAL) keeps the VAT and refuses sales over the weekly cap. The invoice print shows the holder block with a signature line. Report PH SC PWD Sales is the record the law requires.
+- Tests: 171 on main (+4).
+- Assumed: D8 said SC/PWD later; built now since the whole plan was asked for. The 20% applies to all lines of the flagged invoice (a mixed receipt is split into two invoices); the weekly cap is checked per sale, not across the week.
+- Known limit: H4: the JAO number and the computation base are the CPA's to confirm; the rules stay draft.
+
 ## B21 Invoicing rules (9 Nov 2026)
 - PR: #19
 - Built: ph_cas.invoicing.rules. A VAT seller's invoice of 1,000 or more (threshold from INV-BUYER-DETAILS-1000) to a VAT-registered customer is refused until the customer record carries TIN, registered name and address. An issued invoice is never amended: amendment of a Sales Invoice is refused; the credit note (decrease) and a new invoice (increase) are the correction path (D6). make_end_of_day_invoice builds the Non-VAT seller's one invoice for the day's small sales (threshold INV-NONVAT-500) to the walk-in customer set on the Company, by VAT class, dated today. The Collection Receipt is a per-company switch (default on, RDO question 9): off, a customer payment takes no serial and cannot be printed. Earlier tests that amended invoices now amend journal entries.

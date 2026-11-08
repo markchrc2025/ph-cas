@@ -66,4 +66,7 @@ def setup_all():
     from ph_cas.invoicing import rules as invoicing_rules
 
     invoicing_rules.setup()  # B21
+    from ph_cas.tax import sc_pwd
+
+    sc_pwd.setup()  # B22
     frappe.db.commit()
