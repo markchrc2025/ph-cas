@@ -54,4 +54,7 @@ def setup_all():
     from ph_cas.tax import ovc
 
     ovc.setup()  # B16
+    from ph_cas.tax import calendar
+
+    calendar.setup()  # B17
     frappe.db.commit()

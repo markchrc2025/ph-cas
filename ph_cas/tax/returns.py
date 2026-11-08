@@ -213,3 +213,140 @@ def get_or_create(company: str, form: str, start, end, compute: bool = True):
 def compute_return(company: str, form: str, period_start: str, period_end: str):
     doc = get_or_create(company, form, period_start, period_end)
     return doc.name
+
+
+# ---- 2551Q (January 2018 ENCS) --------------------------------------------------
+
+
+def compute_2551q(company: str, start, end) -> list:
+    from ph_cas.tax.rules import resolve
+
+    p = {"company": company, "start": start, "end": end}
+    si = "company = %(company)s and docstatus = 1 and posting_date between %(start)s and %(end)s"
+    base = _sum("Sales Invoice", "ph_pt_base", si, p)
+    rule = resolve("percentage", end, "PT010")
+    tax = flt(base * flt(rule.rate) / 100, 2)
+    withheld = frappe.db.sql(
+        """select coalesce(sum(l.tax_withheld), 0) from `tabPH 2307 Received Line` l
+           join `tabPH 2307 Received` d on d.name = l.parent
+           where d.docstatus = 1 and d.company = %s and l.kind = 'Percentage tax' and d.period_from >= %s and d.period_to <= %s""",
+        (company, start, end),
+    )[0][0]
+    withheld = flt(withheld, 2)
+    L = [
+        ("S1.1 ATC", "Schedule 1 row 1: ATC", 0.0, "computed"),
+        ("S1.1 base", f"Schedule 1 row 1: taxable amount ({rule.atc})", base, "computed"),
+        ("S1.1 rate", f"Schedule 1 row 1: tax rate % ({rule.rule_id})", flt(rule.rate), "computed"),
+        ("S1.1 tax", "Schedule 1 row 1: tax due", tax, "computed"),
+        ("S1.7", "Total Tax Due (Schedule 1)", tax, "computed"),
+        ("14", "Total Tax Due", tax, "computed"),
+        ("15", "Creditable Percentage Tax Withheld per 2307", withheld, "computed"),
+        ("18", "Total Tax Credits/Payments", withheld, "computed"),
+        ("19", "Tax Still Payable/(Overpayment)", flt(tax - withheld, 2), "computed"),
+        ("24", "TOTAL AMOUNT PAYABLE/(Overpayment)", flt(tax - withheld, 2), "computed"),
+    ]
+    return L
+
+
+# ---- expanded withholding: 0619-E (month) and 1601-EQ (quarter) ------------------
+
+
+def _ewt_rows(company, start, end) -> dict:
+    """ATC -> {base, tax} from bills and advances in the period."""
+    out = {}
+    for r in frappe.db.sql(
+        """select ph_ewt_atc as atc, coalesce(sum(ph_ewt_base), 0) as base, coalesce(sum(ph_ewt_amount), 0) as tax
+           from `tabPurchase Invoice` where company = %s and docstatus = 1 and posting_date between %s and %s
+             and ifnull(ph_ewt_atc, '') != '' and ph_ewt_amount > 0 group by ph_ewt_atc""",
+        (company, start, end),
+        as_dict=True,
+    ):
+        out[r.atc] = {"base": flt(r.base), "tax": flt(r.tax)}
+    for r in frappe.db.sql(
+        """select ph_ewt_advance_atc as atc, coalesce(sum(ph_ewt_on_advance), 0) as tax, coalesce(sum(paid_amount), 0) as paid
+           from `tabPayment Entry` where company = %s and docstatus = 1 and posting_date between %s and %s
+             and ifnull(ph_ewt_advance_atc, '') != '' and ph_ewt_on_advance > 0 group by ph_ewt_advance_atc""",
+        (company, start, end),
+        as_dict=True,
+    ):
+        d = out.setdefault(r.atc, {"base": 0.0, "tax": 0.0})
+        d["tax"] += flt(r.tax)
+        d["base"] += flt(r.paid)
+    return out
+
+
+def compute_0619e(company: str, start, end) -> list:
+    rows = _ewt_rows(company, start, end)
+    total = flt(sum(v["tax"] for v in rows.values()), 2)
+    L = [(f"ATC {atc}", f"Tax withheld under {atc}", flt(v["tax"], 2), "computed") for atc, v in sorted(rows.items())]
+    L += [
+        ("14", "Amount of Remittance", total, "computed"),
+        ("18", "TOTAL AMOUNT STILL DUE", total, "computed"),
+    ]
+    return L
+
+
+def compute_1601eq(company: str, start, end) -> list:
+    rows = _ewt_rows(company, start, end)
+    L = []
+    item = 13
+    total = 0.0
+    for atc, v in sorted(rows.items()):
+        rate = flt(v["tax"] / v["base"] * 100, 2) if v["base"] else 0
+        L.append((f"{item} ATC", f"ATC row {item}", 0.0, "computed"))
+        L.append((f"{item} base", f"Tax base {atc}", flt(v["base"], 2), "computed"))
+        L.append((f"{item} rate", f"Tax rate % {atc}", rate, "computed"))
+        L.append((f"{item} tax", f"Tax withheld {atc}", flt(v["tax"], 2), "computed"))
+        total += v["tax"]
+        item += 1
+    if item > 19:
+        L.append(("note", "More than six ATCs: attach a schedule", 0.0, "computed"))
+    total = flt(total, 2)
+    s = getdate(start)
+    m1_start, m1_end = get_first_day(s), get_last_day(s)
+    m2_start, m2_end = get_first_day(add_months(s, 1)), get_last_day(add_months(s, 1))
+    m1 = flt(sum(v["tax"] for v in _ewt_rows(company, m1_start, m1_end).values()), 2)
+    m2 = flt(sum(v["tax"] for v in _ewt_rows(company, m2_start, m2_end).values()), 2)
+    prev_over = previous_period_figure(company, "1601-EQ", start, "26")
+    carry = -prev_over if prev_over < 0 and getdate(start).year == _prev_year(company, start) else 0.0
+    remitted = flt(m1 + m2 + carry, 2)
+    due = flt(total - remitted, 2)
+    L += [
+        ("19", "Total Taxes Withheld for the Quarter", total, "computed"),
+        ("20", "Less: Remittances Made, 1st Month (0619-E)", m1, "computed"),
+        ("21", "Remittances Made, 2nd Month (0619-E)", m2, "computed"),
+        ("23", "Over-remittance from Previous Quarter of the same taxable year", carry, "carried"),
+        ("25", "Total Remittances Made", remitted, "computed"),
+        ("26", "Tax Still Due/(Over-remittance)", due, "computed"),
+        ("31", "TOTAL AMOUNT STILL DUE/(Over-remittance)", due, "computed"),
+    ]
+    return L
+
+
+def _prev_year(company, start):
+    prev = frappe.get_all("PH Tax Return Figures", filters={"company": company, "form": "1601-EQ", "period_end": ("<", start)}, fields=["period_end"], order_by="period_end desc", limit=1)
+    return getdate(prev[0].period_end).year if prev else None
+
+
+# ---- 1600-VT (month) ----------------------------------------------------------
+
+
+def compute_1600vt(company: str, start, end) -> list:
+    rows = frappe.db.sql(
+        """select ph_rc_atc as atc, coalesce(sum(ph_rc_base), 0) as base, coalesce(sum(ph_rc_vat), 0) as vat
+           from `tabPurchase Invoice` where company = %s and docstatus = 1 and posting_date between %s and %s
+             and ifnull(ph_rc_atc, '') != '' group by ph_rc_atc""",
+        (company, start, end),
+        as_dict=True,
+    )
+    L = []
+    total = 0.0
+    for r in sorted(rows, key=lambda x: x.atc):
+        L.append((f"{r.atc} base", f"Tax base {r.atc}", flt(r.base, 2), "computed"))
+        L.append((f"{r.atc} tax", f"VAT withheld {r.atc}", flt(r.vat, 2), "computed"))
+        total += flt(r.vat)
+    L.append(("Total", "Total VAT withheld and remitted on 1600-VT", flt(total, 2), "computed"))
+    return L
+
+
+COMPUTES.update({"2551Q": compute_2551q, "0619-E": compute_0619e, "1601-EQ": compute_1601eq, "1600-VT": compute_1600vt})

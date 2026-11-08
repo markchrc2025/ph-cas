@@ -158,34 +158,6 @@
   "catalogue_ref": "B Sales to government"
  },
  {
-  "rule_id": "GOV-EWT-GOODS",
-  "kind": "ewt",
-  "title": "Income tax withheld by government on goods",
-  "rate": 1,
-  "atc": "WI640",
-  "base": "net_of_vat",
-  "selector": "payor=government;category=goods",
-  "effective_from": "2018-01-01",
-  "legal_basis": "RR 2-98 Sec. 2.57.2 (secondary source; CPA to confirm ATC)",
-  "return_form": "2307",
-  "catalogue_ref": "B Sales to government",
-  "notes": "H6: ATC and rate from a secondary source"
- },
- {
-  "rule_id": "GOV-EWT-SERVICES",
-  "kind": "ewt",
-  "title": "Income tax withheld by government on services",
-  "rate": 2,
-  "atc": "WI650",
-  "base": "net_of_vat",
-  "selector": "payor=government;category=services",
-  "effective_from": "2018-01-01",
-  "legal_basis": "RR 2-98 Sec. 2.57.2 (secondary source; CPA to confirm ATC)",
-  "return_form": "2307",
-  "catalogue_ref": "B Sales to government",
-  "notes": "H6"
- },
- {
   "rule_id": "GOV-PT-WB",
   "kind": "percentage",
   "title": "Percentage tax withheld by government from non-VAT sellers",
@@ -857,5 +829,57 @@
   "legal_basis": "RA 11976 Sec. 235; RR 7-2024; RMC 5-2021 Annex B",
   "catalogue_ref": "E Retention",
   "notes": "H12"
+ },
+ {
+  "rule_id": "GOV-EWT-GOODS-WI640",
+  "kind": "ewt",
+  "title": "Income tax withheld by government on goods, individual supplier",
+  "rate": 1,
+  "atc": "WI640",
+  "base": "net_of_vat",
+  "selector": "payor=government;category=goods;payee_type=Individual",
+  "effective_from": "2018-01-01",
+  "legal_basis": "RR 2-98 Sec. 2.57.2; 1601-EQ Jan 2019 ENCS ATC schedule",
+  "return_form": "2307",
+  "catalogue_ref": "B Sales to government"
+ },
+ {
+  "rule_id": "GOV-EWT-SERVICES-WI157",
+  "kind": "ewt",
+  "title": "Income tax withheld by government on services, individual supplier",
+  "rate": 2,
+  "atc": "WI157",
+  "base": "net_of_vat",
+  "selector": "payor=government;category=services;payee_type=Individual",
+  "effective_from": "2018-01-01",
+  "legal_basis": "RR 2-98 Sec. 2.57.2; 1601-EQ Jan 2019 ENCS ATC schedule",
+  "return_form": "2307",
+  "catalogue_ref": "B Sales to government"
+ },
+ {
+  "rule_id": "GOV-EWT-GOODS-WC640",
+  "kind": "ewt",
+  "title": "Income tax withheld by government on goods, non-individual supplier",
+  "rate": 1,
+  "atc": "WC640",
+  "base": "net_of_vat",
+  "selector": "payor=government;category=goods;payee_type=Non-individual",
+  "effective_from": "2018-01-01",
+  "legal_basis": "RR 2-98 Sec. 2.57.2; 1601-EQ Jan 2019 ENCS ATC schedule",
+  "return_form": "2307",
+  "catalogue_ref": "B Sales to government"
+ },
+ {
+  "rule_id": "GOV-EWT-SERVICES-WC157",
+  "kind": "ewt",
+  "title": "Income tax withheld by government on services, non-individual supplier",
+  "rate": 2,
+  "atc": "WC157",
+  "base": "net_of_vat",
+  "selector": "payor=government;category=services;payee_type=Non-individual",
+  "effective_from": "2018-01-01",
+  "legal_basis": "RR 2-98 Sec. 2.57.2; 1601-EQ Jan 2019 ENCS ATC schedule",
+  "return_form": "2307",
+  "catalogue_ref": "B Sales to government"
  }
 ]

@@ -102,8 +102,16 @@ def seed_path() -> str:
     return os.path.join(os.path.dirname(os.path.dirname(__file__)), "setup", "data", "tax_rules.json")
 
 
+# Rule ids that earlier seeds carried and that were wrong; removed while still draft.
+WITHDRAWN = ("GOV-EWT-GOODS", "GOV-EWT-SERVICES")
+
+
 def seed():
-    """Insert missing rules from the seed file as draft. Never touches existing rows."""
+    """Insert missing rules from the seed file as draft. Never touches existing
+    rows, except withdrawn ids that are still draft."""
+    for rid in WITHDRAWN:
+        if frappe.db.exists("PH Tax Rule", rid) and frappe.db.get_value("PH Tax Rule", rid, "status") == "draft":
+            frappe.delete_doc("PH Tax Rule", rid, ignore_permissions=True, force=True)
     with open(seed_path(), encoding="utf-8") as f:
         rows = json.load(f)
     inserted = []
