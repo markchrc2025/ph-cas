@@ -1,0 +1,106 @@
+{%- set P = frappe.get_attr("ph_cas.invoicing.printing") -%}
+{%- set seller = P.company_facts(doc.company) -%}
+{%- set series = P.series_facts(doc) -%}
+{%- set buyer = P.buyer_facts(doc) -%}
+{%- set title = P.document_title(doc) -%}
+{%- set regime = doc.ph_tax_regime or "Non-VAT" -%}
+{%- set wht_line = frappe.get_attr("ph_cas.tax.customer_withholding.shows_less_withholding_line")(doc) -%}
+{%- for copy in ["ORIGINAL", "DUPLICATE"] %}
+<div class="ph-invoice" style="font-family: Arial, Helvetica, sans-serif; font-size: 10pt; {% if not loop.first %}page-break-before: always;{% endif %}">
+  {% if doc.ph_is_reprint %}
+  <div style="border: 2px solid #000; padding: 4px 8px; display: inline-block; font-weight: bold; margin-bottom: 6px;">
+    REPRINT No. {{ doc.ph_print_no }} &middot; first printed {{ frappe.format(doc.ph_first_printed_on, {"fieldtype": "Datetime"}) }}
+  </div>
+  {% endif %}
+  <table style="width: 100%; border-collapse: collapse;">
+    <tr>
+      <td style="width: 60%; vertical-align: top;">
+        <div style="font-size: 13pt; font-weight: bold;">{{ seller.name }}</div>
+        {% if seller.business_style %}<div>{{ seller.business_style }}</div>{% endif %}
+        <div>{{ seller.address }}</div>
+        <div><b>{{ "VAT" if regime == "VAT" else "NON-VAT" }} REG TIN {{ seller.tin }}-{{ seller.branch }}</b></div>
+      </td>
+      <td style="width: 40%; vertical-align: top; text-align: right;">
+        <div style="font-size: 15pt; font-weight: bold;">{{ title }}</div>
+        <div style="font-size: 13pt;">No. <b>{{ doc.bir_serial or "(not yet issued)" }}</b></div>
+        <div>Date: {{ frappe.format(doc.posting_date, {"fieldtype": "Date"}) }}</div>
+        <div style="font-size: 8pt; margin-top: 4px;">{{ copy }} COPY</div>
+      </td>
+    </tr>
+  </table>
+  <hr style="border: 0; border-top: 1px solid #000; margin: 6px 0;">
+  <table style="width: 100%; font-size: 9.5pt;">
+    <tr><td style="width: 18%;">Sold to:</td><td><b>{{ buyer.name }}</b></td></tr>
+    <tr><td>TIN:</td><td>{{ buyer.tin }}</td></tr>
+    <tr><td>Address:</td><td>{{ buyer.address }}</td></tr>
+    {% if doc.get("is_return") and doc.return_against %}<tr><td>Refers to invoice:</td><td>{{ frappe.db.get_value("Sales Invoice", doc.return_against, "bir_serial") or doc.return_against }}</td></tr>{% endif %}
+    {% if doc.po_no %}<tr><td>Buyer's reference:</td><td>{{ doc.po_no }}</td></tr>{% endif %}
+  </table>
+  <table style="width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 9.5pt;">
+    <thead>
+      <tr style="border-bottom: 1px solid #000; border-top: 1px solid #000;">
+        <th style="text-align: left; padding: 3px;">Qty</th>
+        <th style="text-align: left; padding: 3px;">Unit</th>
+        <th style="text-align: left; padding: 3px;">Description</th>
+        <th style="text-align: left; padding: 3px;">VAT class</th>
+        <th style="text-align: right; padding: 3px;">Unit price</th>
+        <th style="text-align: right; padding: 3px;">Amount</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in doc.items %}
+      <tr>
+        <td style="padding: 3px;">{{ frappe.format(row.qty, {"fieldtype": "Float"}) }}</td>
+        <td style="padding: 3px;">{{ row.uom or "" }}</td>
+        <td style="padding: 3px;">{{ row.item_name }}{% if row.description and row.description != row.item_name %}<br><span style="font-size: 8.5pt;">{{ frappe.utils.strip_html(row.description) }}</span>{% endif %}</td>
+        <td style="padding: 3px;">{{ row.ph_vat_class or "" }}</td>
+        <td style="padding: 3px; text-align: right;">{{ frappe.format(row.rate, {"fieldtype": "Currency"}, {"currency": doc.currency}) }}</td>
+        <td style="padding: 3px; text-align: right;">{{ frappe.format(row.amount, {"fieldtype": "Currency"}, {"currency": doc.currency}) }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <table style="width: 100%; margin-top: 8px; font-size: 9.5pt;">
+    <tr>
+      <td style="width: 55%; vertical-align: top;">
+        {% if regime == "VAT" %}
+        <table style="font-size: 9.5pt;">
+          <tr><td>VATable Sales</td><td style="text-align: right; padding-left: 16px;">{{ frappe.format(doc.ph_vatable_sales, {"fieldtype": "Currency"}) }}</td></tr>
+          <tr><td>VAT-Exempt Sales</td><td style="text-align: right;">{{ frappe.format(doc.ph_exempt_sales, {"fieldtype": "Currency"}) }}</td></tr>
+          <tr><td>Zero-Rated Sales</td><td style="text-align: right;">{{ frappe.format(doc.ph_zero_rated_sales, {"fieldtype": "Currency"}) }}</td></tr>
+          <tr><td>VAT Amount ({{ doc.ph_vat_rate|int }}%)</td><td style="text-align: right;">{{ frappe.format(doc.ph_vat_amount, {"fieldtype": "Currency"}) }}</td></tr>
+        </table>
+        {% else %}
+        <div>Sales subject to percentage tax: {{ frappe.format(doc.ph_pt_base, {"fieldtype": "Currency"}) }}</div>
+        {% if doc.ph_exempt_sales %}<div>EXEMPT sales: {{ frappe.format(doc.ph_exempt_sales, {"fieldtype": "Currency"}) }}</div>{% endif %}
+        {% if not doc.ph_pt_base and doc.ph_exempt_sales %}<div style="font-weight: bold; font-size: 12pt;">EXEMPT</div>{% endif %}
+        {% endif %}
+        {% if doc.ph_exempt_sales and not doc.ph_vatable_sales and not doc.ph_zero_rated_sales and regime == "VAT" %}<div style="font-weight: bold; font-size: 12pt;">VAT-EXEMPT SALE</div>{% endif %}
+        {% if doc.ph_zero_rated_sales and not doc.ph_vatable_sales and not doc.ph_exempt_sales %}<div style="font-weight: bold; font-size: 12pt;">ZERO-RATED SALE</div>{% endif %}
+      </td>
+      <td style="width: 45%; vertical-align: top;">
+        <table style="width: 100%; font-size: 9.5pt;">
+          <tr><td>Total Sales</td><td style="text-align: right;">{{ frappe.format(doc.net_total, {"fieldtype": "Currency"}) }}</td></tr>
+          {% if regime == "VAT" %}<tr><td>Add: VAT</td><td style="text-align: right;">{{ frappe.format(doc.ph_vat_amount, {"fieldtype": "Currency"}) }}</td></tr>{% endif %}
+          <tr style="font-weight: bold;"><td>TOTAL AMOUNT DUE</td><td style="text-align: right;">{{ frappe.format(doc.grand_total, {"fieldtype": "Currency"}) }}</td></tr>
+          {% if wht_line %}
+          <tr><td>Less: Withholding Tax ({{ doc.ph_wht_atc }}{% if doc.ph_wvat_atc %}, {{ doc.ph_wvat_atc }}{% endif %}{% if doc.ph_wpt_atc %}, {{ doc.ph_wpt_atc }}{% endif %})</td><td style="text-align: right;">({{ frappe.format(doc.ph_wht_total, {"fieldtype": "Currency"}) }})</td></tr>
+          <tr style="font-weight: bold;"><td>AMOUNT DUE NET OF WITHHOLDING</td><td style="text-align: right;">{{ frappe.format(doc.ph_net_due, {"fieldtype": "Currency"}) }}</td></tr>
+          {% endif %}
+        </table>
+      </td>
+    </tr>
+  </table>
+  {% if doc.get("ph_sc_pwd_applied") %}
+  <div style="margin-top: 6px; border: 1px solid #000; padding: 4px; font-size: 9pt;">
+    <b>Senior Citizen / PWD</b>: {{ doc.ph_sc_pwd_name }} &middot; ID {{ doc.ph_sc_pwd_id }} &middot; 20% discount {{ frappe.format(doc.ph_sc_pwd_discount, {"fieldtype": "Currency"}) }} on the VAT-exempt price<br>
+    Signature: ______________________
+  </div>
+  {% endif %}
+  <div style="margin-top: 14px; font-size: 8pt; border-top: 1px solid #000; padding-top: 4px;">
+    ACCN {{ series.accn or seller.accn }} &middot; Date issued {{ frappe.format(series.date_issued or seller.accn_date, {"fieldtype": "Date"}) if (series.date_issued or seller.accn_date) else "" }} &middot; Series {{ series.range }}<br>
+    {% if regime == "VAT" %}THIS INVOICE SHALL BE VALID FOR FIVE (5) YEARS FROM THE DATE OF THE ACKNOWLEDGMENT CERTIFICATE. Buyer's name and TIN are required to claim input tax.{% endif %}
+    {% if copy == "DUPLICATE" %}<br>{{ frappe.get_attr("ph_cas.audit.header.ph_header")(doc) }}{% endif %}
+  </div>
+</div>
+{% endfor %}

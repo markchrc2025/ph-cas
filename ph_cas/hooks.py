@@ -18,7 +18,7 @@ doc_events = {
         "on_trash": "ph_cas.controls.locks.refuse_delete",
         "before_update_after_submit": "ph_cas.controls.posted_fields.refuse_posted_field_changes",
         "validate": "ph_cas.controls.dates.validate_posting_date",
-        "before_print": ["ph_cas.controls.dates.refuse_draft_print", "ph_cas.audit.events.on_before_print"],
+        "before_print": ["ph_cas.controls.dates.refuse_draft_print", "ph_cas.invoicing.printing.before_print", "ph_cas.audit.events.on_before_print"],
         "after_insert": "ph_cas.audit.events.on_after_insert",
         "on_update": "ph_cas.audit.events.on_update",
         "on_submit": "ph_cas.audit.events.on_submit",

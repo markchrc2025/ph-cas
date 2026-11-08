@@ -1,0 +1,11 @@
+{"actions": [], "autoname": "format:PRN-{#######}", "creation": "2026-11-09 08:00:00.000000", "doctype": "DocType", "engine": "InnoDB", "field_order": ["ref_doctype", "ref_name", "print_no", "printed_on", "printed_by", "method", "copy_type"], "fields": [
+ {"fieldname": "ref_doctype", "fieldtype": "Data", "label": "Document type", "read_only": 1, "in_list_view": 1, "in_standard_filter": 1},
+ {"fieldname": "ref_name", "fieldtype": "Dynamic Link", "options": "ref_doctype", "label": "Document", "read_only": 1, "in_list_view": 1, "in_standard_filter": 1},
+ {"fieldname": "print_no", "fieldtype": "Int", "label": "Print number", "read_only": 1, "in_list_view": 1},
+ {"fieldname": "printed_on", "fieldtype": "Datetime", "label": "Printed on", "read_only": 1, "in_list_view": 1},
+ {"fieldname": "printed_by", "fieldtype": "Data", "label": "Printed by", "read_only": 1, "in_list_view": 1},
+ {"fieldname": "method", "fieldtype": "Data", "label": "Method", "read_only": 1},
+ {"fieldname": "copy_type", "fieldtype": "Data", "label": "Copy", "read_only": 1}
+], "in_create": 1, "links": [], "modified": "2026-11-09 08:00:00.000000", "modified_by": "Administrator", "module": "PH CAS", "name": "PH Print Record", "owner": "Administrator", "permissions": [
+ {"read": 1, "report": 1, "role": "System Manager"}, {"read": 1, "report": 1, "role": "PH Accounting Manager"}, {"read": 1, "report": 1, "role": "Accounts Manager"}, {"read": 1, "role": "Accounts User"}
+], "sort_field": "printed_on", "sort_order": "DESC", "states": []}
