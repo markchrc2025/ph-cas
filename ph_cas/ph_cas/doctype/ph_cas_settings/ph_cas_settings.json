@@ -9,6 +9,7 @@
   "security_section",
   "failed_signins_before_deactivation",
   "audit_section",
+  "last_backup_on",
   "last_chain_check",
   "last_chain_check_ok",
   "provider_section",
@@ -100,6 +101,12 @@
    "fieldname": "provider_signatory_tin",
    "fieldtype": "Data",
    "label": "Signatory's TIN"
+  },
+  {
+   "fieldname": "last_backup_on",
+   "fieldtype": "Datetime",
+   "label": "Last backup",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 0,

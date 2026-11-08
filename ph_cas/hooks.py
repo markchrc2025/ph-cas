@@ -96,7 +96,8 @@ on_login = "ph_cas.audit.events.on_login"
 on_logout = "ph_cas.audit.events.on_logout"
 
 scheduler_events = {
-    "daily": ["ph_cas.audit.events.daily_chain_check"],
+    "daily": ["ph_cas.audit.events.daily_chain_check", "ph_cas.ops.backup.scheduled_daily_backup"],
+    "hourly": ["ph_cas.ops.monitor.alert_if_needed"],
 }
 
 jinja = {
