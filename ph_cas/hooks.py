@@ -35,7 +35,7 @@ doc_events = {
         "before_submit": "ph_cas.controls.serial.assign_serial",
     },
     "Purchase Invoice": {
-        "before_validate": "ph_cas.tax.purchase.before_validate",
+        "before_validate": ["ph_cas.tax.purchase.before_validate", "ph_cas.tax.reverse_charge.before_validate"],
         "validate": "ph_cas.tax.purchase.validate",
     },
     "POS Invoice": {

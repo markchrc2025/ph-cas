@@ -2,6 +2,13 @@
 
 One entry per bundle, newest first. Counts are the test totals on main after the merge.
 
+## B15 Reverse-charge VAT: digital services and RBE purchases (9 Nov 2026)
+- PR: #14
+- Built: ph_cas.tax.reverse_charge. Suppliers flagged non-resident digital service provider or registered business enterprise get a pair of tax rows on the Purchase Invoice that leave the amount due to the supplier unchanged: Add 12% to Input VAT - Withheld on Purchases (VAT buyer) or to Taxes and Licenses (Non-VAT buyer), Deduct 12% to Withholding VAT Payable, at the rule rate (RC-DSP-WV080, RC-DSP-WV090, RC-RBE-WV110). Recorded: kind, ATC, base, VAT to remit, input VAT claimable, the claimable-after-payment flag for RBE purchases, the 1600-VT period and the rule. B17's 1600-VT figures and B28's MAP read these fields.
+- Tests: 130 on main (+5).
+- Assumed: WV110 and the RR 1-2026 amendment are unverified (H10). RBE goods remitted on Form 0605 per transaction are treated like services here (one period figure); the CPA decides whether the 0605 path needs its own handling.
+- Known limit: The RBE input VAT is booked at bill time and the claimable-after-payment flag is honoured by the 2550Q compute, not by a separate deferral account.
+
 ## B14 Purchase side: input VAT, EWT by supplier profile, timing (9 Nov 2026)
 - PR: #13
 - Built: ph_cas.tax.purchase. Supplier: withholding category (professional, rent, contractor, goods, services, reduced_wholesale, or none) and the over-threshold flag for professionals. Purchase Invoice: a VAT buyer booking a VAT supplier gets input VAT rows by kind (goods, services, capital goods, each to its mapped account; capital goods claimed in full per VAT-IN-CAPITAL-FULL); a Non-VAT buyer books the VAT as cost (Taxes and Licenses); purchases from Non-VAT suppliers, non-resident digital service providers and RBEs carry no input VAT row here (B15 handles the reverse charge). Expanded withholding is a Deduct tax row to Withholding Tax Payable - Expanded from the supplier's category and payee type and the rule in force on the bill date, so the payable and the payment are net of it; goods and services categories apply only when the company is a top withholding agent. Recorded on the bill: ATC, rate, base net of VAT, amount, rules, the withholding period (YYYY-MM for the 0619-E and the QAP). Booking without withholding needs a written reason. An advance payment to a supplier with a category withholds at payment (negative deduction to the EWT payable), the earlier event under RR 4-2024.
