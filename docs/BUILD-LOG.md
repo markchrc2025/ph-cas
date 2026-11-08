@@ -2,6 +2,13 @@
 
 One entry per bundle, newest first. Counts are the test totals on main after the merge.
 
+## B25 Year-end e-books pack and transmittal (format pending) (9 Nov 2026)
+- PR: #23
+- Built: ph_cas.books.yearend. build_pack writes the seven books for the year as CSV files named TIN+branch_year_code with the Annex B header, a MANIFEST.json with SHA-256 hashes and sizes, and the RMO 9-2021 transmittal text (taxpayer, TIN, year, due date 30 days after year-end, file list with hashes, software and version, a placeholder for the ORUS QR stamp, signature block). download_pack zips it and logs the export; verify_pack reads a pack back and checks every hash. FORMAT_WRITERS is the slot where the RR 16-2006 record-format writer goes per book when the spec arrives (gate G7), without changing the pack.
+- Tests: 182 on main (+2).
+- Assumed: Built now in CSV because the RR 16-2006 record format was not supplied; the bundle text said to wait, but a CSV pack with hashes and the transmittal is usable at the pilot's first year-end if the RDO accepts it, and the slot for the BIR format is ready.
+- Known limit: Annex B item 5's .dat half stays pending until the BIR format is in hand.
+
 ## B24 Books 2: Sales Journal, Purchase Journal, Inventory Book (9 Nov 2026)
 - PR: #22
 - Built: Script reports PH Sales Journal (one line per invoice: date, serial, type, customer TIN and name, address, description, VATable or percentage-tax base, exempt, zero-rated, output VAT, tax withheld by the customer, total; credit notes negative; totals and a tie-out of output VAT against the ledger), PH Purchase Journal (one line per bill: date, supplier invoice number, supplier TIN and name, net purchases by kind, purchases without input VAT, input VAT, EWT ATC and amount, reverse-charge VAT, amount payable; tie-out of EWT against the ledger) and PH Inventory Book (periodic per D7: per item and warehouse, opening quantity, in, out, closing quantity, last valuation rate and closing value). The SLSP (B29) reads the two journals' sources.
