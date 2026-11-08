@@ -7,13 +7,53 @@
   "product_section",
   "product_name",
   "security_section",
-  "failed_signins_before_deactivation"
+  "failed_signins_before_deactivation",
+  "audit_section",
+  "last_chain_check",
+  "last_chain_check_ok"
  ],
  "fields": [
-  {"fieldname": "product_section", "fieldtype": "Section Break", "label": "Product"},
-  {"fieldname": "product_name", "fieldtype": "Data", "label": "Product name (as registered with the BIR)", "default": "PH CAS", "description": "Printed in the header of every book, report and export. Decision D9."},
-  {"fieldname": "security_section", "fieldtype": "Section Break", "label": "Security"},
-  {"fieldname": "failed_signins_before_deactivation", "fieldtype": "Int", "label": "Failed sign-ins before the user is deactivated", "default": "5", "description": "Counted since the user's last successful sign-in. Reactivation is done by a System Manager and is logged."}
+  {
+   "fieldname": "product_section",
+   "fieldtype": "Section Break",
+   "label": "Product"
+  },
+  {
+   "fieldname": "product_name",
+   "fieldtype": "Data",
+   "label": "Product name (as registered with the BIR)",
+   "default": "PH CAS",
+   "description": "Printed in the header of every book, report and export. Decision D9."
+  },
+  {
+   "fieldname": "security_section",
+   "fieldtype": "Section Break",
+   "label": "Security"
+  },
+  {
+   "fieldname": "failed_signins_before_deactivation",
+   "fieldtype": "Int",
+   "label": "Failed sign-ins before the user is deactivated",
+   "default": "5",
+   "description": "Counted since the user's last successful sign-in. Reactivation is done by a System Manager and is logged."
+  },
+  {
+   "fieldname": "audit_section",
+   "fieldtype": "Section Break",
+   "label": "Audit trail"
+  },
+  {
+   "fieldname": "last_chain_check",
+   "fieldtype": "Datetime",
+   "label": "Last chain check",
+   "read_only": 1
+  },
+  {
+   "fieldname": "last_chain_check_ok",
+   "fieldtype": "Check",
+   "label": "Last chain check passed",
+   "read_only": 1
+  }
  ],
  "index_web_pages_for_search": 0,
  "issingle": 1,
@@ -24,8 +64,19 @@
  "name": "PH CAS Settings",
  "owner": "Administrator",
  "permissions": [
-  {"create": 1, "email": 1, "print": 1, "read": 1, "role": "System Manager", "share": 1, "write": 1},
-  {"read": 1, "role": "Accounts Manager"}
+  {
+   "create": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Accounts Manager"
+  }
  ],
  "sort_field": "modified",
  "sort_order": "DESC",

@@ -18,8 +18,15 @@ doc_events = {
         "on_trash": "ph_cas.controls.locks.refuse_delete",
         "before_update_after_submit": "ph_cas.controls.posted_fields.refuse_posted_field_changes",
         "validate": "ph_cas.controls.dates.validate_posting_date",
-        "before_print": "ph_cas.controls.dates.refuse_draft_print",
+        "before_print": ["ph_cas.controls.dates.refuse_draft_print", "ph_cas.audit.events.on_before_print"],
+        "after_insert": "ph_cas.audit.events.on_after_insert",
+        "on_update": "ph_cas.audit.events.on_update",
+        "on_submit": "ph_cas.audit.events.on_submit",
+        "on_cancel": "ph_cas.audit.events.on_cancel",
+        "on_update_after_submit": "ph_cas.audit.events.on_update_after_submit",
+        "after_delete": "ph_cas.audit.events.on_trash",
     },
+    "Access Log": {"after_insert": "ph_cas.audit.events.on_access_log"},
     "Accounting Period": {"validate": "ph_cas.controls.dates.validate_accounting_period"},
     "Sales Invoice": {
         "before_insert": "ph_cas.controls.serial.clear_serial_on_copy",
@@ -36,7 +43,7 @@ doc_events = {
     "Repost Item Valuation": {"before_insert": "ph_cas.controls.locks.refuse_insert"},
     "Accounts Settings": {"validate": "ph_cas.controls.locks.validate_accounts_settings"},
     "System Settings": {"validate": "ph_cas.controls.security.validate_system_settings"},
-    "Activity Log": {"after_insert": "ph_cas.controls.security.on_activity_log"},
+    "Activity Log": {"after_insert": ["ph_cas.controls.security.on_activity_log", "ph_cas.audit.events.on_activity_log"]},
 }
 
 override_doctype_class = {
@@ -71,3 +78,10 @@ period_closing_doctypes = [
     "Dunning",
     "Process Deferred Accounting",
 ]
+
+on_login = "ph_cas.audit.events.on_login"
+on_logout = "ph_cas.audit.events.on_logout"
+
+scheduler_events = {
+    "daily": ["ph_cas.audit.events.daily_chain_check"],
+}

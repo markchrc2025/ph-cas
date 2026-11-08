@@ -11,7 +11,7 @@ One row per Annex B item, as itemised in docs/reference/erpnext-bir-cas-review.m
 | 5 | Books and reports saved as .csv or .dat; annual e-books per RR 16-2006 | pending | B23, B24, B25 | |
 | 6 | Sales data sent to the BIR in its format (EIS) | pending | CAS-13 (not bundled yet) | |
 | 7 | Backups kept ten years | pending | B31 | |
-| 8 | Printable audit trail of all transactions and activities | pending | B07, B08 | |
+|| 8 | Printable audit trail of all transactions and activities | built (log; printable report in B08) | B07, B08 | ph_cas.tests.test_b07_event_log ||
 | 9 | Generates 2306, 2307, 2316 | pending | B26 (2307); 2306 and 2316 out of release 1 | |
 || 10a | System controls invoice numbering; no reuse, no reset | built | B03, B06 | ph_cas.tests.test_b03_posted_fields, test_b06_serial ||
 | 10b | Posting date is the date entered | built | B04 | ph_cas.tests.test_b04_dates |
@@ -19,7 +19,7 @@ One row per Annex B item, as itemised in docs/reference/erpnext-bir-cas-review.m
 | 10d | Run date on reports | pending | B08 | |
 | 10e | Users cannot edit system-generated reports | pending (ERPNext meets as shipped; B08 records the evidence) | B08 | |
 | 10f | Users cannot override program edits | built (no bypass role: closed periods exempt nobody, back-dating needs the manager role and a reason, drafts never print) | B02 to B04 | ph_cas.tests.test_b02_locks, test_b04_dates |
-| 10g | Creator's user ID on every record | pending (ERPNext meets as shipped; B07 records the evidence) | B07 | |
+|| 10g | Creator's user ID on every record | verified (Frappe owner, creation, modified_by, modified on every row; the event log adds the user to every event) | B07 | frappe.model.base_document standard fields ||
 | 10h | Automatic totals, out-of-balance detection | pending (ERPNext meets as shipped; B23 records the evidence) | B23 | |
 || 11 | Security: one session per user, deactivation after failed sign-ons, 30-day password change, letters and numbers, role-based access, protected audit trail, infrastructure | built (sign-in controls; audit trail in B07, infrastructure in B31) | B05, B07, B31 | ph_cas.tests.test_b05_security ||
 || 12 | Sales adjustments through supplementary documents with unique serials | built (own series per credit note, debit note and collection receipt; the rules in B21) | B06, B21 | ph_cas.tests.test_b06_serial ||
