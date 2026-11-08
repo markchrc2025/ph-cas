@@ -136,3 +136,38 @@ def ensure_warehouse(name="Stores") -> str:
             ignore_permissions=True
         )
     return full
+
+
+def ensure_supplier_profile(name, **fields) -> str:
+    s = ensure_supplier(name)
+    doc = frappe.get_doc("Supplier", s)
+    for k, v in fields.items():
+        doc.set(k, v)
+    doc.flags.ignore_permissions = True
+    doc.save()
+    frappe.clear_document_cache("Supplier", s)
+    return s
+
+
+def make_purchase_invoice(supplier, lines, submit=False, **kw):
+    """lines: [(item_code, qty, rate, extra)]"""
+    pi = frappe.get_doc(
+        {
+            "doctype": "Purchase Invoice",
+            "company": TEST_COMPANY,
+            "supplier": supplier,
+            "posting_date": today(),
+            "due_date": today(),
+            "bill_no": kw.pop("bill_no", f"BILL-{frappe.generate_hash(length=6)}"),
+            "bill_date": today(),
+            "credit_to": acc("Creditors"),
+            "items": [
+                {"item_code": code, "qty": qty, "rate": rate, "expense_account": acc("Administrative Expenses"), "cost_center": acc("Main"), **extra}
+                for code, qty, rate, extra in lines
+            ],
+            **kw,
+        }
+    ).insert()
+    if submit:
+        pi.submit()
+    return pi

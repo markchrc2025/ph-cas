@@ -34,13 +34,17 @@ doc_events = {
         "validate": ["ph_cas.tax.vat.validate", "ph_cas.tax.customer_withholding.validate"],
         "before_submit": "ph_cas.controls.serial.assign_serial",
     },
+    "Purchase Invoice": {
+        "before_validate": "ph_cas.tax.purchase.before_validate",
+        "validate": "ph_cas.tax.purchase.validate",
+    },
     "POS Invoice": {
         "before_validate": "ph_cas.tax.vat.before_validate",
         "validate": "ph_cas.tax.vat.validate",
     },
     "Payment Entry": {
         "before_insert": "ph_cas.controls.serial.clear_serial_on_copy",
-        "before_validate": "ph_cas.tax.customer_withholding.payment_before_validate",
+        "before_validate": ["ph_cas.tax.customer_withholding.payment_before_validate", "ph_cas.tax.purchase.payment_before_validate"],
         "before_submit": "ph_cas.controls.serial.assign_serial",
     },
     "Company": {"validate": ["ph_cas.controls.dates.validate_company_inventory", "ph_cas.setup.master_data.validate_company"]},
