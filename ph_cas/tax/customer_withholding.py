@@ -89,7 +89,7 @@ def compute(doc):
         for cat, base in cats.items():
             if not base:
                 continue
-            r = resolve("ewt", date, payor="government", category=cat)
+            r = resolve("ewt", date, payor="government", category=cat, payee_type=payee_type)
             amt += flt(base * flt(r.rate) / 100, 2)
             atcs.append(r.atc)
             rules.append(r.rule_id)

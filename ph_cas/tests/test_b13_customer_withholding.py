@@ -72,7 +72,7 @@ class TestB13CustomerWithholding(IntegrationTestCase):
     def test_government_customer_withholds_income_tax_and_vat(self):
         gov = _customer("_Test PH Gov Agency", ph_is_government=1)
         si = _invoice([(ensure_service_item(), 1, 1000, {"ph_vat_class": "Government"})], customer=gov)
-        self.assertEqual(si.ph_wht_atc, "WI650")
+        self.assertEqual(si.ph_wht_atc, "WC157")
         self.assertEqual(flt(si.ph_wht_amount), 20)
         self.assertEqual(si.ph_wvat_atc, "WV020")
         self.assertEqual(flt(si.ph_wvat_amount), 50)
