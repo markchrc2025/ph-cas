@@ -2,6 +2,13 @@
 
 One entry per bundle, newest first. Counts are the test totals on main after the merge.
 
+## B07 Hash-chained event log (9 Nov 2026)
+- PR: #6
+- Built: DocType PH Event Log (sequence, timestamp, user, event, document type and name, docstatus after, details JSON, previous hash, SHA-256 hash), insert-only through ph_cas.audit.events.record, which appends under a row lock on the latest row. Writers: create, submit, amend, cancel, edits after submit (with the diff), delete attempts, print (before_print), exports and PDFs (Access Log), sign-in and sign-out (on_login, on_logout), failed sign-ins (Activity Log), user deactivation and reactivation, role changes, permission records, settings changes with diffs (System, Accounts, Stock, Selling, Buying, PH CAS Settings, BIR Series, Accounting Period, Document Naming Settings, Print Settings), master-data changes (Customer, Supplier, Item, Account, Company, Cost Center, Warehouse). verify_chain recomputes every hash and reports the first bad row; a daily scheduler job records the result on PH CAS Settings and emails System Managers on a break.
+- Tests: 68 on main (+11).
+- Assumed: Masters are logged at field level; vouchers at event level with totals and serial, since their field history is in Version. Comments and attachments are not logged.
+- Known limit: Rows are written in the caller's transaction, so an event of a request that later fails is rolled back with it (correct: the thing it describes did not happen). The daily check needs the scheduler enabled, which B31 does.
+
 ## B06 BIR serial number (9 Nov 2026)
 - PR: #5
 - Built: DocType BIR Series (company, 5-digit branch code, document type Sales Invoice / Credit Note / Debit Note / Collection Receipt, optional prefix, 8 digits, registered range, ACCN, date issued, next number, warning threshold). Custom fields on Sales Invoice and Payment Entry: ph_branch_code (default 00000), bir_serial (read-only, listed, filterable) and a hidden unique bir_serial_key (series plus number), so the same number may legitimately appear on an invoice and a credit note. ph_cas.controls.serial.allocate takes the number with SELECT FOR UPDATE inside the submit transaction; a failed submit rolls the counter back; cancellation keeps the number; copies and amendments never inherit one; the range end is enforced; a warning shows and PH Accounting Managers are emailed as the range runs down. ensure_series creates the four series of a branch (used by the Philippine setup action in B10).
