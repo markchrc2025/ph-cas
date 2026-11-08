@@ -13,9 +13,9 @@ One row per Annex B item, as itemised in docs/reference/erpnext-bir-cas-review.m
 | 7 | Backups kept ten years | pending | B31 | |
 | 8 | Printable audit trail of all transactions and activities | pending | B07, B08 | |
 | 9 | Generates 2306, 2307, 2316 | pending | B26 (2307); 2306 and 2316 out of release 1 | |
-| 10a | System controls invoice numbering; no reuse, no reset | pending | B03, B06 | |
+| 10a | System controls invoice numbering; no reuse, no reset | built (counter reset refused; BIR serial in B06) | B03, B06 | ph_cas.tests.test_b03_posted_fields |
 | 10b | Posting date is the date entered | pending | B04 | |
-| 10c | Void, not modify, once posted; no ledger rewrite | built (deletion and repost half; field edits in B03) | B02, B03 | ph_cas.tests.test_b02_locks |
+| 10c | Void, not modify, once posted; no ledger rewrite | built | B02, B03 | ph_cas.tests.test_b02_locks, test_b03_posted_fields |
 | 10d | Run date on reports | pending | B08 | |
 | 10e | Users cannot edit system-generated reports | pending (ERPNext meets as shipped; B08 records the evidence) | B08 | |
 | 10f | Users cannot override program edits | built (Delete Transactions, reposts and the ledger settings refused for every role) | B02 to B04 | ph_cas.tests.test_b02_locks |

@@ -18,4 +18,7 @@ def setup_all():
     from ph_cas.controls.locks import force_accounts_settings
 
     force_accounts_settings()  # B02
+    from ph_cas.controls.posted_fields import install_property_setters
+
+    install_property_setters()  # B03
     frappe.db.commit()
