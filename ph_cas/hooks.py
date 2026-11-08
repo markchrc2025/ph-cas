@@ -85,3 +85,12 @@ on_logout = "ph_cas.audit.events.on_logout"
 scheduler_events = {
     "daily": ["ph_cas.audit.events.daily_chain_check"],
 }
+
+jinja = {
+    "methods": [
+        "ph_cas.audit.header.ph_header",
+        "ph_cas.audit.header.ph_header_lines",
+        "ph_cas.audit.header.software_name",
+        "ph_cas.audit.header.software_version",
+    ]
+}
