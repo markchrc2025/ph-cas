@@ -1,8 +1,7 @@
-{%- set P = frappe.get_attr("ph_cas.invoicing.printing") -%}
-{%- set seller = P.company_facts(doc.company) -%}
-{%- set series = P.series_facts(doc) -%}
-{%- set buyer = P.buyer_facts(doc) -%}
-{%- set title = P.document_title(doc) -%}
+{%- set seller = frappe.get_attr("ph_cas.invoicing.printing.company_facts")(doc.company) -%}
+{%- set series = frappe.get_attr("ph_cas.invoicing.printing.series_facts")(doc) -%}
+{%- set buyer = frappe.get_attr("ph_cas.invoicing.printing.buyer_facts")(doc) -%}
+{%- set title = frappe.get_attr("ph_cas.invoicing.printing.document_title")(doc) -%}
 {%- set regime = doc.ph_tax_regime or "Non-VAT" -%}
 {%- set wht_line = frappe.get_attr("ph_cas.tax.customer_withholding.shows_less_withholding_line")(doc) -%}
 {%- for copy in ["ORIGINAL", "DUPLICATE"] %}

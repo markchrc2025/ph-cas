@@ -10,7 +10,15 @@
   "failed_signins_before_deactivation",
   "audit_section",
   "last_chain_check",
-  "last_chain_check_ok"
+  "last_chain_check_ok",
+  "provider_section",
+  "provider_name",
+  "provider_tin",
+  "provider_address",
+  "provider_col",
+  "provider_signatory",
+  "provider_signatory_position",
+  "provider_signatory_tin"
  ],
  "fields": [
   {
@@ -53,6 +61,45 @@
    "fieldtype": "Check",
    "label": "Last chain check passed",
    "read_only": 1
+  },
+  {
+   "fieldname": "provider_section",
+   "fieldtype": "Section Break",
+   "label": "Software provider (the firm), for the joint sworn statement"
+  },
+  {
+   "fieldname": "provider_name",
+   "fieldtype": "Data",
+   "label": "Provider's registered name"
+  },
+  {
+   "fieldname": "provider_tin",
+   "fieldtype": "Data",
+   "label": "Provider's TIN-branch"
+  },
+  {
+   "fieldname": "provider_address",
+   "fieldtype": "Small Text",
+   "label": "Provider's registered address"
+  },
+  {
+   "fieldname": "provider_col",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "provider_signatory",
+   "fieldtype": "Data",
+   "label": "Signatory (decision D10)"
+  },
+  {
+   "fieldname": "provider_signatory_position",
+   "fieldtype": "Data",
+   "label": "Signatory's position"
+  },
+  {
+   "fieldname": "provider_signatory_tin",
+   "fieldtype": "Data",
+   "label": "Signatory's TIN"
   }
  ],
  "index_web_pages_for_search": 0,
