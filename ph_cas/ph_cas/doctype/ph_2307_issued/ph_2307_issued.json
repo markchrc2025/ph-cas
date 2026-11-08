@@ -1,0 +1,197 @@
+{
+ "actions": [],
+ "creation": "2026-11-09 11:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "company",
+  "supplier",
+  "column_break_1",
+  "period_from",
+  "period_to",
+  "quarter",
+  "section_payee",
+  "payee_tin",
+  "payee_name",
+  "payee_address",
+  "payee_zip",
+  "section_lines",
+  "lines",
+  "section_totals",
+  "total_income",
+  "total_tax",
+  "column_break_2",
+  "issued_on",
+  "replaces",
+  "remarks"
+ ],
+ "fields": [
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company (payor)",
+   "options": "Company",
+   "reqd": 1
+  },
+  {
+   "fieldname": "supplier",
+   "fieldtype": "Link",
+   "label": "Payee (supplier)",
+   "options": "Supplier",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "period_from",
+   "fieldtype": "Date",
+   "label": "Period from",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "period_to",
+   "fieldtype": "Date",
+   "label": "Period to",
+   "reqd": 1
+  },
+  {
+   "fieldname": "quarter",
+   "fieldtype": "Data",
+   "label": "Quarter",
+   "read_only": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "section_payee",
+   "fieldtype": "Section Break",
+   "label": "Payee as printed"
+  },
+  {
+   "fieldname": "payee_tin",
+   "fieldtype": "Data",
+   "label": "TIN-branch",
+   "read_only": 1
+  },
+  {
+   "fieldname": "payee_name",
+   "fieldtype": "Data",
+   "label": "Name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "payee_address",
+   "fieldtype": "Data",
+   "label": "Address",
+   "read_only": 1
+  },
+  {
+   "fieldname": "payee_zip",
+   "fieldtype": "Data",
+   "label": "ZIP",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_lines",
+   "fieldtype": "Section Break",
+   "label": "Part III"
+  },
+  {
+   "fieldname": "lines",
+   "fieldtype": "Table",
+   "label": "Lines",
+   "options": "PH 2307 Issued Line",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_totals",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "total_income",
+   "fieldtype": "Currency",
+   "label": "Total income payments",
+   "read_only": 1
+  },
+  {
+   "fieldname": "total_tax",
+   "fieldtype": "Currency",
+   "label": "Total tax withheld",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "issued_on",
+   "fieldtype": "Date",
+   "label": "Issued on",
+   "read_only": 1
+  },
+  {
+   "fieldname": "replaces",
+   "fieldtype": "Link",
+   "label": "Replaces (cancelled certificate)",
+   "options": "PH 2307 Issued",
+   "read_only": 1
+  },
+  {
+   "fieldname": "remarks",
+   "fieldtype": "Small Text",
+   "label": "Remarks"
+  }
+ ],
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2026-11-09 11:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "PH CAS",
+ "name": "PH 2307 Issued",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "submit": 1,
+   "cancel": 1,
+   "amend": 1,
+   "report": 1,
+   "print": 1,
+   "email": 1,
+   "role": "Accounts Manager"
+  },
+  {
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "submit": 1,
+   "report": 1,
+   "print": 1,
+   "email": 1,
+   "role": "Accounts User"
+  },
+  {
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "submit": 1,
+   "cancel": 1,
+   "amend": 1,
+   "report": 1,
+   "print": 1,
+   "email": 1,
+   "role": "PH Accounting Manager"
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

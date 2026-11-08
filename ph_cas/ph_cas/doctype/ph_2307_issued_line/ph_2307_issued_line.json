@@ -1,0 +1,10 @@
+{"actions": [], "creation": "2026-11-09 11:00:00.000000", "doctype": "DocType", "editable_grid": 1, "engine": "InnoDB", "field_order": ["description", "atc", "month_1", "month_2", "month_3", "total", "tax_withheld", "block"], "fields": [
+ {"fieldname": "description", "fieldtype": "Data", "label": "Income payment", "in_list_view": 1, "columns": 3},
+ {"fieldname": "atc", "fieldtype": "Data", "label": "ATC", "in_list_view": 1, "reqd": 1, "columns": 1},
+ {"fieldname": "month_1", "fieldtype": "Currency", "label": "1st month", "in_list_view": 1, "columns": 1},
+ {"fieldname": "month_2", "fieldtype": "Currency", "label": "2nd month", "in_list_view": 1, "columns": 1},
+ {"fieldname": "month_3", "fieldtype": "Currency", "label": "3rd month", "in_list_view": 1, "columns": 1},
+ {"fieldname": "total", "fieldtype": "Currency", "label": "Total", "read_only": 1, "in_list_view": 1, "columns": 1},
+ {"fieldname": "tax_withheld", "fieldtype": "Currency", "label": "Tax withheld", "in_list_view": 1, "columns": 1},
+ {"fieldname": "block", "fieldtype": "Select", "label": "Block", "options": "A\nB", "default": "A"}
+], "istable": 1, "links": [], "modified": "2026-11-09 11:00:00.000000", "modified_by": "Administrator", "module": "PH CAS", "name": "PH 2307 Issued Line", "owner": "Administrator", "permissions": [], "sort_field": "modified", "sort_order": "DESC", "states": []}
