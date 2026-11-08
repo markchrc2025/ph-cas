@@ -21,6 +21,14 @@ frappe.ui.form.on("Company", {
                     },
                 });
             }, __("PH CAS"));
+            frm.add_custom_button(__("Registration pack (zip)"), () => {
+                window.open(`/api/method/ph_cas.registration.pack.download_pack?company=${encodeURIComponent(frm.doc.name)}`);
+            }, __("PH CAS"));
+            frm.add_custom_button(__("Year-end e-books (zip)"), () => {
+                frappe.prompt({ fieldname: "year", fieldtype: "Int", label: __("Year"), default: new Date().getFullYear() - 1, reqd: 1 }, (v) => {
+                    window.open(`/api/method/ph_cas.books.yearend.download_pack?company=${encodeURIComponent(frm.doc.name)}&year=${v.year}`);
+                }, __("Year-end e-books"));
+            }, __("PH CAS"));
         }
     },
 });

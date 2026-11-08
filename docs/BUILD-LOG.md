@@ -2,6 +2,13 @@
 
 One entry per bundle, newest first. Counts are the test totals on main after the merge.
 
+## B30 Registration pack (9 Nov 2026)
+- PR: #28
+- Built: ph_cas.registration.pack builds the client's CAS application pack from the site: Annex C-1 system description drafted from Company and PH CAS Settings; the Annex B answers with remarks read from docs/CONFORMANCE.md (YES only for items marked built or verified, the rest listed as gaps); the joint sworn statement prefilled with the provider (new PH CAS Settings fields: provider name, TIN, address, signatory, position, TIN; decision D10) and the client, including the no-suppression clause and the termination clause; the conformance report with the pinned versions; specimen prints of the latest issued invoice, credit note, collection receipt and 2307 (rendered as specimens, not counted as prints); each book for the current month; the audit trail of the last 30 days and the chain check; a manifest. Downloaded as a zip from the Company form (PH CAS menu, which also gained the year-end e-books download) and logged. The CONFORMANCE.md table rows were repaired (stray pipes from the logging helper) and the helper fixed.
+- Tests: 202 on main (+3).
+- Assumed: Annex B answers are derived from the conformance file's status column, so a bundle that forgets to tick its row produces a NO: a conservative default.
+- Known limit: Item 6 (e-invoicing) and the .dat half of item 5 are NO until CAS-13 and the RR 16-2006 format. The pack is text and HTML; the owner prints to PDF for the RDO.
+
 ## B29 SLSP (RELIEF): summary lists of sales, purchases and importations (9 Nov 2026)
 - PR: #27
 - Built: ph_cas.dat.relief builds the three RELIEF files named TIN9 + S, P or I + MMYYYY from the quarter's invoices and bills, rows merged per TIN, with the header totals (sales: exempt, zero-rated, taxable, output VAT; purchases: exempt, zero-rated, services, capital goods, goods, input VAT, creditable and non-creditable input VAT, the non-creditable part taken from the quarter's 2550Q item 53 when computed) and the importation rows (entry number, assessment date, supplier, importation date, country, dutiable value, charges, exempt, taxable, VAT, OR number, payment date). Purchase Invoice gets the importation fields; an import bill books the VAT paid to Customs to Input VAT - Importation, and the 2550Q items 46A and 46B now fill from them.
