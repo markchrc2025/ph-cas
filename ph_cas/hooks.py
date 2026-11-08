@@ -30,7 +30,13 @@ doc_events = {
     "Accounting Period": {"validate": "ph_cas.controls.dates.validate_accounting_period"},
     "Sales Invoice": {
         "before_insert": "ph_cas.controls.serial.clear_serial_on_copy",
+        "before_validate": "ph_cas.tax.vat.before_validate",
+        "validate": "ph_cas.tax.vat.validate",
         "before_submit": "ph_cas.controls.serial.assign_serial",
+    },
+    "POS Invoice": {
+        "before_validate": "ph_cas.tax.vat.before_validate",
+        "validate": "ph_cas.tax.vat.validate",
     },
     "Payment Entry": {
         "before_insert": "ph_cas.controls.serial.clear_serial_on_copy",

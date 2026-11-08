@@ -43,11 +43,13 @@ def _matches(rule_selector: dict, selectors: dict) -> bool:
     return True
 
 
-def candidates(kind: str, date, atc: str | None = None, **selectors) -> list[dict]:
+def candidates(kind: str, date, atc: str | None = None, base: str | None = None, **selectors) -> list[dict]:
     date = getdate(date)
     filters = {"kind": kind}
     if atc is not None:
         filters["atc"] = atc
+    if base is not None:
+        filters["base"] = base
     rows = frappe.get_all(
         "PH Tax Rule",
         filters=filters,
@@ -66,12 +68,12 @@ def candidates(kind: str, date, atc: str | None = None, **selectors) -> list[dic
     return out
 
 
-def resolve(kind: str, date, atc: str | None = None, allow_draft: bool | None = None, **selectors) -> dict:
+def resolve(kind: str, date, atc: str | None = None, allow_draft: bool | None = None, base: str | None = None, **selectors) -> dict:
     """Exactly one rule in force on `date` for the kind, ATC and selectors.
 
     When several match, the most specific (most selector keys) wins; a tie is
     an error, so the seed must stay unambiguous."""
-    rows = candidates(kind, date, atc, **selectors)
+    rows = candidates(kind, date, atc, base, **selectors)
     if not rows:
         raise PHNoRuleError(
             _("No {0} rule is in force on {1} for ATC {2} and {3}.").format(kind, date, atc or "(none)", selectors or "{}")

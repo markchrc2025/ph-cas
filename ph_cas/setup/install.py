@@ -39,4 +39,7 @@ def setup_all():
     from ph_cas.tax import rules
 
     rules.seed()  # B11
+    from ph_cas.tax import vat
+
+    vat.setup()  # B12
     frappe.db.commit()
