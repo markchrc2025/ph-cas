@@ -30,4 +30,7 @@ def setup_all():
     from ph_cas.controls import serial
 
     serial.setup()  # B06
+    from ph_cas.audit import header
+
+    header.setup()  # B08
     frappe.db.commit()

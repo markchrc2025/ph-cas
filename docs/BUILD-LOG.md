@@ -2,6 +2,13 @@
 
 One entry per bundle, newest first. Counts are the test totals on main after the merge.
 
+## B08 Audit trail report and the Annex B print header (9 Nov 2026)
+- PR: #7
+- Built: ph_cas.audit.header: ph_header(doc) and ph_header_lines(company) give the Annex B header (registered name, address, VAT or NON-VAT REG TIN with 5-digit branch, software name from PH CAS Settings and version with the ERPNext and Frappe versions, printed by, printed on). Registered as Jinja globals; a Letter Head "BIR Header" with content {{ ph_header(doc) }} is created and made the default, so every document print and every query-report print (Frappe v16 renders the letter head server side with the report filters as doc) carries it. ph_cas.audit.export: csv_with_header and xlsx_with_header put the same lines first in exports, and the whitelisted download_report exports any script report that way and logs the export in the event log. Script reports: BIR Audit Trail (PH Event Log merged with Version, Deleted Document, Access Log and Activity Log, time-ordered, filtered by period, user, document type and document) and PH Chain Check.
+- Tests: 75 on main (+7).
+- Assumed: The header reads ph_registered_name, ph_vat_status and ph_branch_code from Company when B09 adds them, and falls back to company_name and tax_id meanwhile. The Annex B item on the product name ticks only when the owner sets D9 in PH CAS Settings.
+- Known limit: The report view's generic Export button (any report) still produces a bare file; ph_cas's own reports (B23 onward) use download_report. Frappe's test environment writes no Version rows, so the merge test inserts one directly.
+
 ## B07 Hash-chained event log (9 Nov 2026)
 - PR: #6
 - Built: DocType PH Event Log (sequence, timestamp, user, event, document type and name, docstatus after, details JSON, previous hash, SHA-256 hash), insert-only through ph_cas.audit.events.record, which appends under a row lock on the latest row. Writers: create, submit, amend, cancel, edits after submit (with the diff), delete attempts, print (before_print), exports and PDFs (Access Log), sign-in and sign-out (on_login, on_logout), failed sign-ins (Activity Log), user deactivation and reactivation, role changes, permission records, settings changes with diffs (System, Accounts, Stock, Selling, Buying, PH CAS Settings, BIR Series, Accounting Period, Document Naming Settings, Print Settings), master-data changes (Customer, Supplier, Item, Account, Company, Cost Center, Warehouse). verify_chain recomputes every hash and reports the first bad row; a daily scheduler job records the result on PH CAS Settings and emails System Managers on a break.
