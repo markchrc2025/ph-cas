@@ -33,4 +33,7 @@ def setup_all():
     from ph_cas.audit import header
 
     header.setup()  # B08
+    from ph_cas.setup import master_data
+
+    master_data.setup()  # B09
     frappe.db.commit()
