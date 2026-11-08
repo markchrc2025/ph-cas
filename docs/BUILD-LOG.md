@@ -2,6 +2,13 @@
 
 One entry per bundle, newest first. Counts are the test totals on main after the merge.
 
+## B31 Hosting, backups, restore drill, runbooks (9 Nov 2026)
+- PR: #29
+- Built: ph_cas.ops.backup: run_backup takes database plus private and public files through Frappe's backup, writes a manifest with SHA-256 hashes, encrypts each file with AES-256 (openssl, key in site_config ph_backup_key), copies to the Philippine bucket in site_config ph_backup_remote with rclone, records the time on PH CAS Settings and logs it; verify_backup decrypts and checks every hash; a daily scheduler job runs it. ph_cas.ops.monitor.status reports backup age, chain check, disk, scheduler and draft rules on production, and an hourly job emails System Managers when a check fails. scripts/ops: new_client_site.sh (one site per client with production flag, backup key and remote, ten-year local retention, encryption key, scheduler), backup_now.sh, restore_drill.sh (restore the latest backup into a scratch site, migrate, run the chain check, drop it, append to the drill log). Runbooks: hosting, onboarding, upgrades (minor versus major) with the notice-of-minor-enhancement template; a short user guide.
+- Tests: 205 on main (+3).
+- Assumed: Provider-neutral (G9): the bucket and servers are placeholders in site_config. Retention ten years per the Annex B form until the RDO answers question 7.
+- Known limit: Backups are database and files; the bench itself (code) is restored from the repository at the pinned tags. The restore drill script is exercised by hand on the production bench, not in CI.
+
 ## B30 Registration pack (9 Nov 2026)
 - PR: #28
 - Built: ph_cas.registration.pack builds the client's CAS application pack from the site: Annex C-1 system description drafted from Company and PH CAS Settings; the Annex B answers with remarks read from docs/CONFORMANCE.md (YES only for items marked built or verified, the rest listed as gaps); the joint sworn statement prefilled with the provider (new PH CAS Settings fields: provider name, TIN, address, signatory, position, TIN; decision D10) and the client, including the no-suppression clause and the termination clause; the conformance report with the pinned versions; specimen prints of the latest issued invoice, credit note, collection receipt and 2307 (rendered as specimens, not counted as prints); each book for the current month; the audit trail of the last 30 days and the chain check; a manifest. Downloaded as a zip from the Company form (PH CAS menu, which also gained the year-end e-books download) and logged. The CONFORMANCE.md table rows were repaired (stray pipes from the logging helper) and the helper fixed.
