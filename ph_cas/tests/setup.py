@@ -11,6 +11,10 @@ TEST_ABBR = "TPC"
 def before_tests():
     frappe.clear_cache()
     if frappe.db.get_single_value("System Settings", "setup_complete"):
+        from ph_cas.controls.serial import ensure_series
+
+        ensure_series(TEST_COMPANY)
+        frappe.db.commit()
         return
     from frappe.desk.page.setup_wizard.setup_wizard import setup_complete
 
@@ -33,3 +37,7 @@ def before_tests():
     )
     frappe.db.commit()
     frappe.clear_cache()
+    from ph_cas.controls.serial import ensure_series
+
+    ensure_series(TEST_COMPANY)
+    frappe.db.commit()

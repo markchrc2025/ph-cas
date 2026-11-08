@@ -1,0 +1,43 @@
+{
+ "actions": [],
+ "autoname": "format:{document_type}-{branch_code}-{company}",
+ "creation": "2026-11-09 00:30:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": ["company", "branch_code", "document_type", "column_break_1", "prefix", "digits", "section_registration", "range_start", "range_end", "column_break_2", "accn", "date_issued", "section_counter", "next_number", "warn_below", "disabled"],
+ "fields": [
+  {"fieldname": "company", "fieldtype": "Link", "label": "Company", "options": "Company", "reqd": 1},
+  {"fieldname": "branch_code", "fieldtype": "Data", "label": "Branch code (5 digits)", "reqd": 1, "default": "00000", "length": 5},
+  {"fieldname": "document_type", "fieldtype": "Select", "label": "Document type", "options": "Sales Invoice\nCredit Note\nDebit Note\nCollection Receipt", "reqd": 1},
+  {"fieldname": "column_break_1", "fieldtype": "Column Break"},
+  {"fieldname": "prefix", "fieldtype": "Data", "label": "Prefix (printed before the number, may be empty)", "length": 10},
+  {"fieldname": "digits", "fieldtype": "Int", "label": "Digits", "default": "8", "read_only": 1, "description": "Decision D4: 8 digits, continuous, no yearly reset."},
+  {"fieldname": "section_registration", "fieldtype": "Section Break", "label": "Registered range (from the Acknowledgment Certificate)"},
+  {"fieldname": "range_start", "fieldtype": "Int", "label": "Range start", "reqd": 1, "default": "1"},
+  {"fieldname": "range_end", "fieldtype": "Int", "label": "Range end", "reqd": 1, "default": "99999999"},
+  {"fieldname": "column_break_2", "fieldtype": "Column Break"},
+  {"fieldname": "accn", "fieldtype": "Data", "label": "ACCN (Acknowledgment Certificate Control Number)"},
+  {"fieldname": "date_issued", "fieldtype": "Date", "label": "Date issued"},
+  {"fieldname": "section_counter", "fieldtype": "Section Break", "label": "Counter"},
+  {"fieldname": "next_number", "fieldtype": "Int", "label": "Next number", "read_only": 1, "default": "1"},
+  {"fieldname": "warn_below", "fieldtype": "Int", "label": "Warn when fewer numbers remain than", "default": "500"},
+  {"fieldname": "disabled", "fieldtype": "Check", "label": "Disabled", "default": "0"}
+ ],
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-11-09 00:30:00.000000",
+ "modified_by": "Administrator",
+ "module": "PH CAS",
+ "name": "BIR Series",
+ "owner": "Administrator",
+ "permissions": [
+  {"create": 1, "email": 1, "export": 1, "print": 1, "read": 1, "report": 1, "role": "System Manager", "share": 1, "write": 1},
+  {"create": 1, "read": 1, "report": 1, "role": "PH Accounting Manager", "write": 1},
+  {"read": 1, "report": 1, "role": "Accounts Manager"},
+  {"read": 1, "role": "Accounts User"}
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

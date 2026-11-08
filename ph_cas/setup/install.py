@@ -27,4 +27,7 @@ def setup_all():
     from ph_cas.controls.security import force_system_settings
 
     force_system_settings()  # B05
+    from ph_cas.controls import serial
+
+    serial.setup()  # B06
     frappe.db.commit()
