@@ -1,0 +1,30 @@
+{%- set P = frappe.get_attr("ph_cas.invoicing.printing") -%}
+{%- set seller = P.company_facts(doc.company) -%}
+{%- set series = P.series_facts(doc) -%}
+{%- set buyer = P.buyer_facts(doc) -%}
+{%- for copy in ["ORIGINAL", "DUPLICATE"] %}
+<div style="font-family: Arial, Helvetica, sans-serif; font-size: 10pt; {% if not loop.first %}page-break-before: always;{% endif %}">
+  {% if doc.ph_is_reprint %}<div style="border: 2px solid #000; padding: 4px 8px; display: inline-block; font-weight: bold;">REPRINT No. {{ doc.ph_print_no }} &middot; first printed {{ frappe.format(doc.ph_first_printed_on, {"fieldtype": "Datetime"}) }}</div>{% endif %}
+  <table style="width: 100%;"><tr>
+    <td style="width: 60%; vertical-align: top;"><div style="font-size: 13pt; font-weight: bold;">{{ seller.name }}</div><div>{{ seller.address }}</div><div><b>{{ "VAT" if seller.vat_status == "VAT" else "NON-VAT" }} REG TIN {{ seller.tin }}-{{ seller.branch }}</b></div></td>
+    <td style="text-align: right; vertical-align: top;"><div style="font-size: 15pt; font-weight: bold;">COLLECTION RECEIPT</div><div style="font-size: 13pt;">No. <b>{{ doc.bir_serial or "(not yet issued)" }}</b></div><div>Date: {{ frappe.format(doc.posting_date, {"fieldtype": "Date"}) }}</div><div style="font-size: 8pt;">{{ copy }} COPY</div></td>
+  </tr></table>
+  <hr style="border: 0; border-top: 1px solid #000;">
+  <table style="font-size: 9.5pt;">
+    <tr><td style="width: 120px;">Received from:</td><td><b>{{ buyer.name }}</b></td></tr>
+    <tr><td>TIN:</td><td>{{ buyer.tin }}</td></tr>
+    <tr><td>Address:</td><td>{{ buyer.address }}</td></tr>
+    <tr><td>Amount:</td><td><b>{{ frappe.format(doc.paid_amount, {"fieldtype": "Currency"}) }}</b> ({{ frappe.utils.money_in_words(doc.paid_amount, doc.paid_to_account_currency or "PHP") }})</td></tr>
+    <tr><td>Mode:</td><td>{{ doc.mode_of_payment or "" }} {{ doc.reference_no or "" }}</td></tr>
+  </table>
+  {% if doc.references %}
+  <table style="width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 9.5pt;">
+    <tr style="border-top: 1px solid #000; border-bottom: 1px solid #000;"><th style="text-align: left; padding: 3px;">In payment of</th><th style="text-align: left; padding: 3px;">Invoice No.</th><th style="text-align: right; padding: 3px;">Amount applied</th></tr>
+    {% for r in doc.references %}<tr><td style="padding: 3px;">{{ r.reference_doctype }}</td><td style="padding: 3px;">{{ frappe.db.get_value(r.reference_doctype, r.reference_name, "bir_serial") or r.reference_name }}</td><td style="padding: 3px; text-align: right;">{{ frappe.format(r.allocated_amount, {"fieldtype": "Currency"}) }}</td></tr>{% endfor %}
+  </table>
+  {% endif %}
+  {% if doc.ph_wht_deducted %}<div style="margin-top: 6px;">Tax withheld by the payor (2307 to follow): {{ frappe.format(doc.ph_wht_deducted, {"fieldtype": "Currency"}) }}</div>{% endif %}
+  <div style="margin-top: 14px; font-weight: bold; font-size: 11pt;">THIS DOCUMENT IS NOT VALID FOR CLAIM OF INPUT TAX</div>
+  <div style="margin-top: 8px; font-size: 8pt; border-top: 1px solid #000; padding-top: 4px;">ACCN {{ series.accn or seller.accn }} &middot; Series {{ series.range }}{% if copy == "DUPLICATE" %}<br>{{ frappe.get_attr("ph_cas.audit.header.ph_header")(doc) }}{% endif %}</div>
+</div>
+{% endfor %}

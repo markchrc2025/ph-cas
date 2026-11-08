@@ -60,4 +60,7 @@ def setup_all():
     from ph_cas.tax import income_tax
 
     income_tax.setup()  # B18
+    from ph_cas.invoicing import setup as invoicing_setup
+
+    invoicing_setup.setup()  # B20
     frappe.db.commit()

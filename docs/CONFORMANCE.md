@@ -4,8 +4,8 @@ One row per Annex B item, as itemised in docs/reference/erpnext-bir-cas-review.m
 
 | Item | Requirement (short) | Status | Bundle | Evidence |
 |---|---|---|---|---|
-|| 1 | Invoice face: seller details, VAT or NON-VAT REG TIN with 5-digit branch, serial of at least 6 digits, date, buyer details, lines, VAT split, EXEMPT, SC/PWD block, ACCN and series range, REPRINT | pending (data in place: serial B06, seller and buyer fields B09; the face itself in B20) | B06, B09, B12, B20, B22 | ||
-| 2 | Commercial invoices at least in duplicate | pending | B20 | |
+||| 1 | Invoice face: seller details, VAT or NON-VAT REG TIN with 5-digit branch, serial of at least 6 digits, date, buyer details, lines, VAT split, EXEMPT, SC/PWD block, ACCN and series range, REPRINT | built (SC/PWD block fills in B22) | B06, B09, B12, B20, B22 | ph_cas.tests.test_b20_prints |||
+|| 2 | Commercial invoices at least in duplicate | built (ORIGINAL and DUPLICATE pages on every print) | B20 | ph_cas.tests.test_b20_prints ||
 | 3 | Books: General Journal, General Ledger, Sales Journal, Purchase Journal, Inventory Book with the RR 9-2009 columns | pending | B23, B24 | |
 || 4 | Every printout or e-copy shows name, address, TIN-branch, software name and version, user ID, date and time | built (default letter head and export helpers; the product name waits for D9) | B08 | ph_cas.tests.test_b08_audit_header ||
 | 5 | Books and reports saved as .csv or .dat; annual e-books per RR 16-2006 | pending | B23, B24, B25 | |
