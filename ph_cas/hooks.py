@@ -27,6 +27,8 @@ doc_events = {
     "Repost Accounting Ledger": {"before_insert": "ph_cas.controls.locks.refuse_insert"},
     "Repost Item Valuation": {"before_insert": "ph_cas.controls.locks.refuse_insert"},
     "Accounts Settings": {"validate": "ph_cas.controls.locks.validate_accounts_settings"},
+    "System Settings": {"validate": "ph_cas.controls.security.validate_system_settings"},
+    "Activity Log": {"after_insert": "ph_cas.controls.security.on_activity_log"},
 }
 
 override_doctype_class = {
