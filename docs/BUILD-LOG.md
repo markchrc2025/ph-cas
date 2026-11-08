@@ -2,6 +2,13 @@
 
 One entry per bundle, newest first. Counts are the test totals on main after the merge.
 
+## B27 DAT framework and SAWT (9 Nov 2026)
+- PR: #25
+- Built: ph_cas.dat.writer: field formatting per kind (quoted, unquoted, quoted-empty, amount 2 decimals, integer, MM/YYYY, MM/DD/YYYY, empty), record and file assembly with CRLF, file names per RMC 15-2025 Annex B (TIN9 + 4-digit branch + MMYYYY + form, or MMDDYYYY for annual files), the withholding agent's and parties' name fields as the alphalist wants them, and store(), which keeps every generated file as a PH Alphalist File (period, file name, SHA-256, row count, layout status, attachment, and the owner's Validation-module result and eSubmission reference) and logs the export. ph_cas.dat.sawt builds the SAWT for 2550Q (VAT withheld), 2551Q (percentage tax withheld) and 1701Q, 1702Q, 1701, 1702 (income tax withheld) from PH 2307 Received: HSAWT header, DSAWT rows sorted by TIN with the registered name or the split name, the rate as tax over income, CSAWT totals. docs/dat/VERIFICATION.md records each layout's status: SAWT is sample-only until the golden files (G5).
+- Tests: 191 on main (+5).
+- Assumed: The 2550Q SAWT uses form code 2550Q (RDO question 8a). A 5-digit branch code with a leading zero is written as 4 digits; others are refused (8b).
+- Known limit: Byte-for-byte tests compare against the sample layouts, not the BIR module; the golden files replace them when the owner produces them.
+
 ## B26 2307 on the BIR layout (9 Nov 2026)
 - PR: #24
 - Built: Submittable DocType PH 2307 Issued (payor company, payee supplier, one quarter, payee TIN-branch, name as the form wants it for individuals and non-individuals, address, ZIP; Part III lines per ATC with the three months' bases, total and tax withheld, block A or B) generated from the bills and advances of the quarter; one issued certificate per payee per quarter, reissue only after cancellation (the reissue gets a numbered name and records what it replaces). generate_quarter creates the missing certificates for every payee withheld from. Print format PH BIR 2307 reproduces the January 2018 ENCS face from the project's cell-by-cell reference: header block, items 1 to 8A with digit boxes (14 for TINs, 8 for dates, 4 for ZIP), Part III with blocks A and B of ten rows and totals in the reference's column proportions, the declaration, both signature blocks with the tax-agent lines, the data-privacy note; default print format of the DocType.
