@@ -350,3 +350,10 @@ def compute_1600vt(company: str, start, end) -> list:
 
 
 COMPUTES.update({"2551Q": compute_2551q, "0619-E": compute_0619e, "1601-EQ": compute_1601eq, "1600-VT": compute_1600vt})
+
+
+def _register_income_tax():
+    from ph_cas.tax import income_tax  # noqa: F401  (registers its computes)
+
+
+_register_income_tax()

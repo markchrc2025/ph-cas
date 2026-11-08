@@ -1,0 +1,15 @@
+{"actions": [], "autoname": "format:NOLCO-{loss_year}-{company_abbr}", "creation": "2026-11-09 07:00:00.000000", "doctype": "DocType", "engine": "InnoDB", "field_order": ["company", "company_abbr", "loss_year", "amount", "carry_years", "expiry_year", "used", "balance", "notes"], "fields": [
+ {"fieldname": "company", "fieldtype": "Link", "label": "Company", "options": "Company", "reqd": 1},
+ {"fieldname": "company_abbr", "fieldtype": "Data", "label": "Abbr", "fetch_from": "company.abbr", "read_only": 1, "hidden": 1},
+ {"fieldname": "loss_year", "fieldtype": "Int", "label": "Year of the loss", "reqd": 1, "in_list_view": 1},
+ {"fieldname": "amount", "fieldtype": "Currency", "label": "Net operating loss", "reqd": 1, "in_list_view": 1},
+ {"fieldname": "carry_years", "fieldtype": "Int", "label": "Carry-over years (per rule)", "read_only": 1},
+ {"fieldname": "expiry_year", "fieldtype": "Int", "label": "Last year it may be used", "read_only": 1, "in_list_view": 1},
+ {"fieldname": "used", "fieldtype": "Currency", "label": "Used so far", "read_only": 1},
+ {"fieldname": "balance", "fieldtype": "Currency", "label": "Balance", "read_only": 1, "in_list_view": 1},
+ {"fieldname": "notes", "fieldtype": "Small Text", "label": "Notes"}
+], "links": [], "modified": "2026-11-09 07:00:00.000000", "modified_by": "Administrator", "module": "PH CAS", "name": "PH NOLCO", "owner": "Administrator", "permissions": [
+ {"create": 1, "read": 1, "write": 1, "delete": 1, "report": 1, "role": "PH Accounting Manager"},
+ {"create": 1, "read": 1, "write": 1, "report": 1, "role": "Accounts Manager"},
+ {"read": 1, "role": "Accounts User"}
+], "sort_field": "loss_year", "sort_order": "ASC", "states": [], "track_changes": 1}

@@ -57,4 +57,7 @@ def setup_all():
     from ph_cas.tax import calendar
 
     calendar.setup()  # B17
+    from ph_cas.tax import income_tax
+
+    income_tax.setup()  # B18
     frappe.db.commit()
