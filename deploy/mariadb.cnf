@@ -1,0 +1,9 @@
+[mysqld]
+character-set-client-handshake = FALSE
+character-set-server = utf8mb4
+collation-server = utf8mb4_unicode_ci
+bind-address = 127.0.0.1
+innodb_buffer_pool_size = 256M
+max_connections = 100
+[mysql]
+default-character-set = utf8mb4
