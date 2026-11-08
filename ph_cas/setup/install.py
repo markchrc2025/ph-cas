@@ -42,4 +42,7 @@ def setup_all():
     from ph_cas.tax import vat
 
     vat.setup()  # B12
+    from ph_cas.tax import customer_withholding
+
+    customer_withholding.setup()  # B13
     frappe.db.commit()

@@ -1,0 +1,9 @@
+{"actions": [], "creation": "2026-11-09 04:00:00.000000", "doctype": "DocType", "editable_grid": 1, "engine": "InnoDB", "field_order": ["atc", "kind", "month_1", "month_2", "month_3", "base_total", "tax_withheld"], "fields": [
+ {"fieldname": "atc", "fieldtype": "Data", "label": "ATC", "in_list_view": 1, "reqd": 1},
+ {"fieldname": "kind", "fieldtype": "Select", "label": "Kind", "options": "Income tax\nVAT\nPercentage tax", "in_list_view": 1, "reqd": 1, "default": "Income tax"},
+ {"fieldname": "month_1", "fieldtype": "Currency", "label": "1st month base", "in_list_view": 1},
+ {"fieldname": "month_2", "fieldtype": "Currency", "label": "2nd month base", "in_list_view": 1},
+ {"fieldname": "month_3", "fieldtype": "Currency", "label": "3rd month base", "in_list_view": 1},
+ {"fieldname": "base_total", "fieldtype": "Currency", "label": "Total base", "read_only": 1, "in_list_view": 1},
+ {"fieldname": "tax_withheld", "fieldtype": "Currency", "label": "Tax withheld", "in_list_view": 1, "reqd": 1}
+], "istable": 1, "links": [], "modified": "2026-11-09 04:00:00.000000", "modified_by": "Administrator", "module": "PH CAS", "name": "PH 2307 Received Line", "owner": "Administrator", "permissions": [], "sort_field": "modified", "sort_order": "DESC", "states": []}
