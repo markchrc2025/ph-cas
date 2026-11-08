@@ -2,6 +2,13 @@
 
 One entry per bundle, newest first. Counts are the test totals on main after the merge.
 
+## B10 Philippine chart of accounts and account mapping (9 Nov 2026)
+- PR: #9
+- Built: ph_cas.setup.chart: 19 accounts added under ERPNext's Standard chart (output VAT, output VAT on uncollected receivables, VAT payable, percentage tax payable, withholding payables for expanded, compensation, final and VAT, income tax payable; input VAT for goods, services, capital goods, importation, deferred and reverse charge; creditable withholding tax; SC/PWD discounts; taxes and licenses; income tax expense). DocType PH Account Mapping (company, purpose, account) validated for company, non-group and root type; account_for(company, purpose) is what the tax engine posts through. Whitelisted setup_philippine_company runs accounts, mapping and the head office's four BIR series in one click from the Company form (PH CAS menu), idempotent and logged.
+- Tests: 89 on main (+5).
+- Assumed: Accounts extend the Standard chart instead of a separate chart template, so the pilot's existing setup-wizard company is extended rather than recreated. Tax templates carry no rates yet (B12).
+- Known limit: A company on a chart other than Standard needs the parent groups Duties and Taxes, Tax Assets, Direct Expenses and Indirect Expenses, or the setup refuses with the missing parent named.
+
 ## B09 Philippine master data (9 Nov 2026)
 - PR: #8
 - Built: ph_cas.setup.master_data. Company: registered name, business style, 5-digit branch code, RDO (Link), VAT status (VAT, Non-VAT, VAT-exempt), taxpayer classification per RR 8-2024, taxpayer type, top withholding agent flag, ACCN and date issued; the TIN (tax_id) is validated as 9 digits and normalised to 000-000-000, and a TIN typed with its branch code is refused. Customer and Supplier: TIN and branch, registered name, payee type with last, first and middle names for individuals (required), VAT status, government, top withholding agent, RBE, non-resident digital service provider (suppliers only) and online platform flags, registered address lines and ZIP. Item: VAT class (VATable, VAT-exempt, Zero-rated, Government) and capital-good flag. Sales, Purchase and POS Invoice lines: VAT class fetched from the item when empty. DocType PH RDO seeded with the 138 RDO codes of the eBIRForms package, 121 with names as recalled and flagged unconfirmed. payee_name_parts gives the alphalist name split; dat_branch gives the 4-digit DAT branch code (RDO question 8b default: drop the leading zero, refuse otherwise). The BIR serial's branch code now comes from the Company.
