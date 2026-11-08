@@ -21,6 +21,14 @@ doc_events = {
         "before_print": "ph_cas.controls.dates.refuse_draft_print",
     },
     "Accounting Period": {"validate": "ph_cas.controls.dates.validate_accounting_period"},
+    "Sales Invoice": {
+        "before_insert": "ph_cas.controls.serial.clear_serial_on_copy",
+        "before_submit": "ph_cas.controls.serial.assign_serial",
+    },
+    "Payment Entry": {
+        "before_insert": "ph_cas.controls.serial.clear_serial_on_copy",
+        "before_submit": "ph_cas.controls.serial.assign_serial",
+    },
     "Company": {"validate": "ph_cas.controls.dates.validate_company_inventory"},
     "Stock Reconciliation": {"validate": "ph_cas.controls.dates.require_manager"},
     "Transaction Deletion Record": {"before_insert": "ph_cas.controls.locks.refuse_insert"},
