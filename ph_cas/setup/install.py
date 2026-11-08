@@ -21,4 +21,7 @@ def setup_all():
     from ph_cas.controls.posted_fields import install_property_setters
 
     install_property_setters()  # B03
+    from ph_cas.controls import dates
+
+    dates.setup()  # B04
     frappe.db.commit()

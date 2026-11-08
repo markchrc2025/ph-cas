@@ -94,3 +94,45 @@ def make_journal_entry(submit=True, amount=500):
     if submit:
         je.submit()
     return je
+
+
+def ensure_user(email: str, roles: list[str]) -> str:
+    if not frappe.db.exists("User", email):
+        user = frappe.get_doc(
+            {"doctype": "User", "email": email, "first_name": email.split("@")[0], "send_welcome_email": 0}
+        )
+        user.flags.ignore_permissions = True
+        user.insert()
+    user = frappe.get_doc("User", email)
+    existing = {r.role for r in user.roles}
+    for role in roles:
+        if role not in existing:
+            user.append("roles", {"role": role})
+    user.flags.ignore_permissions = True
+    user.save()
+    return email
+
+
+def ensure_stock_item(code="_Test PH Stock Item") -> str:
+    if not frappe.db.exists("Item", code):
+        frappe.get_doc(
+            {
+                "doctype": "Item",
+                "item_code": code,
+                "item_name": code,
+                "item_group": "Products",
+                "stock_uom": "Nos",
+                "is_stock_item": 1,
+                "valuation_rate": 10,
+            }
+        ).insert(ignore_permissions=True)
+    return code
+
+
+def ensure_warehouse(name="Stores") -> str:
+    full = acc(name)
+    if not frappe.db.exists("Warehouse", full):
+        frappe.get_doc({"doctype": "Warehouse", "warehouse_name": name, "company": TEST_COMPANY}).insert(
+            ignore_permissions=True
+        )
+    return full

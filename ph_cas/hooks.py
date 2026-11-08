@@ -17,7 +17,12 @@ doc_events = {
     "*": {
         "on_trash": "ph_cas.controls.locks.refuse_delete",
         "before_update_after_submit": "ph_cas.controls.posted_fields.refuse_posted_field_changes",
+        "validate": "ph_cas.controls.dates.validate_posting_date",
+        "before_print": "ph_cas.controls.dates.refuse_draft_print",
     },
+    "Accounting Period": {"validate": "ph_cas.controls.dates.validate_accounting_period"},
+    "Company": {"validate": "ph_cas.controls.dates.validate_company_inventory"},
+    "Stock Reconciliation": {"validate": "ph_cas.controls.dates.require_manager"},
     "Transaction Deletion Record": {"before_insert": "ph_cas.controls.locks.refuse_insert"},
     "Repost Accounting Ledger": {"before_insert": "ph_cas.controls.locks.refuse_insert"},
     "Repost Item Valuation": {"before_insert": "ph_cas.controls.locks.refuse_insert"},
@@ -27,3 +32,32 @@ doc_events = {
 override_doctype_class = {
     "Document Naming Settings": "ph_cas.controls.naming.PHDocumentNamingSettings",
 }
+
+has_permission = {
+    "Accounting Period": "ph_cas.controls.dates.manager_only_permission",
+    "Stock Reconciliation": "ph_cas.controls.dates.manager_only_permission",
+}
+
+# ERPNext reads this when a new Accounting Period is opened in the form: every
+# posted voucher type is offered for closing (B04 forces them closed anyway).
+period_closing_doctypes = [
+    "Sales Invoice",
+    "Purchase Invoice",
+    "POS Invoice",
+    "Payment Entry",
+    "Journal Entry",
+    "Period Closing Voucher",
+    "Stock Entry",
+    "Delivery Note",
+    "Purchase Receipt",
+    "Stock Reconciliation",
+    "Landed Cost Voucher",
+    "Subcontracting Receipt",
+    "Asset",
+    "Asset Capitalization",
+    "Asset Repair",
+    "Asset Value Adjustment",
+    "Invoice Discounting",
+    "Dunning",
+    "Process Deferred Accounting",
+]
