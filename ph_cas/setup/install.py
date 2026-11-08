@@ -15,4 +15,7 @@ def after_migrate():
 
 def setup_all():
     """Idempotent. Each bundle appends one call here."""
+    from ph_cas.controls.locks import force_accounts_settings
+
+    force_accounts_settings()  # B02
     frappe.db.commit()
