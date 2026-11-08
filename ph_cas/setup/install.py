@@ -69,4 +69,7 @@ def setup_all():
     from ph_cas.tax import sc_pwd
 
     sc_pwd.setup()  # B22
+    from ph_cas.dat import relief
+
+    relief.setup()  # B29
     frappe.db.commit()
