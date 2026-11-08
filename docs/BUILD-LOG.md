@@ -2,6 +2,13 @@
 
 One entry per bundle, newest first. Counts are the test totals on main after the merge.
 
+## B13 Sales side: withholding by customers, 2307s received (9 Nov 2026)
+- PR: #12
+- Built: ph_cas.tax.customer_withholding. On Sales Invoice a withholding block (ATC, rate, base net of VAT, income tax withheld, VAT withheld, percentage tax withheld, total, amount due net of withholding, rules applied) is filled from the customer's profile: government customers withhold income tax by goods and services (placeholder ATCs WI640 and WI650, H6) plus 5% VAT (WV010, WV020) from a VAT seller or percentage tax (WB080) from a Non-VAT seller; top withholding agents 1% on goods and 2% on services with WI or WC codes by the seller's taxpayer type; platforms 0.5% of the gross (WI/WC 820); on request, the user ticks the flag and gives ATC and rate. The receivable stays gross; when the customer pays net, the Payment Entry hook books the withheld part as deductions to Creditable Withholding Tax, Creditable VAT Withheld or Creditable Percentage Tax Withheld (two new mapping purposes and accounts) and allocates it so the invoice closes. shows_less_withholding_line decides the RR 6-2026 line by date (B20 prints it). Submittable DocType PH 2307 Received (payor, period within one quarter, ATC lines with monthly bases and tax, totals, scan) warns when it exceeds what payments booked. Report PH 2307 Received Reconciliation per customer and quarter.
+- Tests: 116 on main (+10).
+- Assumed: Goods versus services is decided per line by the item's stock flag. For platform sellers the invoice shows the expected 0.5% on the gross; the actual withholding happens on the platform's remittance.
+- Known limit: Platform remittance statements are not imported; the 2307 Received record is the reconciliation point.
+
 ## B12 Sales side: VAT classes, output VAT, percentage tax base (9 Nov 2026)
 - PR: #11
 - Built: ph_cas.tax.vat. On Sales Invoice and POS Invoice, before ERPNext computes totals, the seller's regime (Company VAT status) and every line's VAT class (line override, else item) decide the tax rows: a VAT company gets one Actual tax row Output VAT on the VATable and Government lines at the rule rate in force on the posting date (VAT-OUT-12), posted to the mapped output VAT account; a Non-VAT company gets no VAT row and the percentage-tax base is recorded. Buckets stored on the invoice: regime, VATable sales, VAT amount, sales to government, zero-rated, VAT-exempt, sales subject to percentage tax, VAT rate and rule applied. A Non-VAT seller cannot issue zero-rated or government lines. Report PH VAT Threshold Watch (gross sales of the last 12 months against VAT-THRESHOLD-3M). resolve() now also filters by base.
