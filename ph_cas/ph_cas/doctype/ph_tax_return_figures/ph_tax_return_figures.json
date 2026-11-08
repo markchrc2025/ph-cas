@@ -1,0 +1,185 @@
+{
+ "actions": [],
+ "creation": "2026-11-09 05:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "company",
+  "company_abbr",
+  "form",
+  "column_break_1",
+  "period_start",
+  "period_end",
+  "period_label",
+  "section_lines",
+  "lines",
+  "section_adjustments",
+  "adjustments",
+  "section_status",
+  "computed_on",
+  "computed_by",
+  "column_break_2",
+  "filed",
+  "filed_reference",
+  "filed_on",
+  "notes"
+ ],
+ "fields": [
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "company_abbr",
+   "fieldtype": "Data",
+   "label": "Abbr",
+   "fetch_from": "company.abbr",
+   "read_only": 1,
+   "hidden": 1
+  },
+  {
+   "fieldname": "form",
+   "fieldtype": "Select",
+   "label": "Return",
+   "options": "2550Q\n2551Q\n0619-E\n1601-EQ\n1600-VT\n1604-E\n1701Q\n1702Q\n1701\n1701A\n1702-RT",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "period_start",
+   "fieldtype": "Date",
+   "label": "Period start",
+   "reqd": 1
+  },
+  {
+   "fieldname": "period_end",
+   "fieldtype": "Date",
+   "label": "Period end",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "period_label",
+   "fieldtype": "Data",
+   "label": "Period",
+   "read_only": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "section_lines",
+   "fieldtype": "Section Break",
+   "label": "Computed figures (item order of the BIR form)"
+  },
+  {
+   "fieldname": "lines",
+   "fieldtype": "Table",
+   "label": "Figures",
+   "options": "PH Tax Return Line",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_adjustments",
+   "fieldtype": "Section Break",
+   "label": "Typed adjustments (each needs a reason; listed separately on the print)"
+  },
+  {
+   "fieldname": "adjustments",
+   "fieldtype": "Table",
+   "label": "Adjustments",
+   "options": "PH Tax Return Line"
+  },
+  {
+   "fieldname": "section_status",
+   "fieldtype": "Section Break",
+   "label": "Status"
+  },
+  {
+   "fieldname": "computed_on",
+   "fieldtype": "Datetime",
+   "label": "Computed on",
+   "read_only": 1
+  },
+  {
+   "fieldname": "computed_by",
+   "fieldtype": "Data",
+   "label": "Computed by",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "filed",
+   "fieldtype": "Check",
+   "label": "Filed with the BIR (manual tick; filing is not integrated)"
+  },
+  {
+   "fieldname": "filed_reference",
+   "fieldtype": "Data",
+   "label": "Filing reference (eBIRForms confirmation)",
+   "depends_on": "filed"
+  },
+  {
+   "fieldname": "filed_on",
+   "fieldtype": "Date",
+   "label": "Filed on",
+   "depends_on": "filed"
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Small Text",
+   "label": "Notes"
+  }
+ ],
+ "links": [],
+ "modified": "2026-11-09 05:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "PH CAS",
+ "name": "PH Tax Return Figures",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "role": "Accounts Manager"
+  },
+  {
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "report": 1,
+   "print": 1,
+   "role": "Accounts User"
+  },
+  {
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "role": "PH Accounting Manager"
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

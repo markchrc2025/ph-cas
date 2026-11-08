@@ -51,4 +51,7 @@ def setup_all():
     from ph_cas.tax import reverse_charge
 
     reverse_charge.setup()  # B15
+    from ph_cas.tax import ovc
+
+    ovc.setup()  # B16
     frappe.db.commit()

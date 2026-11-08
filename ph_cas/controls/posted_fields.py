@@ -38,6 +38,10 @@ ALLOWED_AFTER_SUBMIT = frozenset(
         "actual_qty",
         "actual_batch_qty",
         "company_total_stock",
+        # RR 3-2024 claim flags, set after submit through ph_cas.tax.ovc (B16)
+        "ph_ovc_claimed",
+        "ph_ovc_claim_quarter",
+        "ph_supplier_claimed_ovc",
     }
 )
 
