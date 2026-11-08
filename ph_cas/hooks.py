@@ -30,7 +30,7 @@ doc_events = {
     "Accounting Period": {"validate": "ph_cas.controls.dates.validate_accounting_period"},
     "Sales Invoice": {
         "before_insert": ["ph_cas.controls.serial.clear_serial_on_copy", "ph_cas.invoicing.rules.refuse_amendment"],
-        "before_validate": "ph_cas.tax.vat.before_validate",
+        "before_validate": ["ph_cas.tax.sc_pwd.before_validate", "ph_cas.tax.vat.before_validate"],
         "validate": ["ph_cas.tax.vat.validate", "ph_cas.tax.customer_withholding.validate", "ph_cas.invoicing.rules.validate_buyer_details"],
         "before_submit": "ph_cas.controls.serial.assign_serial",
     },
