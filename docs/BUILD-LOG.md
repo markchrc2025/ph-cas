@@ -2,6 +2,13 @@
 
 One entry per bundle, newest first. Counts are the test totals on main after the merge.
 
+## B28 QAP 1601-EQ, 1604-E, MAP 1600-VT (9 Nov 2026)
+- PR: #26
+- Built: ph_cas.dat.qap. build_1601eq writes Schedules 1 and 2 in one file (HQAP header; D1 rows per payee and ATC from bills and advances with the rate as tax over income; C1 totals; D2 rows for bills booked without withholding under DI900 for individuals and EI900 for non-individuals; C2 total). build_1604e writes the annual file (H1604E with the N amended flag, D3 rows with the payee's TIN and branch, C3 total withheld, D4 rows for income not subjected, C4 total income) named with the 12/31 date. build_1600vt writes the MAP from the reverse-charge fields (HMAP, DMAP with unquoted names, non-resident providers without a TIN as 000000000, CMAP totals). generate stores each file as a PH Alphalist File with its layout status. unknown_atcs lists the codes in use that module 7.4 lacks (WV080 and the 840 to 860 series) for RDO question 8c.
+- Tests: 195 on main (+4).
+- Assumed: Schedule 2 ATCs DI900 and EI900 by payee type are an assumption from the sample layout (RDO 8c). The 1604-E D3 row writes the registered name quoted-empty for individuals, as the sample showed.
+- Known limit: The 1601-EQ layout matches the validator rules in the reference doc; the 1604-E and 1600-VT layouts are sample-only until the golden files (G5).
+
 ## B27 DAT framework and SAWT (9 Nov 2026)
 - PR: #25
 - Built: ph_cas.dat.writer: field formatting per kind (quoted, unquoted, quoted-empty, amount 2 decimals, integer, MM/YYYY, MM/DD/YYYY, empty), record and file assembly with CRLF, file names per RMC 15-2025 Annex B (TIN9 + 4-digit branch + MMYYYY + form, or MMDDYYYY for annual files), the withholding agent's and parties' name fields as the alphalist wants them, and store(), which keeps every generated file as a PH Alphalist File (period, file name, SHA-256, row count, layout status, attachment, and the owner's Validation-module result and eSubmission reference) and logs the export. ph_cas.dat.sawt builds the SAWT for 2550Q (VAT withheld), 2551Q (percentage tax withheld) and 1701Q, 1702Q, 1701, 1702 (income tax withheld) from PH 2307 Received: HSAWT header, DSAWT rows sorted by TIN with the registered name or the split name, the rate as tax over income, CSAWT totals. docs/dat/VERIFICATION.md records each layout's status: SAWT is sample-only until the golden files (G5).
