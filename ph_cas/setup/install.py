@@ -48,4 +48,7 @@ def setup_all():
     from ph_cas.tax import purchase
 
     purchase.setup()  # B14
+    from ph_cas.tax import reverse_charge
+
+    reverse_charge.setup()  # B15
     frappe.db.commit()
