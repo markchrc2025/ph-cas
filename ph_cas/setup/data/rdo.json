@@ -1,0 +1,830 @@
+[
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "001",
+  "rdo_name": "Laoag City, Ilocos Norte",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "002",
+  "rdo_name": "Vigan City, Ilocos Sur",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "003",
+  "rdo_name": "San Fernando City, La Union",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "004",
+  "rdo_name": "Calasiao, West Pangasinan",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "005",
+  "rdo_name": "Alaminos City, Pangasinan",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "006",
+  "rdo_name": "Urdaneta City, East Pangasinan",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "007",
+  "rdo_name": "Bangued, Abra",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "008",
+  "rdo_name": "Baguio City",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "009",
+  "rdo_name": "La Trinidad, Benguet",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "010",
+  "rdo_name": "Bontoc, Mountain Province",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "011",
+  "rdo_name": "Tabuk City, Kalinga",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "012",
+  "rdo_name": "Lagawe, Ifugao",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "013",
+  "rdo_name": "Tuguegarao City, Cagayan",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "014",
+  "rdo_name": "Bayombong, Nueva Vizcaya",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "015",
+  "rdo_name": "Naguilian, Isabela",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "016",
+  "rdo_name": "Cabarroguis, Quirino",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "17A",
+  "rdo_name": "Tarlac City, Tarlac",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "17B",
+  "rdo_name": "Paniqui, Tarlac",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "018",
+  "rdo_name": "Olongapo City",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "019",
+  "rdo_name": "Subic Bay Freeport Zone",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "020",
+  "rdo_name": "Balanga City, Bataan",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "21A",
+  "rdo_name": "North Pampanga",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "21B",
+  "rdo_name": "South Pampanga",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "21C",
+  "rdo_name": "Clark Freeport Zone",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "022",
+  "rdo_name": "Baler, Aurora",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "23A",
+  "rdo_name": "Talavera, North Nueva Ecija",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "23B",
+  "rdo_name": "Cabanatuan City, South Nueva Ecija",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "024",
+  "rdo_name": "Valenzuela City",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "25A",
+  "rdo_name": "Plaridel, West Bulacan",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "25B",
+  "rdo_name": "Sta. Maria, East Bulacan",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "026",
+  "rdo_name": "Malabon-Navotas",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "027",
+  "rdo_name": "Caloocan City",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "028",
+  "rdo_name": "Novaliches",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "029",
+  "rdo_name": "Tondo-San Nicolas",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "030",
+  "rdo_name": "Binondo",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "031",
+  "rdo_name": "Sta. Cruz, Manila",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "032",
+  "rdo_name": "Quiapo-Sampaloc-San Miguel-Sta. Mesa",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "033",
+  "rdo_name": "Intramuros-Ermita-Malate",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "034",
+  "rdo_name": "Paco-Pandacan-Sta. Ana-San Andres",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "035",
+  "rdo_name": "Romblon",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "036",
+  "rdo_name": "Puerto Princesa City, Palawan",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "037",
+  "rdo_name": "San Jose, Occidental Mindoro",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "038",
+  "rdo_name": "North Quezon City",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "039",
+  "rdo_name": "South Quezon City",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "040",
+  "rdo_name": "Cubao",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "041",
+  "rdo_name": "Mandaluyong City",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "042",
+  "rdo_name": "San Juan City",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "043",
+  "rdo_name": "Pasig City",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "43A",
+  "rdo_name": "",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "43B",
+  "rdo_name": "",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "044",
+  "rdo_name": "Taguig-Pateros",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "045",
+  "rdo_name": "Marikina City",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "046",
+  "rdo_name": "Cainta-Taytay, Rizal",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "047",
+  "rdo_name": "East Makati",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "048",
+  "rdo_name": "West Makati",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "049",
+  "rdo_name": "North Makati",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "050",
+  "rdo_name": "South Makati",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "051",
+  "rdo_name": "Pasay City",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "052",
+  "rdo_name": "Paranaque City",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "53A",
+  "rdo_name": "Las Pinas City",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "53B",
+  "rdo_name": "Muntinlupa City",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "54A",
+  "rdo_name": "Trece Martires City, East Cavite",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "54B",
+  "rdo_name": "Kawit, West Cavite",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "055",
+  "rdo_name": "San Pablo City, Laguna",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "056",
+  "rdo_name": "Calamba City, Central Laguna",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "057",
+  "rdo_name": "Binan City, West Laguna",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "058",
+  "rdo_name": "Batangas City, West Batangas",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "059",
+  "rdo_name": "Lipa City, East Batangas",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "060",
+  "rdo_name": "Lucena City, North Quezon",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "061",
+  "rdo_name": "Gumaca, South Quezon",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "062",
+  "rdo_name": "Boac, Marinduque",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "063",
+  "rdo_name": "Calapan City, Oriental Mindoro",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "064",
+  "rdo_name": "Talisay, Camarines Norte",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "065",
+  "rdo_name": "Naga City",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "066",
+  "rdo_name": "Iriga City",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "067",
+  "rdo_name": "Legazpi City, Albay",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "068",
+  "rdo_name": "Sorsogon City",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "069",
+  "rdo_name": "Virac, Catanduanes",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "070",
+  "rdo_name": "Masbate City",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "071",
+  "rdo_name": "Kalibo, Aklan",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "072",
+  "rdo_name": "Roxas City, Capiz",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "073",
+  "rdo_name": "San Jose, Antique",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "074",
+  "rdo_name": "Iloilo City",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "075",
+  "rdo_name": "Zarraga, Iloilo",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "076",
+  "rdo_name": "Victorias City, Negros Occidental",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "077",
+  "rdo_name": "Bacolod City",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "078",
+  "rdo_name": "Binalbagan, Negros Occidental",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "079",
+  "rdo_name": "Tagbilaran City, Bohol",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "080",
+  "rdo_name": "Mandaue City",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "081",
+  "rdo_name": "Cebu City North",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "082",
+  "rdo_name": "Cebu City South",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "083",
+  "rdo_name": "Talisay City, Cebu",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "084",
+  "rdo_name": "",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "085",
+  "rdo_name": "Catarman, Northern Samar",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "086",
+  "rdo_name": "Borongan City, Eastern Samar",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "087",
+  "rdo_name": "Catbalogan City, Samar",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "088",
+  "rdo_name": "",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "089",
+  "rdo_name": "Ormoc City",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "090",
+  "rdo_name": "Maasin City, Southern Leyte",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "091",
+  "rdo_name": "Dipolog City",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "092",
+  "rdo_name": "Pagadian City",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "93A",
+  "rdo_name": "Zamboanga City",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "93B",
+  "rdo_name": "Ipil, Zamboanga Sibugay",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "094",
+  "rdo_name": "Isabela City, Basilan",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "095",
+  "rdo_name": "Jolo, Sulu",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "096",
+  "rdo_name": "Bongao, Tawi-Tawi",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "097",
+  "rdo_name": "Gingoog City",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "098",
+  "rdo_name": "Cagayan de Oro City",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "099",
+  "rdo_name": "Malaybalay City, Bukidnon",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "100",
+  "rdo_name": "Ozamiz City",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "101",
+  "rdo_name": "Iligan City",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "102",
+  "rdo_name": "Marawi City",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "103",
+  "rdo_name": "Butuan City",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "104",
+  "rdo_name": "Bayugan City, Agusan del Sur",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "105",
+  "rdo_name": "Surigao City",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "106",
+  "rdo_name": "Tandag City, Surigao del Sur",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "107",
+  "rdo_name": "Cotabato City",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "108",
+  "rdo_name": "Kidapawan City",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "109",
+  "rdo_name": "Tacurong City",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "110",
+  "rdo_name": "General Santos City",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "111",
+  "rdo_name": "Koronadal City",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "112",
+  "rdo_name": "Tagum City",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "113",
+  "rdo_name": "Davao City",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "114",
+  "rdo_name": "Mati City, Davao Oriental",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "115",
+  "rdo_name": "Digos City, Davao del Sur",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "116",
+  "rdo_name": "",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "117",
+  "rdo_name": "",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "118",
+  "rdo_name": "",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "119",
+  "rdo_name": "",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "120",
+  "rdo_name": "",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "121",
+  "rdo_name": "",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "122",
+  "rdo_name": "",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "123",
+  "rdo_name": "",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "124",
+  "rdo_name": "",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "125",
+  "rdo_name": "",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "126",
+  "rdo_name": "",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "127",
+  "rdo_name": "",
+  "name_confirmed": 0
+ },
+ {
+  "doctype": "PH RDO",
+  "rdo_code": "132",
+  "rdo_name": "",
+  "name_confirmed": 0
+ }
+]

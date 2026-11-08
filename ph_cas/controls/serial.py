@@ -67,7 +67,10 @@ def assign_serial(doc, method=None):
         return
     if doc.get(SERIAL_FIELD):
         return  # amended from a cancelled document? no: an amendment is new and gets a new number
-    branch = (doc.get(BRANCH_FIELD) or "00000").strip() or "00000"
+    branch = (doc.get(BRANCH_FIELD) or "").strip()
+    if not branch:
+        branch = (frappe.db.get_value("Company", doc.company, "ph_branch_code") or "00000").strip() or "00000"
+        doc.set(BRANCH_FIELD, branch)
     series = series_name(doc.company, branch, document_type)
     serial, remaining = allocate(series)
     doc.set(SERIAL_FIELD, serial)
@@ -120,7 +123,9 @@ def setup():
                 "label": "Branch code",
                 "fieldtype": "Data",
                 "insert_after": "company",
-                "default": "00000",
+                "fetch_from": "company.ph_branch_code",
+                "fetch_if_empty": 1,
+                "default": "",
                 "length": 5,
                 "read_only_depends_on": "eval:doc.docstatus != 0",
                 "description": "5-digit BIR branch code of the issuing branch.",
@@ -131,6 +136,7 @@ def setup():
                 "fieldtype": "Data",
                 "insert_after": BRANCH_FIELD,
                 "read_only": 1,
+                "unique": 0,
                 "no_copy": 1,
                 "in_list_view": 1,
                 "in_standard_filter": 1,
