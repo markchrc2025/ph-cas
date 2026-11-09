@@ -2,6 +2,8 @@
 # Runs as root: starts MariaDB and Redis, then the bench as the frappe user.
 # Env: SITE_NAME (required), DB_ROOT_PASSWORD, ADMIN_PASSWORD (secrets), PORT (8000),
 #      PH_PRODUCTION (0 = demo site that applies draft rules; 1 = production), PH_DEMO (1 = seed demo data once).
+#      CLIENT_DOMAIN (default SITE_NAME): client sites are <name>.$CLIENT_DOMAIN, created with `ledger-site new <name>`.
+#      BACKUP_REMOTE (optional rclone remote such as s3:ledger-backups) for the off-site copy of every site's backup.
 set -euo pipefail
 trap 'echo "entrypoint failed at line $LINENO: $BASH_COMMAND" >&2' ERR
 SITE="${SITE_NAME:?SITE_NAME is required}"
@@ -9,6 +11,7 @@ PORT="${PORT:-8000}"
 DBROOT="${DB_ROOT_PASSWORD:?DB_ROOT_PASSWORD is required}"
 ADMIN="${ADMIN_PASSWORD:?ADMIN_PASSWORD is required}"
 BENCH=/home/frappe/bench
+CLIENT_DOMAIN="${CLIENT_DOMAIN:-$SITE}"
 
 echo "== MariaDB"
 if [ ! -d /var/lib/mysql/mysql ]; then
@@ -41,6 +44,7 @@ fi
 id frappe; which bench; ls -la "$BENCH/sites" | head
 chown -R frappe:frappe "$BENCH/sites"
 su frappe -c "cd $BENCH && bench set-config -g db_host 127.0.0.1 && bench set-config -g redis_cache redis://127.0.0.1:6379 && bench set-config -g redis_queue redis://127.0.0.1:6379 && bench set-config -g redis_socketio redis://127.0.0.1:6379 && bench set-config -g default_site '$SITE' && bench set-config -g serve_default_site true && bench set-config -g webserver_port 8001"
+if [ -n "${BACKUP_REMOTE:-}" ]; then su frappe -c "cd $BENCH && bench set-config -g ph_backup_remote '$BACKUP_REMOTE'"; fi
 MARK="$BENCH/sites/$SITE/.ph_cas_installed"
 if [ -d "$BENCH/sites/$SITE" ] && [ ! -f "$MARK" ]; then
   echo "== removing half-installed site $SITE from an interrupted first run"
@@ -66,15 +70,27 @@ fi
 echo "== apply container configuration (email, admin mailbox, demo 2FA switch)"
 su frappe -c "cd $BENCH && bench --site '$SITE' execute ph_cas.deploy_config.apply" || echo "deploy_config failed (continuing)"
 
+# Client sites (created earlier with ledger-site) live in the same sites volume: migrate each and share email/branding.
+for d in "$BENCH"/sites/*/; do
+  s=$(basename "$d")
+  [ "$s" = "$SITE" ] && continue
+  [ -f "$d/site_config.json" ] || continue
+  if [ ! -f "$d/.ph_cas_installed" ]; then echo "== skipping half-installed client site $s"; continue; fi
+  echo "== client site $s: migrate"
+  su frappe -c "cd $BENCH && bench --site '$s' migrate" || echo "migrate failed for $s (continuing)"
+  su frappe -c "cd $BENCH && bench --site '$s' execute ph_cas.deploy_config.apply_shared" || echo "deploy_config failed for $s (continuing)"
+done
+
 echo "== serve on $PORT (nginx -> gunicorn 8001, socketio 9000)"
 cd $BENCH
 su frappe -c "cd $BENCH && bench set-config -g socketio_port 9000 && bench set-config -g webserver_port 8001" >/dev/null
-sed -e "s/__PORT__/$PORT/g" -e "s/__SITE__/$SITE/g" /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf
+DOMAIN_RE=$(printf '%s' "$CLIENT_DOMAIN" | sed 's/\./\\\\./g')
+sed -e "s/__PORT__/$PORT/g" -e "s/__SITE__/$SITE/g" -e "s/__DOMAIN_RE__/$DOMAIN_RE/g" /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf
 nginx -t
 su frappe -c "cd $BENCH && ./env/bin/gunicorn -b 127.0.0.1:8001 -w 2 -t 120 --chdir sites frappe.app:application" &
 su frappe -c "cd $BENCH && node apps/frappe/socketio.js" &
 nginx -g "daemon off;" &
-su frappe -c "cd $BENCH && bench --site '$SITE' worker --queue short,default,long" &
+su frappe -c "cd $BENCH && bench worker --queue short,default,long" &
 su frappe -c "cd $BENCH && bench schedule" &
 wait -n
 exit 1

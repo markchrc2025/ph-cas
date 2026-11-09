@@ -2,6 +2,13 @@
 
 One entry per bundle, newest first. Counts are the test totals on main after the merge.
 
+## B32 Multi-site hosting (10 Nov 2026)
+- PR: #TBD
+- Built: ph_cas.hosting.tiers (tier table, set_tier, limits, usage, enforcement on User, Company, Branch, Sales Invoice; provider staff flag); PH CAS Settings subscription fields; deploy_config.apply_shared; multi-site entrypoint; nginx host map; ledger-site command (new, set-tier, usage, list, backup, password, drop); rclone in the image; monitor reports subscription status; runbook
+- Tests: 6 (test_b32_tiers), 211 in all
+- Assumed: Tier limits per the 9 Nov pricing proposal (Solo 1 user 150 invoices, Team 5 users 3 branches 1000 invoices, Business 15 users, Enterprise unlimited); client hostnames are <name>.CLIENT_DOMAIN; unknown hostnames fall back to the primary site
+- Known limit: Wildcard TLS and DNS are set in Dokploy and GoDaddy by the owner; the invoice limit counts Sales Invoices only (POS Invoices are not counted)
+
 ## B31 Hosting, backups, restore drill, runbooks (9 Nov 2026)
 - PR: #29
 - Built: ph_cas.ops.backup: run_backup takes database plus private and public files through Frappe's backup, writes a manifest with SHA-256 hashes, encrypts each file with AES-256 (openssl, key in site_config ph_backup_key), copies to the Philippine bucket in site_config ph_backup_remote with rclone, records the time on PH CAS Settings and logs it; verify_backup decrypts and checks every hash; a daily scheduler job runs it. ph_cas.ops.monitor.status reports backup age, chain check, disk, scheduler and draft rules on production, and an hourly job emails System Managers when a check fails. scripts/ops: new_client_site.sh (one site per client with production flag, backup key and remote, ten-year local retention, encryption key, scheduler), backup_now.sh, restore_drill.sh (restore the latest backup into a scratch site, migrate, run the chain check, drop it, append to the drill log). Runbooks: hosting, onboarding, upgrades (minor versus major) with the notice-of-minor-enhancement template; a short user guide.

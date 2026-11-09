@@ -19,7 +19,16 @@
   "provider_col",
   "provider_signatory",
   "provider_signatory_position",
-  "provider_signatory_tin"
+  "provider_signatory_tin",
+  "subscription_section",
+  "subscription_tier",
+  "subscription_until",
+  "pilot_until",
+  "subscription_col",
+  "max_users",
+  "max_companies",
+  "max_branches",
+  "monthly_invoice_limit"
  ],
  "fields": [
   {
@@ -106,6 +115,61 @@
    "fieldname": "last_backup_on",
    "fieldtype": "Datetime",
    "label": "Last backup",
+   "read_only": 1
+  },
+  {
+   "fieldname": "subscription_section",
+   "fieldtype": "Section Break",
+   "label": "Subscription (hosting tier)"
+  },
+  {
+   "fieldname": "subscription_tier",
+   "fieldtype": "Select",
+   "label": "Tier",
+   "options": "Internal\nSolo\nTeam\nBusiness\nEnterprise",
+   "default": "Internal",
+   "read_only": 1,
+   "description": "Set by the hosting provider (ledger-site set-tier). Internal means no limits."
+  },
+  {
+   "fieldname": "subscription_until",
+   "fieldtype": "Date",
+   "label": "Paid until",
+   "read_only": 1
+  },
+  {
+   "fieldname": "pilot_until",
+   "fieldtype": "Date",
+   "label": "Pilot ends",
+   "read_only": 1,
+   "description": "Pilot sites are deleted 30 days after this date unless subscribed."
+  },
+  {
+   "fieldname": "subscription_col",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "max_users",
+   "fieldtype": "Int",
+   "label": "Max users (0 = unlimited)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "max_companies",
+   "fieldtype": "Int",
+   "label": "Max companies (0 = unlimited)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "max_branches",
+   "fieldtype": "Int",
+   "label": "Max branches (0 = unlimited)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "monthly_invoice_limit",
+   "fieldtype": "Int",
+   "label": "Invoices per month (0 = unlimited)",
    "read_only": 1
   }
  ],

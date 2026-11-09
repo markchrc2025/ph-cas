@@ -23,3 +23,26 @@
 | `PH_2FA` | Demo sites only: 0 turns two-factor sign-in off until email works; ignored when `PH_PRODUCTION` is 1 |
 
 Persist `/var/lib/mysql` and `/home/frappe/bench/sites` as volumes; without them every redeploy reinstalls the site.
+
+## Multi-site hosting (B32)
+
+One container serves many sites. The primary site is `SITE_NAME` (the demo on MCRC's own installation); client sites are `<name>.$CLIENT_DOMAIN`, each with its own database, created from the Dokploy terminal of the app:
+
+```
+ledger-site new acme --tier Team                 # https://acme.ledger.sentire.solutions, production flags on
+ledger-site new acme --tier Business --pilot 14  # paid pilot: demo mode, pilot_until set, deleted at day 30 if not subscribed
+ledger-site set-tier acme Business --until 2027-11-10 --max-users 20
+ledger-site usage acme
+ledger-site list
+ledger-site backup acme
+ledger-site password acme
+ledger-site drop acme --yes                      # only after the export of docs/runbooks/offboarding.md
+```
+
+DNS: a wildcard `*.$CLIENT_DOMAIN` A record to the app server, and a wildcard domain on the Dokploy app (or one domain per client). nginx routes `<name>.$CLIENT_DOMAIN` to the site of that exact name and every other hostname to the primary site. At every container start each client site is migrated and receives the shared outgoing email account and branding; its Administrator password and two-factor setting are its own.
+
+Tier limits live in PH CAS Settings (tier, max users, companies, branches, invoices per month) and are enforced when users, companies, branches or invoices are created. Provider staff users (User.ph_provider_staff) do not consume a seat. `Internal` has no limits. Limits per tier are in `ph_cas/hosting/tiers.py`.
+
+Backups: every site runs its own encrypted daily backup (B31). Set `BACKUP_REMOTE` on the app (an rclone remote, e.g. `s3:ledger-backups`, configured through `RCLONE_CONFIG_*` environment variables) and every site's backup is copied off-site under its own folder.
+
+Capacity: about 5 to 10 small sites per 4 GB container; a second app from the same image, or a dedicated pair (B36), beyond that.
