@@ -2,6 +2,13 @@
 
 One entry per bundle, newest first. Counts are the test totals on main after the merge.
 
+## B37 Client-facing website (10 Nov 2026)
+- PR: #TBD
+- Built: website/ static site (index, pricing, demo, terms, privacy, data processing terms; one stylesheet; nginx Dockerfile for Dokploy with build path /website); /pilot page and request_pilot API on the application site (CSV log, provider mail, webhook); README
+- Tests: 2 (test_b37_website), 229 in all
+- Assumed: Prices and tier contents from the 9 Nov proposal; demo and pilot forms live on the application site because a static site cannot send mail; legal pages are drafts for counsel; contact address is the firm's Gmail until a sentireledger.com mailbox exists
+- Known limit: No analytics or CMS; copy changes are edits to the HTML files
+
 ## B36 Enterprise dedicated pair (10 Nov 2026)
 - PR: #TBD
 - Built: scripts/enterprise/provision-pair.sh (hardening, Docker, swap, firewall on both servers; Dokploy remote-server or own-Dokploy on production; standby restore-test timer and env file); scripts/enterprise/standby-restore-test.sh (fetch newest encrypted set, decrypt with the site key, restore into a fresh container of the published image, prove ping and monitor status, keep as UAT on 8080); Image workflow publishing ghcr.io/markchrc2025/ph-cas on every push to main; docs/runbooks/enterprise-pair.md (shape, provisioning, restore test, manual failover, SLA, costs)

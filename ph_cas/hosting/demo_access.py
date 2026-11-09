@@ -288,3 +288,41 @@ def daily_pilot_check():
         frappe.db.set_value("User", u, "enabled", 0, update_modified=False)
     frappe.db.commit()
     return {"pilot": True, "days_left": 0, "disabled_users": len(users), "note": "pilot grace period over; provider runs ledger-site drop after export"}
+
+
+def _pilot_log_path() -> str:
+    return frappe.get_site_path("private", "files", "pilot-requests.csv")
+
+
+@frappe.whitelist(allow_guest=True, methods=["POST"])
+@rate_limit(limit=5, seconds=24 * 60 * 60)
+def request_pilot(full_name: str, email: str, company: str, mobile: str = "", tier: str = "Team", notes: str = "") -> dict:
+    """Public request for a paid pilot or an Enterprise conversation (B37). Logged and mailed to the provider; nothing is created."""
+    email = (email or "").strip().lower()
+    if not validate_email_address(email):
+        frappe.throw(_("Please enter a valid email address."))
+    full_name = (full_name or "").strip()[:140]
+    company = (company or "").strip()[:140]
+    if not full_name or not company:
+        frappe.throw(_("Please enter your name and company."))
+    row = {
+        "requested_on": str(now_datetime())[:19],
+        "email": email,
+        "full_name": full_name,
+        "company": company,
+        "mobile": (mobile or "").strip()[:40],
+        "tier": tier if tier in ("Solo", "Team", "Business", "Enterprise") else "Team",
+        "notes": (notes or "").strip()[:2000].replace("\n", " "),
+        "ip": frappe.local.request_ip or "",
+    }
+    p = _pilot_log_path()
+    os.makedirs(os.path.dirname(p), exist_ok=True)
+    new = not os.path.exists(p)
+    with open(p, "a", newline="", encoding="utf-8") as f:
+        w = csv.DictWriter(f, fieldnames=list(row.keys()))
+        if new:
+            w.writeheader()
+        w.writerow(row)
+    _notify_provider({"request": "PILOT", **row})
+    _post_webhook({"type": "pilot", **row})
+    return {"ok": True, "message": _("Thank you. We will write to you within one business day to schedule the pilot.")}
