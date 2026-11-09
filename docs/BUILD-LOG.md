@@ -2,6 +2,13 @@
 
 One entry per bundle, newest first. Counts are the test totals on main after the merge.
 
+## B36 Enterprise dedicated pair (10 Nov 2026)
+- PR: #TBD
+- Built: scripts/enterprise/provision-pair.sh (hardening, Docker, swap, firewall on both servers; Dokploy remote-server or own-Dokploy on production; standby restore-test timer and env file); scripts/enterprise/standby-restore-test.sh (fetch newest encrypted set, decrypt with the site key, restore into a fresh container of the published image, prove ping and monitor status, keep as UAT on 8080); Image workflow publishing ghcr.io/markchrc2025/ph-cas on every push to main; docs/runbooks/enterprise-pair.md (shape, provisioning, restore test, manual failover, SLA, costs)
+- Tests: 3 (test_b36_enterprise), 227 in all
+- Assumed: Servers in MCRC's Contabo account (decision C3); Singapore primary; manual DNS failover with 99.5 percent SLA; the GHCR package is private and servers pull with a read-only token
+- Known limit: Automatic failover and MariaDB replication are not built; the restore test needs the image to be published first (first Image workflow run after merge)
+
 ## B35 Subscription and offboarding tooling (10 Nov 2026)
 - PR: #TBD
 - Built: PH Subscription DocType (client, site, tier, status, dates, fees, limits, usage, offboarding dates, deletion certificate; validation per status; set-tier command text; due list); ph_cas.hosting.offboard (export_site: backup with files, books per company and year, registration packs, audit trail, registers, manifest with SHA-256, README; deletion_certificate); ledger-site offboard, certificate, report; docs/runbooks/offboarding.md
