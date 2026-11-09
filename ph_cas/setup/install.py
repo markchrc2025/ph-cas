@@ -78,4 +78,7 @@ def setup_all():
     from ph_cas.hosting import demo_access
 
     demo_access.setup()  # B33
+    from ph_cas.setup import onboarding
+
+    onboarding.setup()  # B34
     frappe.db.commit()

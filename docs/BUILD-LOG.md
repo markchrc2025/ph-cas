@@ -2,6 +2,13 @@
 
 One entry per bundle, newest first. Counts are the test totals on main after the merge.
 
+## B34 Onboarding videos (placeholders) and Sentire Ledger onboarding module (10 Nov 2026)
+- PR: #TBD
+- Built: ph_cas.setup.onboarding (video overrides from setup/data/onboarding_videos.json applied on install and migrate; Module Onboarding 'Get to know Sentire Ledger' with six steps; Sentire Ledger workspace with onboarding card, shortcuts and link cards); user guide section
+- Tests: 4 (test_b34_onboarding), 221 in all
+- Assumed: All 30 video overrides are null placeholders until the recordings exist (owner records them later); the workspace is created as a record at setup rather than a fixture so it is not overwritten by ERPNext upgrades
+- Known limit: Step completion is per step record, as in ERPNext; the Watch Video action type is not used, videos play from the step card
+
 ## B33 Open demo and pilot (10 Nov 2026)
 - PR: #TBD
 - Built: ph_cas.hosting.demo_access (guest signup API with rate limit, Demo User role, per-request demo company with user permission, 24-hour login token, CSV lead log, provider mail, leads webhook, hourly expiry, recreate after reset, daily pilot check); /demo and /demo_login pages; ledger-site snapshot-demo and reset-demo; nightly reset loop in the entrypoint; runbook
