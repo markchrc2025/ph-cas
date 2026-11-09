@@ -46,3 +46,11 @@ Tier limits live in PH CAS Settings (tier, max users, companies, branches, invoi
 Backups: every site runs its own encrypted daily backup (B31). Set `BACKUP_REMOTE` on the app (an rclone remote, e.g. `s3:ledger-backups`, configured through `RCLONE_CONFIG_*` environment variables) and every site's backup is copied off-site under its own folder.
 
 Capacity: about 5 to 10 small sites per 4 GB container; a second app from the same image, or a dedicated pair (B36), beyond that.
+
+## Open demo and pilots (B33)
+
+Open demo (the primary site with `PH_DEMO=1`): `/demo` is a public signup page; the request creates a Demo User restricted to its own demo company and emails a one-click link (`/demo_login?token=...`) valid 24 hours. Requests are the lead list: appended to `sites/<site>/private/files/demo-requests.csv`, mailed to the Administrator's address, and posted as JSON to `DEMO_LEADS_WEBHOOK` when that variable is set (the newsletter tool's inbound webhook). Limits: one demo per email per 30 days, five requests per IP per day. The hourly job disables users whose 24 hours are over.
+
+Nightly reset: after the seed the entrypoint stores a golden database snapshot (`ledger-site snapshot-demo`); every night at `DEMO_RESET_UTC_HOUR` (default 18 UTC, 02:00 Manila) `ledger-site reset-demo` restores it, re-applies the container configuration and re-issues access mails to demo users whose 24 hours are still running. Set `DEMO_RESET=0` to turn the reset off.
+
+Pilots: `ledger-site new acme --tier Business --pilot 14` creates the client's own site in demo mode with `pilot_until` set. The daily job counts down a 30-day grace period after `pilot_until`; when it ends without a recorded subscription (`ledger-site set-tier acme Business --until <date>`), every user is disabled and the monitor reports it. The site is dropped by the provider after the export (docs/runbooks/offboarding.md), never automatically.

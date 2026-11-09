@@ -31,7 +31,7 @@ class TestB32Tiers(IntegrationTestCase):
         set_tier("Internal")
 
     def tearDown(self):
-        set_tier("Internal")
+        set_tier("Internal", subscription_until="", pilot_until="")
         for u in frappe.get_all("User", filters={"name": ["like", "_b32_%"]}, pluck="name"):
             frappe.delete_doc("User", u, force=True, ignore_permissions=True)
         frappe.db.commit()
