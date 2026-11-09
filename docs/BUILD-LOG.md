@@ -2,6 +2,13 @@
 
 One entry per bundle, newest first. Counts are the test totals on main after the merge.
 
+## B35 Subscription and offboarding tooling (10 Nov 2026)
+- PR: #TBD
+- Built: PH Subscription DocType (client, site, tier, status, dates, fees, limits, usage, offboarding dates, deletion certificate; validation per status; set-tier command text; due list); ph_cas.hosting.offboard (export_site: backup with files, books per company and year, registration packs, audit trail, registers, manifest with SHA-256, README; deletion_certificate); ledger-site offboard, certificate, report; docs/runbooks/offboarding.md
+- Tests: 3 (test_b35_offboarding), 224 in all
+- Assumed: Subscription records live on MCRC's own site; usage is read with ledger-site report and pasted, not pulled automatically; suspension for non-payment is a manual step
+- Known limit: The export runs inside the client's site, so a site that cannot start cannot be exported with this tool (use the last encrypted backup instead)
+
 ## B34 Onboarding videos (placeholders) and Sentire Ledger onboarding module (10 Nov 2026)
 - PR: #TBD
 - Built: ph_cas.setup.onboarding (video overrides from setup/data/onboarding_videos.json applied on install and migrate; Module Onboarding 'Get to know Sentire Ledger' with six steps; Sentire Ledger workspace with onboarding card, shortcuts and link cards); user guide section
