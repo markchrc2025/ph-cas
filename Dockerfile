@@ -23,7 +23,8 @@ RUN for i in 1 2 3; do bench get-app erpnext https://github.com/frappe/erpnext -
 
 COPY --chown=frappe:frappe . /home/frappe/bench/apps/ph_cas
 RUN ./env/bin/pip install --no-cache-dir -e apps/ph_cas && sed -i -e "\$a\\" sites/apps.txt && echo ph_cas >> sites/apps.txt && cat sites/apps.txt \
-    && bench build --production
+    && bench build --production \
+    && cp -a sites /home/frappe/sites-image
 
 USER root
 RUN apt-get update && apt-get install -y --no-install-recommends nginx && rm -rf /var/lib/apt/lists/*

@@ -30,6 +30,14 @@ echo "== Redis"
 (redis-server --daemonize yes --save 60 1 --dir /var/lib/redis >/dev/null 2>&1 || redis-server --daemonize yes >/dev/null)
 
 echo "== bench"
+# sites/ may be a persistent volume: refresh the built assets and app list from this image.
+if [ -d /home/frappe/sites-image ]; then
+  mkdir -p "$BENCH/sites"
+  rm -rf "$BENCH/sites/assets"
+  cp -a /home/frappe/sites-image/assets "$BENCH/sites/assets"
+  cp -a /home/frappe/sites-image/apps.txt /home/frappe/sites-image/apps.json "$BENCH/sites/"
+  [ -f "$BENCH/sites/common_site_config.json" ] || cp -a /home/frappe/sites-image/common_site_config.json "$BENCH/sites/"
+fi
 id frappe; which bench; ls -la "$BENCH/sites" | head
 chown -R frappe:frappe "$BENCH/sites"
 su frappe -c "cd $BENCH && bench set-config -g db_host 127.0.0.1 && bench set-config -g redis_cache redis://127.0.0.1:6379 && bench set-config -g redis_queue redis://127.0.0.1:6379 && bench set-config -g redis_socketio redis://127.0.0.1:6379 && bench set-config -g default_site '$SITE' && bench set-config -g serve_default_site true && bench set-config -g webserver_port 8001"
