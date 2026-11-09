@@ -11,6 +11,9 @@ Outgoing email (for the two-factor QR/OTP mails, password resets, notifications)
   SMTP_TLS             1 = STARTTLS (default), 0 = plain; SMTP_SSL=1 for implicit TLS (port 465)
 Administrator mailbox (where the Administrator's 2FA mails go):
   ADMIN_EMAIL
+Branding (PH CAS Settings, shown on the BIR header of every print and export):
+  PRODUCT_NAME         e.g. Sentire Ledger
+  PROVIDER_NAME        e.g. MCRC Tax and Accounting Services
 Demo convenience (ignored when ph_cas_production is 1):
   PH_2FA               0 turns two-factor sign-in off on a demo site until email works
 All values are read from the environment only; nothing is logged.
@@ -35,6 +38,7 @@ def apply():
     out.append(_email_account())
     out.append(_admin_email())
     out.append(_two_factor())
+    out.append(_branding())
     frappe.db.commit()
     return "; ".join(x for x in out if x)
 
@@ -105,3 +109,23 @@ def _two_factor():
         return "demo: two-factor sign-in OFF (PH_2FA=0)"
     frappe.db.set_single_value("System Settings", "enable_two_factor_auth", 1)
     return ""
+
+
+def _branding():
+    product = _env("PRODUCT_NAME")
+    provider = _env("PROVIDER_NAME")
+    if not product and not provider:
+        return ""
+    s = frappe.get_single("PH CAS Settings")
+    changed = False
+    if product and s.get("product_name") != product:
+        s.product_name = product
+        changed = True
+    if provider and s.get("provider_name") != provider:
+        s.provider_name = provider
+        changed = True
+    if changed:
+        s.flags.ignore_permissions = True
+        s.save()
+    frappe.db.set_single_value("System Settings", "app_name", product or s.product_name)
+    return f"branding: {s.product_name}"

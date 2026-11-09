@@ -21,7 +21,7 @@ def seed():
     frappe.db.set_value("Company", company, {"tax_id": "000-111-222", "ph_branch_code": "00000", "ph_rdo": "045", "ph_vat_status": "VAT", "ph_registered_name": "Tala Trading Corporation", "ph_business_style": "Tala Trading", "ph_accn": "ACCN-DEMO-000001", "ph_accn_date": today(), "ph_taxpayer_class": "Micro", "ph_operations_start_year": 2021}, update_modified=False)
     frappe.clear_document_cache("Company", company)
     s = frappe.get_single("PH CAS Settings")
-    s.product_name = "PH CAS (demo)"
+    s.product_name = "Sentire Ledger (demo)"
     s.provider_name = "MCRC Tax and Accounting Services"
     s.save()
     frappe.defaults.set_user_default("company", company)
