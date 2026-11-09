@@ -198,7 +198,13 @@ def consume_token(token: str) -> str | None:
     return data["user"]
 
 
+def _muted() -> bool:
+    return bool(frappe.flags.mute_emails or frappe.conf.get("mute_emails"))
+
+
 def _send_access_mail(email: str, full_name: str, link: str, expires):
+    if _muted():
+        return
     product = frappe.db.get_single_value("PH CAS Settings", "product_name") or "Sentire Ledger"
     frappe.sendmail(
         recipients=[email],
@@ -214,6 +220,8 @@ def _send_access_mail(email: str, full_name: str, link: str, expires):
 
 
 def _notify_provider(row: dict):
+    if _muted():
+        return
     to = frappe.db.get_value("User", "Administrator", "email")
     if not to or to.endswith("example.com"):
         return
