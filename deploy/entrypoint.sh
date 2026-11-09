@@ -50,6 +50,9 @@ if [ ! -d "$BENCH/sites/$SITE" ]; then
   rm -f /run/ph_cas_installing
 else
   su frappe -c "cd $BENCH && bench --site '$SITE' migrate"
+  if [ "${PH_DEMO:-0}" = 1 ]; then
+    su frappe -c "cd $BENCH && bench --site '$SITE' execute ph_cas.demo.seed" || echo "demo seed failed (continuing)"
+  fi
 fi
 
 echo "== serve on $PORT (nginx -> gunicorn 8001, socketio 9000)"

@@ -24,7 +24,7 @@ def seed():
     s.product_name = "PH CAS (demo)"
     s.provider_name = "MCRC Tax and Accounting Services"
     s.save()
-    frappe.set_user_default("company", company)
+    frappe.defaults.set_user_default("company", company)
     abbr = frappe.get_cached_value("Company", company, "abbr")
 
     def item(code, cls):
