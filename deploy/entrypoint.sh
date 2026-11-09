@@ -55,6 +55,9 @@ else
   fi
 fi
 
+echo "== apply container configuration (email, admin mailbox, demo 2FA switch)"
+su frappe -c "cd $BENCH && bench --site '$SITE' execute ph_cas.deploy_config.apply" || echo "deploy_config failed (continuing)"
+
 echo "== serve on $PORT (nginx -> gunicorn 8001, socketio 9000)"
 cd $BENCH
 su frappe -c "cd $BENCH && bench set-config -g socketio_port 9000 && bench set-config -g webserver_port 8001" >/dev/null
