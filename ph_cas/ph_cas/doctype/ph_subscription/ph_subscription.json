@@ -1,0 +1,326 @@
+{
+ "doctype": "DocType",
+ "name": "PH Subscription",
+ "module": "PH CAS",
+ "custom": 0,
+ "autoname": "field:site",
+ "naming_rule": "By fieldname",
+ "engine": "InnoDB",
+ "track_changes": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "title_field": "client_name",
+ "field_order": [
+  "client_section",
+  "client_name",
+  "site",
+  "tin",
+  "contact_name",
+  "contact_email",
+  "client_col",
+  "status",
+  "tier",
+  "hosting",
+  "servers",
+  "dates_section",
+  "started_on",
+  "pilot_until",
+  "paid_until",
+  "billing",
+  "dates_col",
+  "monthly_fee",
+  "setup_fee",
+  "bundle",
+  "addons",
+  "limits_section",
+  "max_users",
+  "max_branches",
+  "limits_col",
+  "max_companies",
+  "monthly_invoice_limit",
+  "set_tier_command",
+  "usage_section",
+  "usage_json",
+  "usage_on",
+  "offboarding_section",
+  "notice_received_on",
+  "service_ends_on",
+  "export_delivered_on",
+  "export_accepted_on",
+  "offboarding_col",
+  "rdo_notified_on",
+  "brand_licence_ended_on",
+  "deleted_on",
+  "deletion_certificate",
+  "notes"
+ ],
+ "fields": [
+  {
+   "fieldname": "client_section",
+   "fieldtype": "Section Break",
+   "label": "Client"
+  },
+  {
+   "fieldname": "client_name",
+   "fieldtype": "Data",
+   "label": "Client",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "site",
+   "fieldtype": "Data",
+   "label": "Site (hostname)",
+   "reqd": 1,
+   "unique": 1,
+   "in_list_view": 1,
+   "description": "e.g. acme.ledger.sentire.solutions"
+  },
+  {
+   "fieldname": "tin",
+   "fieldtype": "Data",
+   "label": "Client TIN"
+  },
+  {
+   "fieldname": "contact_name",
+   "fieldtype": "Data",
+   "label": "Contact"
+  },
+  {
+   "fieldname": "contact_email",
+   "fieldtype": "Data",
+   "label": "Contact email",
+   "options": "Email"
+  },
+  {
+   "fieldname": "client_col",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Pilot\nActive\nSuspended\nNotice given\nEnded",
+   "default": "Pilot",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "tier",
+   "fieldtype": "Select",
+   "label": "Tier",
+   "options": "Solo\nTeam\nBusiness\nEnterprise",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "hosting",
+   "fieldtype": "Select",
+   "label": "Hosting",
+   "options": "Shared container\nDedicated container\nDedicated pair (Enterprise)",
+   "default": "Shared container"
+  },
+  {
+   "fieldname": "servers",
+   "fieldtype": "Small Text",
+   "label": "Servers (Enterprise)",
+   "description": "Provider, region and hostnames of the two servers; the Contabo account is MCRC's."
+  },
+  {
+   "fieldname": "dates_section",
+   "fieldtype": "Section Break",
+   "label": "Dates and fees"
+  },
+  {
+   "fieldname": "started_on",
+   "fieldtype": "Date",
+   "label": "Started on"
+  },
+  {
+   "fieldname": "pilot_until",
+   "fieldtype": "Date",
+   "label": "Pilot until"
+  },
+  {
+   "fieldname": "paid_until",
+   "fieldtype": "Date",
+   "label": "Paid until",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "billing",
+   "fieldtype": "Select",
+   "label": "Billing",
+   "options": "Annual\nMonthly",
+   "default": "Annual"
+  },
+  {
+   "fieldname": "dates_col",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "monthly_fee",
+   "fieldtype": "Currency",
+   "label": "Monthly fee (PHP)"
+  },
+  {
+   "fieldname": "setup_fee",
+   "fieldtype": "Currency",
+   "label": "Setup fee (PHP)"
+  },
+  {
+   "fieldname": "bundle",
+   "fieldtype": "Check",
+   "label": "Bundle with bookkeeping and filing"
+  },
+  {
+   "fieldname": "addons",
+   "fieldtype": "Small Text",
+   "label": "Add-ons",
+   "description": "Extra users, branches, companies, custom prints"
+  },
+  {
+   "fieldname": "limits_section",
+   "fieldtype": "Section Break",
+   "label": "Limits applied on the site (ledger-site set-tier)"
+  },
+  {
+   "fieldname": "max_users",
+   "fieldtype": "Int",
+   "label": "Max users (0 = unlimited)"
+  },
+  {
+   "fieldname": "max_branches",
+   "fieldtype": "Int",
+   "label": "Max branches (0 = unlimited)"
+  },
+  {
+   "fieldname": "limits_col",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "max_companies",
+   "fieldtype": "Int",
+   "label": "Max companies (0 = unlimited)"
+  },
+  {
+   "fieldname": "monthly_invoice_limit",
+   "fieldtype": "Int",
+   "label": "Invoices per month (0 = unlimited)"
+  },
+  {
+   "fieldname": "set_tier_command",
+   "fieldtype": "Small Text",
+   "label": "ledger-site command",
+   "read_only": 1,
+   "description": "Run this in the container terminal after saving to apply the tier on the site."
+  },
+  {
+   "fieldname": "usage_section",
+   "fieldtype": "Section Break",
+   "label": "Last usage (ledger-site usage)"
+  },
+  {
+   "fieldname": "usage_json",
+   "fieldtype": "Code",
+   "label": "Usage",
+   "options": "JSON",
+   "read_only": 1
+  },
+  {
+   "fieldname": "usage_on",
+   "fieldtype": "Datetime",
+   "label": "Usage read on",
+   "read_only": 1
+  },
+  {
+   "fieldname": "offboarding_section",
+   "fieldtype": "Section Break",
+   "label": "Offboarding (docs/runbooks/offboarding.md)"
+  },
+  {
+   "fieldname": "notice_received_on",
+   "fieldtype": "Date",
+   "label": "Notice received"
+  },
+  {
+   "fieldname": "service_ends_on",
+   "fieldtype": "Date",
+   "label": "Service ends"
+  },
+  {
+   "fieldname": "export_delivered_on",
+   "fieldtype": "Date",
+   "label": "Export delivered"
+  },
+  {
+   "fieldname": "export_accepted_on",
+   "fieldtype": "Date",
+   "label": "Export accepted by client"
+  },
+  {
+   "fieldname": "offboarding_col",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "rdo_notified_on",
+   "fieldtype": "Date",
+   "label": "Client notified RDO (provider change)"
+  },
+  {
+   "fieldname": "brand_licence_ended_on",
+   "fieldtype": "Date",
+   "label": "Brand licence ended"
+  },
+  {
+   "fieldname": "deleted_on",
+   "fieldtype": "Date",
+   "label": "Site and backups deleted"
+  },
+  {
+   "fieldname": "deletion_certificate",
+   "fieldtype": "Attach",
+   "label": "Deletion certificate"
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Text Editor",
+   "label": "Notes"
+  }
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "report": 1,
+   "share": 1
+  },
+  {
+   "role": "PH Accounting Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "report": 1
+  }
+ ],
+ "links": [],
+ "creation": "2026-11-10 00:00:00.000000",
+ "modified": "2026-11-10 00:00:00.000000",
+ "modified_by": "Administrator",
+ "owner": "Administrator",
+ "idx": 0,
+ "docstatus": 0,
+ "editable_grid": 1,
+ "index_web_pages_for_search": 1
+}

@@ -12,6 +12,10 @@
 #   ledger-site backup <site>         encrypted backup now (and off-site copy if BACKUP_REMOTE is set)
 #   ledger-site password <site>       reset the Administrator password (prints the new one once)
 #   ledger-site drop <site> --yes     drop a site after export (see docs/runbooks/offboarding.md)
+#   ledger-site offboard <site>       export everything the client takes away (zip under sites/<site>/private/offboarding)
+#   ledger-site certificate <site> "<client>" [--signatory NAME --position POS --accepted YYYY-MM-DD]
+#                                     print the deletion certificate text after `drop`
+#   ledger-site report                usage of every site as CSV (for the PH Subscription records on MCRC's site)
 #   ledger-site snapshot-demo <site>  take the golden snapshot of a demo site (done once after the seed)
 #   ledger-site reset-demo <site>     restore the golden snapshot and re-issue access to still-valid demo users
 set -euo pipefail
@@ -99,6 +103,30 @@ case "$cmd" in
     as_frappe "bench drop-site '$SITE' --db-root-password '$DBROOT' --force --no-backup"
     echo "dropped $SITE"
     ;;
+  offboard)
+    SITE=$(site_of "${1:?site}")
+    OUT=$(as_frappe "bench --site '$SITE' execute ph_cas.hosting.offboard.export_site" | tail -1)
+    DIR=$(python3 -c "import ast,sys; print(ast.literal_eval(sys.argv[1])['target'])" "$OUT" 2>/dev/null || echo "")
+    [ -n "$DIR" ] && [ -d "$DIR" ] || { echo "export failed: $OUT"; exit 1; }
+    ( cd "$(dirname "$DIR")" && tar -czf "$(basename "$DIR").tar.gz" "$(basename "$DIR")" && sha256sum "$(basename "$DIR").tar.gz" > "$(basename "$DIR").tar.gz.sha256" )
+    chown -R frappe:frappe "$(dirname "$DIR")"
+    echo "export: $DIR.tar.gz"; cat "$DIR.tar.gz.sha256"
+    echo "Deliver the archive and its sha256 to the client, record 'Export delivered' on the PH Subscription, wait for acceptance, then: ledger-site drop $SITE --yes"
+    ;;
+  certificate)
+    SITE=$(site_of "${1:?site}"); CLIENT="${2:?client name}"; shift 2
+    SIGN=""; POS=""; ACC=""
+    while [ $# -gt 0 ]; do case "$1" in --signatory) SIGN="$2"; shift 2;; --position) POS="$2"; shift 2;; --accepted) ACC="$2"; shift 2;; *) shift;; esac; done
+    as_frappe "bench --site '${SITE_NAME:?}' execute ph_cas.hosting.offboard.deletion_certificate --kwargs "{'site': '$SITE', 'client': '$CLIENT', 'provider': '${PROVIDER_NAME:-MCRC Tax and Accounting Services}', 'export_accepted_on': '$ACC', 'signatory': '$SIGN', 'position': '$POS'}""
+    ;;
+  report)
+    echo "site,tier,users,max_users,companies,max_companies,branches,max_branches,invoices_this_month,monthly_invoice_limit,subscription_until,pilot_until"
+    for d in "$BENCH"/sites/*/; do
+      s=$(basename "$d"); [ -f "$d/site_config.json" ] || continue
+      as_frappe "bench --site '$s' execute ph_cas.hosting.tiers.usage" 2>/dev/null | tail -1 | python3 -c "
+import ast,sys; u=ast.literal_eval(sys.stdin.read().strip()); print(','.join(str(u.get(k,'')) for k in ['site' if False else 'tier','users','max_users','companies','max_companies','branches','max_branches','invoices_this_month','monthly_invoice_limit','subscription_until','pilot_until']))" | sed "s/^/$s,/"
+    done
+    ;;
   snapshot-demo)
     SITE=$(site_of "${1:?site}")
     as_frappe "bench --site '$SITE' backup" >/dev/null
@@ -118,5 +146,5 @@ case "$cmd" in
     echo "demo $SITE reset from golden snapshot"
     ;;
   *)
-    sed -n '2,17p' "$0"; exit 2 ;;
+    sed -n '2,21p' "$0"; exit 2 ;;
 esac
