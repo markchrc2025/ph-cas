@@ -18,9 +18,13 @@ fi
 chown -R mysql:mysql /var/lib/mysql
 (mysqld_safe --user=mysql >/var/log/mysqld.log 2>&1 &)
 for i in $(seq 1 60); do mysqladmin ping --silent 2>/dev/null && break; sleep 1; done
-if [ "${FRESH_DB:-0}" = 1 ]; then
-  mysql -uroot -e "ALTER USER 'root'@'localhost' IDENTIFIED VIA mysql_native_password USING PASSWORD('${DBROOT}'); FLUSH PRIVILEGES;"
-fi
+# Root auth: the image ships a pre-initialised datadir with socket-only root, so set the
+# password every start (idempotent) and allow root over TCP from the loopback address.
+mysql -uroot -e "ALTER USER 'root'@'localhost' IDENTIFIED VIA mysql_native_password USING PASSWORD('${DBROOT}');
+CREATE USER IF NOT EXISTS 'root'@'127.0.0.1' IDENTIFIED BY '${DBROOT}';
+ALTER USER 'root'@'127.0.0.1' IDENTIFIED BY '${DBROOT}';
+GRANT ALL PRIVILEGES ON *.* TO 'root'@'127.0.0.1' WITH GRANT OPTION; FLUSH PRIVILEGES;" \
+  || mysql -uroot -p"${DBROOT}" -h127.0.0.1 -e "select 1" >/dev/null
 
 echo "== Redis"
 (redis-server --daemonize yes --save 60 1 --dir /var/lib/redis >/dev/null 2>&1 || redis-server --daemonize yes >/dev/null)
