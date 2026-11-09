@@ -25,12 +25,12 @@ chown -R mysql:mysql /var/lib/mysql
 for i in $(seq 1 180); do
   mysqladmin ping --silent 2>/dev/null && break
   if [ $((i % 15)) -eq 0 ]; then
-    echo "waiting for MariaDB (${i}s)"; grep -iE "lock|error" /var/log/mysqld.log 2>/dev/null | tail -2 || true
-    grep -q "Unable to lock" /var/log/mysqld.log 2>/dev/null && echo "another container holds /var/lib/mysql: set the Dokploy swarm update order to stop-first (Advanced > Swarm Settings)"
+    echo "waiting for MariaDB (${i}s)"; grep -ihE "lock|error" /var/log/mysqld.log /var/log/mysql/error.log 2>/dev/null | tail -2 || true
+    grep -qh "Unable to lock" /var/log/mysqld.log /var/log/mysql/error.log 2>/dev/null && echo "another container holds /var/lib/mysql: set the Dokploy swarm update order to stop-first (Advanced > Swarm Settings)"
   fi
   sleep 1
 done
-mysqladmin ping --silent 2>/dev/null || { echo "MariaDB did not start; last log lines:"; tail -20 /var/log/mysqld.log; exit 1; }
+mysqladmin ping --silent 2>/dev/null || { echo "MariaDB did not start; last log lines:"; tail -20 /var/log/mysqld.log /var/log/mysql/error.log 2>/dev/null; exit 1; }
 # Root auth: the image ships a pre-initialised datadir with socket-only root, so set the
 # password every start (idempotent) and allow root over TCP from the loopback address.
 mysql -uroot -e "ALTER USER 'root'@'localhost' IDENTIFIED VIA mysql_native_password USING PASSWORD('${DBROOT}');
