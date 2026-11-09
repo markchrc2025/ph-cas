@@ -65,8 +65,11 @@ if [ ! -d "$BENCH/sites/$SITE" ]; then
 else
   su frappe -c "cd $BENCH && bench --site '$SITE' migrate"
   if [ "${PH_DEMO:-0}" = 1 ]; then
+    su frappe -c "cd $BENCH && bench --site '$SITE' set-config ph_demo_site 1"
     su frappe -c "cd $BENCH && bench --site '$SITE' execute ph_cas.demo.seed" || echo "demo seed failed (continuing)"
+    [ -f "$BENCH/sites/$SITE/private/golden-database.sql.gz" ] || ledger-site snapshot-demo "$SITE" || echo "golden snapshot failed (continuing)"
   fi
+  su frappe -c "cd $BENCH && bench --site '$SITE' clear-cache" >/dev/null || true
 fi
 
 echo "== apply container configuration (email, admin mailbox, demo 2FA switch)"
