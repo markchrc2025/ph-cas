@@ -9,8 +9,9 @@ Outgoing email (for the two-factor QR/OTP mails, password resets, notifications)
   SMTP_FROM            sender address, e.g. cas@yourdomain.ph (default: SMTP_USER if it is an address)
   SMTP_FROM_NAME       sender display name (default: PH CAS)
   SMTP_TLS             1 = STARTTLS (default), 0 = plain; SMTP_SSL=1 for implicit TLS (port 465)
-Administrator mailbox (where the Administrator's 2FA mails go):
-  ADMIN_EMAIL
+Administrator account:
+  ADMIN_EMAIL          mailbox of the Administrator user (where its 2FA mails go)
+  ADMIN_PASSWORD       re-applied at every start, so the Dokploy value is always the one that works
 Branding (PH CAS Settings, shown on the BIR header of every print and export):
   PRODUCT_NAME         e.g. Sentire Ledger
   PROVIDER_NAME        e.g. MCRC Tax and Accounting Services
@@ -37,6 +38,7 @@ def apply():
     out = []
     out.append(_email_account())
     out.append(_admin_email())
+    out.append(_admin_password())
     out.append(_two_factor())
     out.append(_branding())
     frappe.db.commit()
@@ -129,3 +131,17 @@ def _branding():
         s.save()
     frappe.db.set_single_value("System Settings", "app_name", product or s.product_name)
     return f"branding: {s.product_name}"
+
+
+def _admin_password():
+    pw = _env("ADMIN_PASSWORD")
+    if not pw:
+        return ""
+    from frappe.utils.password import check_password, update_password
+
+    try:
+        check_password("Administrator", pw)
+        return ""
+    except frappe.AuthenticationError:
+        update_password("Administrator", pw, logout_all_sessions=False)
+        return "admin password re-applied"
