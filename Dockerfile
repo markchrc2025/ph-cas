@@ -30,5 +30,6 @@ COPY deploy/mariadb.cnf /etc/mysql/mariadb.conf.d/99-frappe.cnf
 COPY deploy/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh && mkdir -p /run/mysqld && chown mysql:mysql /run/mysqld
 EXPOSE 8000
-HEALTHCHECK --interval=30s --timeout=10s --start-period=600s --retries=5 CMD curl -fsS http://127.0.0.1:8000/api/method/ping || exit 1
+# Healthy while the first-run site install is in progress (marker file), otherwise ping the site.
+HEALTHCHECK --interval=30s --timeout=10s --start-period=300s --retries=5 CMD test -f /run/ph_cas_installing || curl -fsS http://127.0.0.1:8000/api/method/ping || exit 1
 ENTRYPOINT ["/entrypoint.sh"]

@@ -33,13 +33,21 @@ echo "== bench"
 id frappe; which bench; ls -la "$BENCH/sites" | head
 chown -R frappe:frappe "$BENCH/sites"
 su frappe -c "cd $BENCH && bench set-config -g db_host 127.0.0.1 && bench set-config -g redis_cache redis://127.0.0.1:6379 && bench set-config -g redis_queue redis://127.0.0.1:6379 && bench set-config -g redis_socketio redis://127.0.0.1:6379 && bench set-config -g default_site '$SITE' && bench set-config -g serve_default_site true && bench set-config -g webserver_port $PORT"
+MARK="$BENCH/sites/$SITE/.ph_cas_installed"
+if [ -d "$BENCH/sites/$SITE" ] && [ ! -f "$MARK" ]; then
+  echo "== removing half-installed site $SITE from an interrupted first run"
+  su frappe -c "cd $BENCH && bench drop-site '$SITE' --db-root-password '$DBROOT' --force --no-backup" || rm -rf "$BENCH/sites/$SITE"
+fi
 if [ ! -d "$BENCH/sites/$SITE" ]; then
   echo "== new site $SITE"
+  touch /run/ph_cas_installing
   su frappe -c "cd $BENCH && bench new-site '$SITE' --db-root-password '$DBROOT' --admin-password '$ADMIN' --install-app erpnext --install-app ph_cas --set-default"
   su frappe -c "cd $BENCH && bench --site '$SITE' set-config ph_cas_production ${PH_PRODUCTION:-0} && bench --site '$SITE' set-config encryption_key \"\$(openssl rand -base64 32)\" && bench --site '$SITE' enable-scheduler"
   if [ "${PH_DEMO:-0}" = 1 ]; then
     su frappe -c "cd $BENCH && bench --site '$SITE' execute ph_cas.demo.seed" || echo "demo seed failed (continuing)"
   fi
+  touch "$MARK"; chown frappe:frappe "$MARK"
+  rm -f /run/ph_cas_installing
 else
   su frappe -c "cd $BENCH && bench --site '$SITE' migrate"
 fi
