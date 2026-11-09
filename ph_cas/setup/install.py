@@ -75,4 +75,7 @@ def setup_all():
     from ph_cas.hosting import tiers
 
     tiers.setup()  # B32
+    from ph_cas.hosting import demo_access
+
+    demo_access.setup()  # B33
     frappe.db.commit()

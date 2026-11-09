@@ -56,7 +56,9 @@ if [ ! -d "$BENCH/sites/$SITE" ]; then
   su frappe -c "cd $BENCH && bench new-site '$SITE' --db-root-password '$DBROOT' --admin-password '$ADMIN' --install-app erpnext --install-app ph_cas --set-default"
   su frappe -c "cd $BENCH && bench --site '$SITE' set-config ph_cas_production ${PH_PRODUCTION:-0} && bench --site '$SITE' set-config encryption_key \"\$(openssl rand -base64 32)\" && bench --site '$SITE' enable-scheduler"
   if [ "${PH_DEMO:-0}" = 1 ]; then
+    su frappe -c "cd $BENCH && bench --site '$SITE' set-config ph_demo_site 1"
     su frappe -c "cd $BENCH && bench --site '$SITE' execute ph_cas.demo.seed" || echo "demo seed failed (continuing)"
+    ledger-site snapshot-demo "$SITE" || echo "golden snapshot failed (continuing)"
   fi
   touch "$MARK"; chown frappe:frappe "$MARK"
   rm -f /run/ph_cas_installing
@@ -92,5 +94,15 @@ su frappe -c "cd $BENCH && node apps/frappe/socketio.js" &
 nginx -g "daemon off;" &
 su frappe -c "cd $BENCH && bench worker --queue short,default,long" &
 su frappe -c "cd $BENCH && bench schedule" &
+if [ "${PH_DEMO:-0}" = 1 ] && [ "${DEMO_RESET:-1}" = 1 ]; then
+  # Nightly reset of the open demo at DEMO_RESET_UTC_HOUR (default 18 UTC = 02:00 Manila).
+  ( while true; do
+      now=$(date -u +%H:%M)
+      if [ "$now" = "$(printf '%02d:00' "${DEMO_RESET_UTC_HOUR:-18}")" ]; then
+        echo "== nightly demo reset"; ledger-site reset-demo "$SITE" || echo "demo reset failed"; sleep 120
+      fi
+      sleep 50
+    done ) &
+fi
 wait -n
 exit 1

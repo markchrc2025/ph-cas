@@ -1,0 +1,107 @@
+"""B33: open demo access and pilots."""
+
+import csv
+import os
+
+import frappe
+from frappe.tests import IntegrationTestCase
+from frappe.utils import add_days, add_to_date, now_datetime, today
+
+from ph_cas.hosting import demo_access
+from ph_cas.hosting.demo_access import (
+    DEMO_ROLE,
+    consume_token,
+    daily_pilot_check,
+    expire_demo_users,
+    is_demo_site,
+    request_access,
+)
+from ph_cas.hosting.tiers import set_tier
+
+
+class TestB33Demo(IntegrationTestCase):
+    def setUp(self):
+        frappe.set_user("Administrator")
+        frappe.conf.ph_demo_site = 1
+        frappe.flags.mute_emails = True
+        self.log = demo_access._log_path()
+        if os.path.exists(self.log):
+            os.remove(self.log)
+
+    def tearDown(self):
+        frappe.conf.pop("ph_demo_site", None)
+        frappe.flags.mute_emails = False
+        if os.path.exists(self.log):
+            os.remove(self.log)
+        for u in frappe.get_all("User", filters={"name": ["like", "_b33_%"]}, pluck="name"):
+            frappe.delete_doc("User", u, force=True, ignore_permissions=True)
+        set_tier("Internal", subscription_until="", pilot_until="")
+        frappe.db.commit()
+
+    def test_role_exists_and_demo_flag_is_read_from_site_config(self):
+        self.assertTrue(frappe.db.exists("Role", DEMO_ROLE))
+        self.assertTrue(is_demo_site())
+        frappe.conf.ph_cas_production = 1
+        try:
+            self.assertFalse(is_demo_site())  # production is never a demo
+        finally:
+            frappe.conf.pop("ph_cas_production", None)
+
+    def test_request_creates_restricted_user_logs_lead_and_issues_token(self):
+        out = request_access("Maria Santos", "_b33_maria@example.com", company="Santos Hardware", mobile="0917")
+        self.assertTrue(out["ok"])
+        u = frappe.get_doc("User", "_b33_maria@example.com")
+        self.assertTrue(u.enabled)
+        self.assertIn(DEMO_ROLE, [r.role for r in u.roles])
+        self.assertTrue(u.ph_provider_staff)  # demo seats never count against a tier
+        perms = frappe.get_all("User Permission", filters={"user": u.name, "allow": "Company"}, pluck="for_value")
+        self.assertEqual(len(perms), 1)
+        self.assertTrue(perms[0].startswith("Santos Hardware ("))
+        self.assertTrue(frappe.db.exists("Company", perms[0]))
+        rows = list(csv.DictReader(open(self.log, encoding="utf-8")))
+        self.assertEqual(rows[0]["email"], "_b33_maria@example.com")
+        self.assertEqual(rows[0]["demo_company"], perms[0])
+        # the token in the cache resolves to the user while valid
+        keys = [k for k in frappe.cache().get_keys(demo_access.TOKEN_PREFIX + "*")]
+        self.assertTrue(keys)
+        token = keys[-1].decode() if isinstance(keys[-1], bytes) else keys[-1]
+        token = token.split(demo_access.TOKEN_PREFIX, 1)[1]
+        self.assertEqual(consume_token(token), u.name)
+        self.assertIsNone(consume_token("not-a-token"))
+
+    def test_second_request_for_the_same_email_within_30_days_is_refused(self):
+        request_access("Jose Cruz", "_b33_jose@example.com")
+        with self.assertRaises(frappe.ValidationError):
+            request_access("Jose Cruz", "_b33_jose@example.com")
+
+    def test_request_is_refused_outside_a_demo_site(self):
+        frappe.conf.pop("ph_demo_site", None)
+        with self.assertRaises(frappe.PermissionError):
+            request_access("Ana Lim", "_b33_ana@example.com")
+
+    def test_expired_demo_users_are_disabled_by_the_hourly_job(self):
+        request_access("Ben Tan", "_b33_ben@example.com")
+        rows = list(csv.DictReader(open(self.log, encoding="utf-8")))
+        rows[0]["expires_on"] = str(add_to_date(now_datetime(), hours=-1))[:19]
+        with open(self.log, "w", newline="", encoding="utf-8") as f:
+            w = csv.DictWriter(f, fieldnames=list(rows[0].keys()))
+            w.writeheader()
+            w.writerows(rows)
+        self.assertEqual(expire_demo_users(), 1)
+        self.assertFalse(frappe.db.get_value("User", "_b33_ben@example.com", "enabled"))
+
+    def test_pilot_check_counts_down_then_switches_users_off(self):
+        set_tier("Team", pilot_until=add_days(today(), -5))
+        st = daily_pilot_check()
+        self.assertTrue(st["pilot"])
+        self.assertEqual(st["days_left"], 25)
+        set_tier("Team", pilot_until=add_days(today(), -31))
+        u = frappe.get_doc(
+            {"doctype": "User", "email": "_b33_pilot@example.com", "first_name": "Pilot", "send_welcome_email": 0, "roles": [{"role": "Accounts User"}]}
+        ).insert(ignore_permissions=True)
+        st = daily_pilot_check()
+        self.assertEqual(st["days_left"], 0)
+        self.assertFalse(frappe.db.get_value("User", u.name, "enabled"))
+        # a recorded subscription ends the pilot logic
+        set_tier("Team", subscription_until=add_days(today(), 300), pilot_until=add_days(today(), -31))
+        self.assertFalse(daily_pilot_check()["pilot"])

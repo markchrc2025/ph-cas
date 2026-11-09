@@ -2,6 +2,13 @@
 
 One entry per bundle, newest first. Counts are the test totals on main after the merge.
 
+## B33 Open demo and pilot (10 Nov 2026)
+- PR: #TBD
+- Built: ph_cas.hosting.demo_access (guest signup API with rate limit, Demo User role, per-request demo company with user permission, 24-hour login token, CSV lead log, provider mail, leads webhook, hourly expiry, recreate after reset, daily pilot check); /demo and /demo_login pages; ledger-site snapshot-demo and reset-demo; nightly reset loop in the entrypoint; runbook
+- Tests: 6 (test_b33_demo), 217 in all
+- Assumed: Demo users keep provider-staff status so they never count against a tier; demo site is the primary site with PH_DEMO=1 and ph_demo_site in site_config; leads are kept outside the database because the database is restored nightly
+- Known limit: Master data (Customers, Items) is shared between demo users within a day; only transactions are separated by company. Pilot sites are not dropped automatically.
+
 ## B32 Multi-site hosting (10 Nov 2026)
 - PR: #TBD
 - Built: ph_cas.hosting.tiers (tier table, set_tier, limits, usage, enforcement on User, Company, Branch, Sales Invoice; provider staff flag); PH CAS Settings subscription fields; deploy_config.apply_shared; multi-site entrypoint; nginx host map; ledger-site command (new, set-tier, usage, list, backup, password, drop); rclone in the image; monitor reports subscription status; runbook

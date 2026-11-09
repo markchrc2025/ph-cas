@@ -12,6 +12,8 @@
 #   ledger-site backup <site>         encrypted backup now (and off-site copy if BACKUP_REMOTE is set)
 #   ledger-site password <site>       reset the Administrator password (prints the new one once)
 #   ledger-site drop <site> --yes     drop a site after export (see docs/runbooks/offboarding.md)
+#   ledger-site snapshot-demo <site>  take the golden snapshot of a demo site (done once after the seed)
+#   ledger-site reset-demo <site>     restore the golden snapshot and re-issue access to still-valid demo users
 set -euo pipefail
 BENCH=/home/frappe/bench
 DOMAIN="${CLIENT_DOMAIN:-${SITE_NAME:-}}"
@@ -97,6 +99,24 @@ case "$cmd" in
     as_frappe "bench drop-site '$SITE' --db-root-password '$DBROOT' --force --no-backup"
     echo "dropped $SITE"
     ;;
+  snapshot-demo)
+    SITE=$(site_of "${1:?site}")
+    as_frappe "bench --site '$SITE' backup" >/dev/null
+    LATEST=$(ls -t "$BENCH/sites/$SITE/private/backups/"*-database.sql.gz | head -1)
+    cp "$LATEST" "$BENCH/sites/$SITE/private/golden-database.sql.gz"; chown frappe:frappe "$BENCH/sites/$SITE/private/golden-database.sql.gz"
+    echo "golden snapshot: $BENCH/sites/$SITE/private/golden-database.sql.gz"
+    ;;
+  reset-demo)
+    SITE=$(site_of "${1:?site}")
+    GOLD="$BENCH/sites/$SITE/private/golden-database.sql.gz"
+    [ -f "$GOLD" ] || { echo "no golden snapshot for $SITE; run ledger-site snapshot-demo first"; exit 1; }
+    as_frappe "bench --site '$SITE' --force restore '$GOLD' --db-root-password '$DBROOT'" >/dev/null
+    as_frappe "bench --site '$SITE' migrate" >/dev/null
+    as_frappe "bench --site '$SITE' execute ph_cas.deploy_config.apply" >/dev/null || true
+    as_frappe "bench --site '$SITE' execute ph_cas.hosting.demo_access.recreate_active_users"
+    as_frappe "bench --site '$SITE' clear-cache" >/dev/null
+    echo "demo $SITE reset from golden snapshot"
+    ;;
   *)
-    sed -n '2,15p' "$0"; exit 2 ;;
+    sed -n '2,17p' "$0"; exit 2 ;;
 esac

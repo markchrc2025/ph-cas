@@ -1,0 +1,8 @@
+{% extends "templates/web.html" %}
+{% block page_content %}
+<div class="container" style="max-width: 560px; margin: 4rem auto; text-align: center;">
+  <h2>{{ _("Demo sign-in") }}</h2>
+  <p class="text-muted">{{ error }}</p>
+  <a class="btn btn-primary" href="/demo">{{ _("Request demo access") }}</a>
+</div>
+{% endblock %}
