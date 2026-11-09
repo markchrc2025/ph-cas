@@ -32,7 +32,7 @@ echo "== Redis"
 echo "== bench"
 id frappe; which bench; ls -la "$BENCH/sites" | head
 chown -R frappe:frappe "$BENCH/sites"
-su frappe -c "cd $BENCH && bench set-config -g db_host 127.0.0.1 && bench set-config -g redis_cache redis://127.0.0.1:6379 && bench set-config -g redis_queue redis://127.0.0.1:6379 && bench set-config -g redis_socketio redis://127.0.0.1:6379 && bench set-config -g default_site '$SITE' && bench set-config -g serve_default_site true && bench set-config -g webserver_port $PORT"
+su frappe -c "cd $BENCH && bench set-config -g db_host 127.0.0.1 && bench set-config -g redis_cache redis://127.0.0.1:6379 && bench set-config -g redis_queue redis://127.0.0.1:6379 && bench set-config -g redis_socketio redis://127.0.0.1:6379 && bench set-config -g default_site '$SITE' && bench set-config -g serve_default_site true && bench set-config -g webserver_port 8001"
 MARK="$BENCH/sites/$SITE/.ph_cas_installed"
 if [ -d "$BENCH/sites/$SITE" ] && [ ! -f "$MARK" ]; then
   echo "== removing half-installed site $SITE from an interrupted first run"
@@ -52,9 +52,14 @@ else
   su frappe -c "cd $BENCH && bench --site '$SITE' migrate"
 fi
 
-echo "== serve on $PORT"
+echo "== serve on $PORT (nginx -> gunicorn 8001, socketio 9000)"
 cd $BENCH
-su frappe -c "cd $BENCH && ./env/bin/gunicorn -b 0.0.0.0:$PORT -w 2 -t 120 --chdir sites frappe.app:application" &
+su frappe -c "cd $BENCH && bench set-config -g socketio_port 9000 && bench set-config -g webserver_port 8001" >/dev/null
+sed -e "s/__PORT__/$PORT/g" -e "s/__SITE__/$SITE/g" /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf
+nginx -t
+su frappe -c "cd $BENCH && ./env/bin/gunicorn -b 127.0.0.1:8001 -w 2 -t 120 --chdir sites frappe.app:application" &
+su frappe -c "cd $BENCH && node apps/frappe/socketio.js" &
+nginx -g "daemon off;" &
 su frappe -c "cd $BENCH && bench --site '$SITE' worker --queue short,default,long" &
 su frappe -c "cd $BENCH && bench schedule" &
 wait -n
