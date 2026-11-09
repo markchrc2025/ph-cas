@@ -22,7 +22,7 @@ WORKDIR /home/frappe/bench
 RUN for i in 1 2 3; do bench get-app erpnext https://github.com/frappe/erpnext --branch ${ERPNEXT_TAG} --skip-assets && break; rm -rf apps/erpnext; sed -i '/^erpnext$/d' sites/apps.txt; sleep 10; done; test -d apps/erpnext
 
 COPY --chown=frappe:frappe . /home/frappe/bench/apps/ph_cas
-RUN ./env/bin/pip install --no-cache-dir -e apps/ph_cas && echo ph_cas >> sites/apps.txt \
+RUN ./env/bin/pip install --no-cache-dir -e apps/ph_cas && sed -i -e "\$a\\" sites/apps.txt && echo ph_cas >> sites/apps.txt && cat sites/apps.txt \
     && bench build --production
 
 USER root
