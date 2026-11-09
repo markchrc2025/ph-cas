@@ -3,6 +3,7 @@
 # Env: SITE_NAME (required), DB_ROOT_PASSWORD, ADMIN_PASSWORD (secrets), PORT (8000),
 #      PH_PRODUCTION (0 = demo site that applies draft rules; 1 = production), PH_DEMO (1 = seed demo data once).
 set -euo pipefail
+trap 'echo "entrypoint failed at line $LINENO: $BASH_COMMAND" >&2' ERR
 SITE="${SITE_NAME:?SITE_NAME is required}"
 PORT="${PORT:-8000}"
 DBROOT="${DB_ROOT_PASSWORD:?DB_ROOT_PASSWORD is required}"
@@ -25,8 +26,9 @@ echo "== Redis"
 (redis-server --daemonize yes --save 60 1 --dir /var/lib/redis >/dev/null 2>&1 || redis-server --daemonize yes >/dev/null)
 
 echo "== bench"
+id frappe; which bench; ls -la "$BENCH/sites" | head
 chown -R frappe:frappe "$BENCH/sites"
-su frappe -c "cd $BENCH && bench set-config -g db_host 127.0.0.1 && bench set-config -g redis_cache redis://127.0.0.1:6379 && bench set-config -g redis_queue redis://127.0.0.1:6379 && bench set-config -g redis_socketio redis://127.0.0.1:6379 && bench set-config -g default_site '$SITE' && bench set-config -g serve_default_site true && bench set-config -g webserver_port $PORT" >/dev/null
+su frappe -c "cd $BENCH && bench set-config -g db_host 127.0.0.1 && bench set-config -g redis_cache redis://127.0.0.1:6379 && bench set-config -g redis_queue redis://127.0.0.1:6379 && bench set-config -g redis_socketio redis://127.0.0.1:6379 && bench set-config -g default_site '$SITE' && bench set-config -g serve_default_site true && bench set-config -g webserver_port $PORT"
 if [ ! -d "$BENCH/sites/$SITE" ]; then
   echo "== new site $SITE"
   su frappe -c "cd $BENCH && bench new-site '$SITE' --db-root-password '$DBROOT' --admin-password '$ADMIN' --install-app erpnext --install-app ph_cas --set-default"
