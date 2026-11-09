@@ -15,9 +15,11 @@ ARG FRAPPE_TAG=v16.55.2
 ARG ERPNEXT_TAG=v16.54.0
 USER frappe
 WORKDIR /home/frappe
-RUN bench init bench --frappe-branch ${FRAPPE_TAG} --python python3 --skip-redis-config-generation --no-backups --skip-assets
+# yarn on a busy server trips its 30-second default; wait longer and retry more
+RUN yarn config set network-timeout 600000 -g && yarn config set network-concurrency 4 -g && npm config set fetch-retries 5 && npm config set fetch-retry-maxtimeout 120000
+RUN for i in 1 2 3; do bench init bench --frappe-branch ${FRAPPE_TAG} --python python3 --skip-redis-config-generation --no-backups --skip-assets && break; rm -rf bench; sleep 10; done; test -d bench
 WORKDIR /home/frappe/bench
-RUN bench get-app erpnext https://github.com/frappe/erpnext --branch ${ERPNEXT_TAG} --skip-assets
+RUN for i in 1 2 3; do bench get-app erpnext https://github.com/frappe/erpnext --branch ${ERPNEXT_TAG} --skip-assets && break; rm -rf apps/erpnext; sed -i '/^erpnext$/d' sites/apps.txt; sleep 10; done; test -d apps/erpnext
 
 COPY --chown=frappe:frappe . /home/frappe/bench/apps/ph_cas
 RUN ./env/bin/pip install --no-cache-dir -e apps/ph_cas && echo ph_cas >> sites/apps.txt \
