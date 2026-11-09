@@ -6,3 +6,9 @@
 - **Period-end.** PH Compliance Calendar shows what is due. Compute each return's figures (PH Tax Return Figures) and generate the alphalist files (PH Alphalist File); run each file through the BIR Validation module on a Windows PC and record the result; copy the figures into eBIRForms; tick "filed" with the confirmation reference. Issue the 2307s to suppliers from the quarter's bills.
 - **Books.** Print or export any book from Reports (PH General Journal and the others); every print carries the BIR header. At year-end, download the e-books pack from the Company form.
 - **Closed periods.** Ask the PH Accounting Manager to create an Accounting Period after the quarter is filed; nothing can then be posted into it.
+
+## Getting started: the Sentire Ledger workspace (B34)
+
+The **Sentire Ledger** workspace is the first page after sign-in. Its card "Get to know Sentire Ledger" walks through the six steps a Philippine business takes before issuing its first invoice: set up the Philippine company, confirm the tax rules, print the first BIR invoice, run the 2550Q figures, export the books, build the registration pack. Below the card are shortcuts to the daily documents and the BIR forms, and the books, tax and registration links.
+
+Tutorial videos: each step of the standard ERPNext guides (Make your first sale, Order from your suppliers, and so on) can carry a Sentire Ledger video. The list of steps and their video ids is `ph_cas/setup/data/onboarding_videos.json`; a null entry keeps ERPNext's own video until ours is recorded.
