@@ -34,6 +34,7 @@ def _env(*names, default=None):
 
 
 def apply():
+    """Primary site (SITE_NAME): everything, including the Administrator account and the demo switches."""
     frappe.set_user("Administrator")
     out = []
     out.append(_email_account())
@@ -41,6 +42,15 @@ def apply():
     out.append(_admin_password())
     out.append(_two_factor())
     out.append(_branding())
+    frappe.db.commit()
+    return "; ".join(x for x in out if x)
+
+
+def apply_shared():
+    """Client sites on a multi-site container: shared outgoing email and branding only.
+    Their Administrator password and two-factor setting are their own."""
+    frappe.set_user("Administrator")
+    out = [_email_account(), _branding()]
     frappe.db.commit()
     return "; ".join(x for x in out if x)
 

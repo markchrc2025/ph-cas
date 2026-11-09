@@ -72,4 +72,7 @@ def setup_all():
     from ph_cas.dat import relief
 
     relief.setup()  # B29
+    from ph_cas.hosting import tiers
+
+    tiers.setup()  # B32
     frappe.db.commit()

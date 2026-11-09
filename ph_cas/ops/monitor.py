@@ -32,6 +32,9 @@ def status() -> dict:
         "draft_rules": drafts,
         "draft_rules_ok": not (is_production_site() and drafts),
     }
+    from ph_cas.hosting.tiers import check_subscription_status
+
+    checks["subscription"] = check_subscription_status()  # B32: informational, never fails the site
     checks["ok"] = all(checks[k] for k in ("backup_ok", "chain_ok", "disk_ok", "draft_rules_ok"))
     return checks
 

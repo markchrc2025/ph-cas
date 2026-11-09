@@ -27,8 +27,10 @@ RUN ./env/bin/pip install --no-cache-dir -e apps/ph_cas && sed -i -e "\$a\\" sit
     && cp -a sites /home/frappe/sites-image
 
 USER root
-RUN apt-get update && apt-get install -y --no-install-recommends nginx && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends nginx rclone && rm -rf /var/lib/apt/lists/*
 COPY deploy/nginx.conf /etc/nginx/nginx.conf.template
+COPY deploy/ledger-site.sh /usr/local/bin/ledger-site
+RUN chmod +x /usr/local/bin/ledger-site
 COPY deploy/mariadb.cnf /etc/mysql/mariadb.conf.d/99-frappe.cnf
 COPY deploy/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh && mkdir -p /run/mysqld && chown mysql:mysql /run/mysqld
