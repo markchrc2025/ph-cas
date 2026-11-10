@@ -72,11 +72,17 @@ class TestB38Branding(IntegrationTestCase):
         for s in ("Sent via",) + FRAMEWORK:
             self.assertNotIn(s, footer)
         self.assertIn("operated by", footer)
-        html = get_formatted_html("Test", "<p>Body</p>", header=["Your demo access", "blue"], with_container=True)
-        self.assertIn("Sentire Ledger", html)
-        self.assertIn("Your demo access", html)
-        for s in ("Sent via", "frappe.io", "ERPNext"):
-            self.assertNotIn(s, html)
+        # the full container needs built assets (CSS inlining), which the CI bench lacks
+        if os.path.exists(os.path.join(frappe.local.sites_path, "assets", "assets.json")):
+            html = get_formatted_html("Test", "<p>Body</p>", header=["Your demo access", "blue"], with_container=True)
+            self.assertIn("Sentire Ledger", html)
+            self.assertIn("Your demo access", html)
+            for s in ("Sent via", "frappe.io", "ERPNext"):
+                self.assertNotIn(s, html)
+        from frappe.email.email_body import get_brand_logo, get_brand_name
+
+        self.assertEqual(get_brand_name(), "Sentire Ledger")
+        self.assertEqual(get_brand_logo(None), branding.ASSETS["logo"])
 
     def test_legacy_outgoing_account_is_renamed_to_the_product(self):
         legacy, product = "Outgoing (SMTP)", "Sentire Ledger"
