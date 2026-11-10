@@ -5,6 +5,8 @@ import os
 import shutil
 
 import frappe
+
+from ph_cas.branding import product_name
 from frappe.utils import get_datetime, now_datetime, time_diff_in_hours
 
 
@@ -47,5 +49,5 @@ def alert_if_needed():
         return st
     recipients = [u["parent"] for u in frappe.get_all("Has Role", filters={"role": "System Manager", "parenttype": "User"}, fields=["parent"]) if u["parent"] != "Administrator" and frappe.db.get_value("User", u["parent"], "enabled")]
     if recipients:
-        frappe.sendmail(recipients=recipients, subject=f"PH CAS {st['site']}: checks failing ({', '.join(failed)})", message=frappe.as_json(st))
+        frappe.sendmail(recipients=recipients, subject=f"{product_name()} {st['site']}: checks failing ({', '.join(failed)})", message=frappe.as_json(st))
     return st

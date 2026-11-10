@@ -6,7 +6,7 @@ a{color:var(--brand);text-decoration:none}a:hover{text-decoration:underline}
 header.top{border-bottom:1px solid var(--line);background:#fff;position:sticky;top:0;z-index:5}
 header.top .wrap{display:flex;align-items:center;justify-content:space-between;height:64px}
 .logo{font-weight:700;letter-spacing:.2px;color:var(--ink);display:flex;align-items:center;gap:10px}
-.logo .mark{width:28px;height:28px;border-radius:7px;background:linear-gradient(135deg,var(--brand),var(--brand-2));display:inline-block}
+.logo .mark{width:28px;height:28px;border-radius:7px;display:inline-block}
 nav a{margin-left:22px;color:var(--ink);font-weight:500}nav a.cta{background:var(--brand);color:#fff;padding:9px 14px;border-radius:8px}
 .hero{padding:72px 0 48px;background:linear-gradient(180deg,var(--soft),#fff)}
 .hero h1{font-size:clamp(30px,4.5vw,46px);line-height:1.15;margin:0 0 16px;max-width:760px}

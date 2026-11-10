@@ -23,11 +23,18 @@ def software_name() -> str:
 
 
 def software_version() -> str:
+    """The product version, as printed on invoices, books and exports (B38: no framework names)."""
+    return ph_cas.__version__
+
+
+def platform_version() -> str:
+    """The full stack, for the registration pack and the sworn statement, where the BIR is
+    told what the system is built on. Not shown on client documents."""
     try:
         erp = frappe.get_attr("erpnext.__version__")
     except Exception:
         erp = "?"
-    return f"{ph_cas.__version__} (ERPNext {erp}, Frappe {frappe.__version__})"
+    return f"{ph_cas.__version__} (built on ERPNext {erp}, Frappe Framework {frappe.__version__})"
 
 
 def _company_of(doc) -> str | None:

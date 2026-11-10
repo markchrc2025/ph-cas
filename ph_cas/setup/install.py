@@ -81,4 +81,7 @@ def setup_all():
     from ph_cas.setup import onboarding
 
     onboarding.setup()  # B34
+    from ph_cas import branding
+
+    branding.apply()  # B38
     frappe.db.commit()

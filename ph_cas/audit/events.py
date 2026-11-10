@@ -11,6 +11,8 @@ import hashlib
 import json
 
 import frappe
+
+from ph_cas.branding import product_name
 from frappe.utils import now_datetime
 
 from ph_cas.controls.locks import POSTED_VOUCHER_TYPES
@@ -122,7 +124,7 @@ def daily_chain_check():
         if recipients:
             frappe.sendmail(
                 recipients=recipients,
-                subject="PH CAS event log chain check FAILED",
+                subject=f"{product_name()} event log chain check FAILED",
                 message=f"The event log chain is broken at sequence {result['first_bad_seq']}: {result['reason']}. Investigate before anything else.",
             )
     return result

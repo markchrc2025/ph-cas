@@ -22,7 +22,7 @@ from frappe import _
 from frappe.utils import add_days, get_first_day, get_last_day, now_datetime, nowdate
 
 import ph_cas
-from ph_cas.audit.header import company_facts, ph_header_lines, software_name, software_version
+from ph_cas.audit.header import company_facts, ph_header_lines, platform_version, software_name, software_version
 
 
 def conformance_rows() -> list[dict]:
@@ -58,7 +58,7 @@ def annex_c1(company: str) -> str:
         f"Address: {f['address']}",
         f"VAT status: {c.get('ph_vat_status') or ''}  Taxpayer classification: {c.get('ph_taxpayer_class') or ''}",
         "",
-        f"System: {software_name()} version {software_version()}",
+        f"System: {software_name()} version {platform_version()}",
         "Type: Computerized Accounting System (CAS) with electronic invoicing capability, hosted by the provider in the Philippines, one site per taxpayer.",
         f"Software provider: {s.get('provider_name') or '(set in PH CAS Settings)'}  TIN {s.get('provider_tin') or ''}",
         "",
@@ -96,7 +96,7 @@ def joint_sworn_statement(company: str) -> str:
         f"and [CLIENT SIGNATORY, position] of {f['name']} (TIN {f['tin']}-{f['branch']}), the taxpayer-user,",
         "after having been duly sworn in accordance with law, hereby depose and state:",
         "",
-        f"1. The taxpayer uses {software_name()} version {software_version()} as its Computerized Accounting System, hosted by the provider in the Philippines.",
+        f"1. The taxpayer uses {software_name()} version {platform_version()} as its Computerized Accounting System, hosted by the provider in the Philippines.",
         "2. The system has no facility that may suppress, delete or alter sales and other transactions once posted, nor renumber or reuse document serials; corrections are made only through credit and debit notes and adjusting entries that are themselves recorded.",
         "3. The system generates the books of accounts, invoices and reports described in Annex C-1 in accordance with the requirements of Annex B, and keeps an audit trail of all transactions and activities.",
         "4. Any major enhancement to the system shall be the subject of a new application, and any minor enhancement shall be reported in writing to the RDO.",
@@ -185,7 +185,7 @@ def build(company: str) -> dict:
         files[f"{i:02d}_Book_{title.replace(' ', '_')}.html"] = _report_html(title, module, f).encode("utf-8")
     files["16_Audit_Trail_30_days.html"] = _report_html("BIR Audit Trail (last 30 days)", "ph_cas.ph_cas.report.bir_audit_trail.bir_audit_trail.execute", {"company": company, "from_date": add_days(now_datetime(), -30), "to_date": now_datetime()}).encode("utf-8")
     files["17_Chain_Check.html"] = _report_html("PH Chain Check", "ph_cas.ph_cas.report.ph_chain_check.ph_chain_check.execute", {"company": company}).encode("utf-8")
-    manifest = {"company": company, "generated_on": now_datetime().strftime("%Y-%m-%d %H:%M:%S"), "by": frappe.session.user, "software": f"{software_name()} {software_version()}", "annex_b_gaps": [g["item"] for g in gaps], "specimens_missing": missing, "files": sorted(files)}
+    manifest = {"company": company, "generated_on": now_datetime().strftime("%Y-%m-%d %H:%M:%S"), "by": frappe.session.user, "software": f"{software_name()} {platform_version()}", "annex_b_gaps": [g["item"] for g in gaps], "specimens_missing": missing, "files": sorted(files)}
     files["00_MANIFEST.json"] = json.dumps(manifest, indent=1).encode("utf-8")
     return {"files": files, "gaps": gaps, "missing": missing, "manifest": manifest}
 

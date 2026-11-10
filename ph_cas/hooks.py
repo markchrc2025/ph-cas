@@ -1,5 +1,5 @@
 app_name = "ph_cas"
-app_title = "PH CAS"
+app_title = "Sentire Ledger"
 app_publisher = "MCRC"
 app_description = "BIR-registrable Philippine computerized accounting system on ERPNext"
 app_email = "mcrc.business.solutions@gmail.com"
@@ -12,6 +12,16 @@ after_migrate = "ph_cas.setup.install.after_migrate"
 before_tests = "ph_cas.tests.setup.before_tests"
 
 doctype_js = {"Company": "public/js/company.js"}
+
+# B38 branding: the product, never the framework, is what users see (ph_cas.branding)
+app_logo_url = "/assets/ph_cas/images/logo.svg"
+app_include_js = ["/assets/ph_cas/js/branding.js"]
+boot_session = "ph_cas.branding.boot_session"
+update_website_context = "ph_cas.branding.website_context"
+website_context = {
+    "favicon": "/assets/ph_cas/images/favicon.ico",
+    "splash_image": "/assets/ph_cas/images/logo.svg",
+}
 
 doc_events = {
     "*": {
@@ -52,7 +62,7 @@ doc_events = {
         "before_insert": "ph_cas.hosting.tiers.validate_company",
     },
     "Branch": {"before_insert": "ph_cas.hosting.tiers.validate_branch"},
-    "User": {"validate": "ph_cas.hosting.tiers.validate_user"},
+    "User": {"validate": ["ph_cas.hosting.tiers.validate_user", "ph_cas.branding.set_user_workspace"]},
     "Customer": {"validate": "ph_cas.setup.master_data.validate_party"},
     "Supplier": {"validate": "ph_cas.setup.master_data.validate_party"},
     "Stock Reconciliation": {"validate": "ph_cas.controls.dates.require_manager"},

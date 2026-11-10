@@ -2,6 +2,13 @@
 
 One entry per bundle, newest first. Counts are the test totals on main after the merge.
 
+## B38 No framework branding: Sentire Ledger logo, titles, footers, emails, About (LDG-62, LDG-63) (11 Nov 2026)
+- PR: #36 (number assigned at ship time)
+- Built: ph_cas/branding.py (apply on every start and migrate: Website Settings, Navbar Settings, System Settings, Email Accounts, default workspace; boot_session; website context), ph_cas/public/images (provisional original mark: logo.svg, wordmark.svg/png, favicon.ico, icons), ph_cas/public/js/branding.js (About dialog with licences), hooks (app_title, app_logo_url, app_include_js, boot_session, update_website_context, User.validate), deploy_config (Email Account named after the product, branding.apply), audit.header.platform_version for the registration pack, demo/pilot/alert mails with the product header and container
+- Tests: ph_cas/tests/test_b38_branding.py (8): settings, login logo and desk boot, email header and footer, legacy account rename, print version, default workspace, no framework strings in templates
+- Assumed: The provisional mark is Claude's original drawing, replaced by overwriting the files in ph_cas/public/images; the GPL v3 and MIT licence line stays in About; prints show the product version only while the registration pack states the platform
+- Known limit: Strings inside Frappe's own JS (setup wizard, system messages that say ERPNext) are not rewritten; the HTML comment in base.html stays
+
 ## B37 Client-facing website (10 Nov 2026)
 - PR: #TBD
 - Built: website/ static site (index, pricing, demo, terms, privacy, data processing terms; one stylesheet; nginx Dockerfile for Dokploy with build path /website); /pilot page and request_pilot API on the application site (CSV log, provider mail, webhook); README
