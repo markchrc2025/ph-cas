@@ -95,7 +95,16 @@ def _email_account():
         doc.save()
     except Exception as e:  # noqa: BLE001 - SMTP connection check failed; report, do not crash the start
         frappe.db.rollback()
-        return f"smtp: Email Account not saved ({type(e).__name__}); check host, port, TLS and credentials"
+        detail = " | ".join(
+            [str(e)] + [str(m.get("message") if isinstance(m, dict) else m) for m in (frappe.get_message_log() or [])]
+        )
+        if password:
+            detail = detail.replace(password, "***")
+        return (
+            f"smtp: Email Account not saved ({type(e).__name__}: {detail[:300]}); "
+            f"host {host} port {values['smtp_port']} tls {values['use_tls']} ssl {values['use_ssl_for_outgoing']} "
+            f"user {'set' if user else 'none'} password {'set' if password else 'MISSING'}"
+        )
     # other accounts must not stay default outgoing
     frappe.db.sql("update `tabEmail Account` set default_outgoing=0 where name!=%s", name)
     frappe.db.set_single_value("System Settings", "email_footer_address", _env("SMTP_FROM_NAME", default="PH CAS"))
