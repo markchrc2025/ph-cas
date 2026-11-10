@@ -216,6 +216,8 @@ def _send_access_mail(email: str, full_name: str, link: str, expires):
 <p>The demo environment is shared and resets every night at 02:00; nothing you enter is kept. For a pilot on your own site with your own data, reply to this email.</p>
 <p>{product}</p>""",
         now=True,
+        header=[_("Your demo access"), "blue"],
+        with_container=True,
     )
 
 
@@ -230,6 +232,8 @@ def _notify_provider(row: dict):
         subject=f"Demo request: {row['full_name']} ({row['email']})",
         message="<br>".join(f"<b>{k}</b>: {frappe.utils.escape_html(str(v))}" for k, v in row.items()),
         now=True,
+        header=[row.get("request") == "PILOT" and _("Pilot request") or _("Demo request"), "blue"],
+        with_container=True,
     )
 
 

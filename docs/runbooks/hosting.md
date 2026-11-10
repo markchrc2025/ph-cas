@@ -21,8 +21,15 @@
 | `SMTP_HOST`, `SMTP_PORT` (587), `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM`, `SMTP_FROM_NAME`, `SMTP_TLS` (1), `SMTP_SSL` (0) | Outgoing email account; needed for two-factor sign-in mails, password resets and notifications. `SEED_USER` and `SEED_PASSWORD` are accepted as aliases of the user and password. |
 | `ADMIN_EMAIL` | Mailbox of the Administrator user (where its two-factor mails go) |
 | `PH_2FA` | Demo sites only: 0 turns two-factor sign-in off until email works; ignored when `PH_PRODUCTION` is 1 |
+| `PRODUCT_NAME`, `PROVIDER_NAME`, `SUPPORT_EMAIL` | Branding (B38): the product name goes into PH CAS Settings, System Settings, Website Settings, the Email Account name (so mail arrives from "Sentire Ledger <noreply@...>"), the About dialog and the desk boot; the provider name goes into the email and website footers; the support address becomes a help-menu item. Default `ADMIN_EMAIL` for support. |
 
 Persist `/var/lib/mysql` and `/home/frappe/bench/sites` as volumes; without them every redeploy reinstalls the site.
+
+## Branding (B38)
+
+Nothing a user sees says Frappe or ERPNext: `ph_cas/branding.py` writes the product identity into Website Settings (app name, logo, favicon, splash, footer), Navbar Settings (logo, hidden framework help items, a contact item), System Settings (app name, framework email footer off, provider footer), every outgoing Email Account (sender name, wordmark header) and the users' default workspace. It runs on every start and after every migrate, so a demo reset or a new client site gets it too. The desk About dialog is replaced by `ph_cas/public/js/branding.js`; it keeps a licences line (GPL v3 for ERPNext and ph_cas, MIT for Frappe), which the licences require, and the source keeps every copyright header.
+
+Logo files: `ph_cas/public/images/` (`logo.svg` square mark, `wordmark.svg` and `wordmark.png` for emails, `favicon.ico`, PNG icons 32 to 512). To replace the provisional mark, overwrite those files and redeploy; no settings change is needed. Prints show the product version only; the registration pack and the sworn statement still state the full platform (`platform_version()`), because the BIR is told what the system is built on.
 
 ## Multi-site hosting (B32)
 

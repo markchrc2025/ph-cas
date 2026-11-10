@@ -7,14 +7,15 @@ Outgoing email (for the two-factor QR/OTP mails, password resets, notifications)
   SMTP_USER            SMTP login (alias: SEED_USER)
   SMTP_PASSWORD        SMTP password (alias: SEED_PASSWORD)
   SMTP_FROM            sender address, e.g. cas@yourdomain.ph (default: SMTP_USER if it is an address)
-  SMTP_FROM_NAME       sender display name (default: PH CAS)
+  SMTP_FROM_NAME       sender display name (default: PRODUCT_NAME); also the Email Account name
   SMTP_TLS             1 = STARTTLS (default), 0 = plain; SMTP_SSL=1 for implicit TLS (port 465)
 Administrator account:
   ADMIN_EMAIL          mailbox of the Administrator user (where its 2FA mails go)
   ADMIN_PASSWORD       re-applied at every start, so the Dokploy value is always the one that works
-Branding (PH CAS Settings, shown on the BIR header of every print and export):
+Branding (PH CAS Settings, the BIR header, and every logo, title, footer and email; see ph_cas.branding):
   PRODUCT_NAME         e.g. Sentire Ledger
   PROVIDER_NAME        e.g. MCRC Tax and Accounting Services
+  SUPPORT_EMAIL        help menu contact (default: ADMIN_EMAIL)
 Demo convenience (ignored when ph_cas_production is 1):
   PH_2FA               0 turns two-factor sign-in off on a demo site until email works
 All values are read from the environment only; nothing is logged.
@@ -64,7 +65,15 @@ def _email_account():
     sender = _env("SMTP_FROM", default=user if user and "@" in user else None)
     if not sender:
         return "smtp: SMTP_FROM not set (and SMTP_USER is not an address), skipped"
-    name = "Outgoing (SMTP)"
+    # the account is named after the product so the From header reads "Sentire Ledger <noreply@...>"
+    from ph_cas.branding import product_name
+
+    name = _env("SMTP_FROM_NAME", default=product_name())
+    legacy = "Outgoing (SMTP)"
+    if frappe.db.exists("Email Account", legacy) and not frappe.db.exists("Email Account", name):
+        from frappe.model.rename_doc import rename_doc
+
+        rename_doc("Email Account", legacy, name, force=True, ignore_permissions=True, show_alert=False)
     values = {
         "email_account_name": name,
         "email_id": sender,
@@ -107,7 +116,6 @@ def _email_account():
         )
     # other accounts must not stay default outgoing
     frappe.db.sql("update `tabEmail Account` set default_outgoing=0 where name!=%s", name)
-    frappe.db.set_single_value("System Settings", "email_footer_address", _env("SMTP_FROM_NAME", default="PH CAS"))
     return f"smtp: outgoing email via {host}"
 
 
@@ -148,8 +156,9 @@ def _branding():
     if changed:
         s.flags.ignore_permissions = True
         s.save()
-    frappe.db.set_single_value("System Settings", "app_name", product or s.product_name)
-    return f"branding: {s.product_name}"
+    from ph_cas import branding
+
+    return branding.apply(product or s.product_name, provider or s.provider_name)
 
 
 def _admin_password():
