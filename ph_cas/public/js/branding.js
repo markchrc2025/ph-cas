@@ -55,8 +55,30 @@
 		$container.on("click", ".body-sidebar .item-anchor, .sidebar-collapse-arrow", () => $container.removeClass("sl-peek"));
 	}
 
+	// The dock (the column of shell icons) names its tiles on hover: the labels fly out beside
+	// the tiles over the page, so nothing reflows (see sentire.css).
+	function setup_dock_peek() {
+		const $dock = $("#desk-dock");
+		if (!$dock.length || $dock.data("sl-peek-bound")) return;
+		$dock.data("sl-peek-bound", true);
+		let timer = null;
+		$dock.on("mouseenter", () => {
+			if (!$("body").hasClass("dock-pinned") || frappe.is_mobile()) return;
+			clearTimeout(timer);
+			timer = setTimeout(() => $dock.addClass("sl-dock-peek"), 150);
+		});
+		$dock.on("mouseleave", () => {
+			clearTimeout(timer);
+			timer = setTimeout(() => $dock.removeClass("sl-dock-peek"), 150);
+		});
+		$dock.on("click", ".dock-item", () => $dock.removeClass("sl-dock-peek"));
+	}
+
 	$(document).on("startup", function () {
 		setup_rail_peek();
+		setup_dock_peek();
+		// the dock is built after startup on some routes
+		setTimeout(setup_dock_peek, 1500);
 		frappe.ui.misc.about = show_about;
 		frappe.ui.toolbar.show_about = show_about;
 		// B39: Frappe can only land on a workspace; the product lands on its home page.
