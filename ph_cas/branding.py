@@ -61,6 +61,8 @@ def apply(product: str | None = None, provider: str | None = None) -> str:
     _system_settings(product, provider)
     _email_accounts(product)
     _default_workspace()
+    _dock_first(product)
+    _scrub_framework_names(product)
     frappe.clear_cache()
     return f"branding: {product} by {provider}"
 
@@ -185,6 +187,66 @@ def _default_workspace():
            where enabled=1 and user_type='System User' and ifnull(default_workspace,'')=''""",
         (WORKSPACE,),
     )
+
+
+SIDEBAR = "Sentire Ledger"
+FRAMEWORK_NAMES = ("ERPNext", "Frappe")
+# records the framework ships whose user-facing text names the framework
+SCRUB = {
+    "Module Onboarding": ("title", "subtitle", "success_message"),
+    "Onboarding Step": ("title", "description", "intro_video_url"),
+    "Workspace": ("title",),
+}
+
+
+def _dock_first(product: str):
+    """The Sentire Ledger shell (ph_cas/ph_cas/sidebar) is the first rail entry of the app
+    the users see, so the desk opens on it. Written as the site layer of the dock, which the
+    desk lays over the app's shipped order; entries it does not name keep their order after."""
+    if not frappe.db.exists("Sidebar", SIDEBAR):
+        return
+    try:
+        from frappe.desk.doctype.dock.dock import get_site_dock_layer, save_site_dock
+    except ImportError:
+        return
+    try:
+        current = get_site_dock_layer("erpnext") or []
+    except Exception:
+        current = []
+    if current and current[0].get("link_type") == "Sidebar" and current[0].get("link_to") == SIDEBAR:
+        return
+    rest = [r for r in current if not (r.get("link_type") == "Sidebar" and r.get("link_to") == SIDEBAR)]
+    first = {"link_type": "Sidebar", "link_to": SIDEBAR, "title": product, "icon": "calculator-soft", "added": 0, "hidden": 0}
+    user = frappe.session.user
+    frappe.set_user("Administrator")
+    try:
+        save_site_dock("erpnext", [first, *rest])
+    except Exception:
+        frappe.log_error("ph_cas branding: could not place the shell first on the dock")
+    finally:
+        frappe.set_user(user)
+
+
+def _scrub_framework_names(product: str):
+    """Text the framework ships that names itself ("Get to know ERPNext") says the product."""
+    for doctype, fields in SCRUB.items():
+        if not frappe.db.exists("DocType", doctype):
+            continue
+        meta = frappe.get_meta(doctype)
+        fields = [f for f in fields if meta.has_field(f)]
+        if not fields:
+            continue
+        for row in frappe.get_all(doctype, fields=["name", *fields]):
+            for f in fields:
+                old = row.get(f) or ""
+                if not isinstance(old, str):
+                    continue
+                new = old
+                for fw in FRAMEWORK_NAMES:
+                    if fw in new and "http" not in new:
+                        new = new.replace(fw, product)
+                if new != old:
+                    frappe.db.set_value(doctype, row.name, f, new, update_modified=False)
 
 
 def set_user_workspace(doc, method=None):

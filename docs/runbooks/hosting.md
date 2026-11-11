@@ -29,6 +29,8 @@ Persist `/var/lib/mysql` and `/home/frappe/bench/sites` as volumes; without them
 
 Nothing a user sees says Frappe or ERPNext: `ph_cas/branding.py` writes the product identity into Website Settings (app name, logo, favicon, splash, footer), Navbar Settings (logo, hidden framework help items, a contact item), System Settings (app name, framework email footer off, provider footer), every outgoing Email Account (sender name, wordmark header) and the users' default workspace. It runs on every start and after every migrate, so a demo reset or a new client site gets it too. The desk About dialog is replaced by `ph_cas/public/js/branding.js`; it keeps a licences line (GPL v3 for ERPNext and ph_cas, MIT for Frappe), which the licences require, and the source keeps every copyright header.
 
+The desk opens on the Sentire Ledger shell: `ph_cas/ph_cas/sidebar/sentire_ledger` ships a standard Sidebar (Home, the four daily documents, Books, Tax returns, Tax rules, Registration and audit, Masters, Settings) and `branding.apply` writes the site layer of the dock so that shell is first on the rail; every user's `default_workspace` is Sentire Ledger. Text the framework ships that names itself (the "Get to know ERPNext" guide and its steps) is rewritten to the product on every start.
+
 Logo files: `ph_cas/public/images/` (`logo.svg` square mark, `wordmark.svg` and `wordmark.png` for emails, `favicon.ico`, PNG icons 32 to 512). To replace the provisional mark, overwrite those files and redeploy; no settings change is needed. Prints show the product version only; the registration pack and the sworn statement still state the full platform (`platform_version()`), because the BIR is told what the system is built on.
 
 ## Multi-site hosting (B32)
