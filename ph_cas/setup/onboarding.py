@@ -34,7 +34,7 @@ STEPS = [
         "title": "Confirm your tax rules",
         "action": "Go to Page",
         "path": "/app/ph-tax-rule",
-        "action_label": "Open PH Tax Rules",
+        "action_label": "Open Tax Rules",
         "description": "Every rate the system applies (VAT, withholding, percentage tax, income tax brackets) is a dated rule here. Rules start as drafts; your CPA confirms them and the confirmed set is what a production site applies. Review the ones that match your registration.",
         "validate_action": 0,
     },
@@ -52,7 +52,7 @@ STEPS = [
         "title": "Run the 2550Q figures",
         "action": "Go to Page",
         "path": "/app/ph-tax-return-figures/new",
-        "action_label": "New PH Tax Return Figures",
+        "action_label": "New Tax Return Figures",
         "description": "Pick the return (2550Q, 2551Q, 0619-E, 1601-EQ and the income tax forms), the company and the period. The figures are computed from your books, item by item of the form, ready to be keyed into eBIRForms.",
         "validate_action": 0,
     },
@@ -70,7 +70,7 @@ STEPS = [
         "title": "Build the registration pack",
         "action": "Go to Page",
         "path": "/app/ph-cas-settings",
-        "action_label": "Open PH CAS Settings",
+        "action_label": "Open Settings",
         "description": "PH CAS Settings holds the provider and signatory details printed on the registration documents. From there, **Download registration pack** produces the Annex B answers, sworn statement, specimen prints, books and audit trail for your RDO.",
         "validate_action": 0,
     },
@@ -148,10 +148,10 @@ def ensure_workspace():
         {"id": "sl_s3", "type": "shortcut", "data": {"shortcut_name": "Payment Entry", "col": 3}},
         {"id": "sl_s4", "type": "shortcut", "data": {"shortcut_name": "Journal Entry", "col": 3}},
         {"id": "sl_h2", "type": "header", "data": {"text": "<span class=\"h4\"><b>BIR</b></span>", "col": 12}},
-        {"id": "sl_s5", "type": "shortcut", "data": {"shortcut_name": "PH Tax Return Figures", "col": 3}},
-        {"id": "sl_s6", "type": "shortcut", "data": {"shortcut_name": "PH 2307 Issued", "col": 3}},
+        {"id": "sl_s5", "type": "shortcut", "data": {"shortcut_name": "Tax Return Figures", "col": 3}},
+        {"id": "sl_s6", "type": "shortcut", "data": {"shortcut_name": "2307 Issued", "col": 3}},
         {"id": "sl_s7", "type": "shortcut", "data": {"shortcut_name": "BIR Audit Trail", "col": 3}},
-        {"id": "sl_s8", "type": "shortcut", "data": {"shortcut_name": "PH CAS Settings", "col": 3}},
+        {"id": "sl_s8", "type": "shortcut", "data": {"shortcut_name": "Settings", "col": 3}},
         {"id": "sl_h3", "type": "header", "data": {"text": "<span class=\"h4\"><b>Books and rules</b></span>", "col": 12}},
         {"id": "sl_c1", "type": "card", "data": {"card_name": "Books", "col": 4}},
         {"id": "sl_c2", "type": "card", "data": {"card_name": "Tax", "col": 4}},
@@ -162,17 +162,18 @@ def ensure_workspace():
         ("Purchase Invoice", "DocType", "Purchase Invoice"),
         ("Payment Entry", "DocType", "Payment Entry"),
         ("Journal Entry", "DocType", "Journal Entry"),
-        ("PH Tax Return Figures", "DocType", "PH Tax Return Figures"),
-        ("PH 2307 Issued", "DocType", "PH 2307 Issued"),
+        ("Tax Return Figures", "DocType", "PH Tax Return Figures"),
+        ("2307 Issued", "DocType", "PH 2307 Issued"),
         ("BIR Audit Trail", "Report", "BIR Audit Trail"),
-        ("PH CAS Settings", "DocType", "PH CAS Settings"),
+        ("Settings", "DocType", "PH CAS Settings"),
     ]
     links = []
 
     def card(label, items):
         links.append({"type": "Card Break", "label": label, "link_count": len(items)})
         for lt, name in items:
-            links.append({"type": "Link", "label": name, "link_type": lt, "link_to": name})
+            label = name[3:] if name.startswith("PH ") else name
+            links.append({"type": "Link", "label": label, "link_type": lt, "link_to": name})
 
     card("Books", [("Report", r) for r in ("PH Sales Journal", "PH Purchase Journal", "PH Cash Receipts Book", "PH Cash Disbursements Book", "PH General Journal", "PH General Ledger Book", "PH Inventory Book")])
     card("Tax", [("DocType", "PH Tax Rule"), ("Report", "PH Draft Tax Rules"), ("Report", "PH Compliance Calendar"), ("Report", "PH Book to Tax Reconciliation"), ("DocType", "PH 2307 Received"), ("DocType", "PH Alphalist File")])

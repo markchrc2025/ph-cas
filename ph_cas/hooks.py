@@ -16,6 +16,7 @@ doctype_js = {"Company": "public/js/company.js"}
 # B38 branding: the product, never the framework, is what users see (ph_cas.branding)
 app_logo_url = "/assets/ph_cas/images/logo.svg"
 app_include_js = ["/assets/ph_cas/js/branding.js"]
+app_include_css = ["/assets/ph_cas/css/sentire.css"]
 boot_session = "ph_cas.branding.boot_session"
 update_website_context = "ph_cas.branding.website_context"
 website_context = {

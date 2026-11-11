@@ -1,0 +1,115 @@
+/* B39: Sentire Ledger home page and small desk touches. Colours follow the mark. */
+:root {
+	--sl-navy: #123a4f;
+	--sl-mint: #9fd3c7;
+	--sl-gold: #e8b23b;
+	--sl-ink: var(--text-color, #1f272e);
+	--sl-muted: var(--text-muted, #6c7680);
+	--sl-card: var(--card-bg, #fff);
+	--sl-line: var(--border-color, #e3e8ee);
+	--sl-radius: 12px;
+}
+
+.sl-home { max-width: 1180px; margin: 0 auto; padding: 8px 8px 48px; }
+.sl-home.sl-loading { opacity: 0.6; transition: opacity 0.2s; }
+.sl-home a { color: inherit; text-decoration: none; }
+
+.sl-hero { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; padding: 28px 0 8px; flex-wrap: wrap; }
+.sl-greeting { font-size: 2rem; font-weight: 700; margin: 0; letter-spacing: -0.01em; color: var(--sl-ink); }
+.sl-sub { margin: 4px 0 0; color: var(--sl-muted); }
+.sl-controls { display: flex; gap: 8px; }
+.sl-controls .form-control { width: auto; min-width: 150px; }
+
+.sl-tiles { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; margin: 20px 0 8px; }
+.sl-tile { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 18px 12px; border: 1px solid var(--sl-line); border-radius: 999px; background: var(--sl-card); font-weight: 600; transition: box-shadow 0.15s, border-color 0.15s; }
+.sl-tile:hover { border-color: var(--sl-navy); box-shadow: var(--shadow-sm); }
+.sl-tile-icon { display: inline-flex; color: var(--sl-navy); }
+.sl-tile-icon .icon { width: 20px; height: 20px; }
+
+.sl-section { margin-top: 28px; }
+.sl-section h2 { font-size: 1.05rem; font-weight: 700; margin: 0 0 12px; color: var(--sl-ink); }
+.sl-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.sl-chip { padding: 8px 14px; border: 1px solid var(--sl-line); border-radius: 999px; background: var(--sl-card); font-size: 0.9rem; }
+.sl-chip:hover { border-color: var(--sl-gold); color: var(--sl-navy); }
+
+.sl-card { background: var(--sl-card); border: 1px solid var(--sl-line); border-radius: var(--sl-radius); padding: 16px 18px; }
+.sl-card-head { display: flex; justify-content: space-between; align-items: center; font-weight: 600; margin-bottom: 10px; }
+.sl-card-head small { color: var(--sl-muted); font-weight: 400; margin-left: 6px; }
+.sl-card-head a { color: var(--sl-navy); font-size: 0.85rem; }
+
+.sl-onboarding { margin-top: 24px; }
+.sl-steps { list-style: none; margin: 0; padding: 0; }
+.sl-steps li { display: flex; align-items: center; gap: 12px; padding: 8px 0; border-top: 1px solid var(--sl-line); }
+.sl-steps li.done .sl-step-title { color: var(--sl-muted); text-decoration: line-through; }
+.sl-check { width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid var(--sl-line); display: inline-flex; align-items: center; justify-content: center; color: #fff; flex: none; }
+.sl-steps li.done .sl-check { background: var(--sl-mint); border-color: var(--sl-mint); color: var(--sl-navy); }
+.sl-step-go { margin-left: auto; color: var(--sl-navy); font-size: 0.85rem; white-space: nowrap; }
+
+.sl-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.sl-stat { display: block; }
+.sl-stat:hover { border-color: var(--sl-navy); }
+.sl-stat.sl-attention { border-left: 4px solid var(--sl-gold); }
+.sl-stat-label { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--sl-muted); }
+.sl-stat-value { font-size: 1.6rem; font-weight: 700; margin: 6px 0 2px; color: var(--sl-ink); font-variant-numeric: tabular-nums; }
+.sl-stat-foot { font-size: 0.82rem; color: var(--sl-muted); }
+.sl-warn { color: #b4530a; font-weight: 600; }
+
+.sl-grid-2 { display: grid; grid-template-columns: 3fr 2fr; gap: 12px; margin-top: 12px; }
+.sl-chart .chart-container { margin: 0; }
+.sl-empty { margin: 24px 0; text-align: center; }
+.sl-due-list { list-style: none; margin: 0; padding: 0; }
+.sl-due-list li a { display: flex; gap: 8px; align-items: baseline; padding: 8px 0; border-top: 1px solid var(--sl-line); }
+.sl-due-list li span { color: var(--sl-muted); font-size: 0.85rem; }
+.sl-due-when { margin-left: auto; white-space: nowrap; }
+.sl-due-list li.soon .sl-due-when { color: #b4530a; font-weight: 600; }
+.sl-due-list li.overdue .sl-due-when { color: #b42318; font-weight: 700; }
+
+@media (max-width: 900px) {
+	.sl-tiles { grid-template-columns: repeat(3, 1fr); }
+	.sl-cards { grid-template-columns: repeat(2, 1fr); }
+	.sl-grid-2 { grid-template-columns: 1fr; }
+}
+@media (max-width: 560px) {
+	.sl-tiles { grid-template-columns: repeat(2, 1fr); }
+	.sl-cards { grid-template-columns: 1fr; }
+	.sl-greeting { font-size: 1.5rem; }
+}
+
+/* The sidebar's collapse arrow is shown on hover only; keep it visible so it can be found. */
+.sidebar-collapse-arrow { opacity: 1 !important; pointer-events: auto !important; }
+
+/* Hover peek on the icon rail (dock mode Floating): the collapsed sidebar opens over the page
+   while the pointer is on it and folds back when it leaves. Mirrors frappe-ui's Sidebar: the
+   marks stay put, only the words unfold. */
+@media (min-width: 768px) {
+	.body-sidebar-container.sl-peek:not(.expanded):not(.sidebar-hidden) .body-sidebar {
+		position: absolute;
+		top: 0;
+		bottom: 0;
+		width: var(--sidebar-width);
+		z-index: 1022;
+		box-shadow: var(--shadow-lg, 0 8px 24px rgba(0, 0, 0, 0.14));
+		transition: width 0.25s ease-in-out;
+	}
+	.body-sidebar-container.sl-peek:not(.expanded):not(.sidebar-hidden) .body-sidebar .sidebar-item-label,
+	.body-sidebar-container.sl-peek:not(.expanded):not(.sidebar-hidden) .body-sidebar .sidebar-item-suffix,
+	.body-sidebar-container.sl-peek:not(.expanded):not(.sidebar-hidden) .body-sidebar .sidebar-item-control,
+	.body-sidebar-container.sl-peek:not(.expanded):not(.sidebar-hidden) .body-sidebar .shell-header .title-container,
+	.body-sidebar-container.sl-peek:not(.expanded):not(.sidebar-hidden) .body-sidebar .shell-header .drop-icon,
+	.body-sidebar-container.sl-peek:not(.expanded):not(.sidebar-hidden) .body-sidebar .avatar-name-email {
+		flex: 1 1 auto;
+		width: auto;
+		min-width: 0;
+		margin: 0 0 0 8px !important;
+		opacity: 1;
+		overflow: hidden;
+		transition: opacity 0.2s ease-in-out 0.1s;
+	}
+	.body-sidebar-container.sl-peek:not(.expanded):not(.sidebar-hidden) .body-sidebar .shell-header {
+		width: auto;
+		gap: 8px;
+	}
+	.body-sidebar-container.sl-peek:not(.expanded):not(.sidebar-hidden) .body-sidebar .sidebar-user-button {
+		width: 100% !important;
+	}
+}
