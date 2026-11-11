@@ -202,6 +202,7 @@ def _default_workspace():
 
 
 SIDEBAR = "Sentire Ledger"
+MODULE = "PH CAS"
 FRAMEWORK_NAMES = ("ERPNext", "Frappe")
 # records the framework ships whose user-facing text names the framework
 SCRUB = {
@@ -288,10 +289,6 @@ def boot_session(bootinfo):
                 app["app_title"] = product
             elif app.get("app_name") == "frappe":
                 app["app_title"] = "System tools"
-    for rail in (bootinfo.get("dock") or {}).values():
-        for entry in rail or []:
-            if entry.get("link_type") == "Sidebar" and entry.get("link_to") == SIDEBAR:
-                entry["title"] = product
     bootinfo.ph_cas_branding = {
         "product": product,
         "provider": provider_name(),
@@ -303,6 +300,21 @@ def boot_session(bootinfo):
         if frappe.db.exists("Page", "sentire-home")
         else None,
     }
+
+
+def extend_bootinfo(bootinfo):
+    """Runs after the dock and the shells are built (boot_session runs before them). The shell of
+    a module with several sources is labelled with the module's name, so our tile and shell
+    would read "PH CAS"; they read the product."""
+    product = product_name()
+    for rail in (bootinfo.get("dock") or {}).values():
+        for entry in rail or []:
+            if entry.get("link_type") == "Sidebar" and entry.get("link_to") in (SIDEBAR, MODULE):
+                entry["title"] = product
+    shells = bootinfo.get("module_sidebars") or {}
+    for key in (MODULE, SIDEBAR):
+        if isinstance(shells.get(key), dict):
+            shells[key]["label"] = product
 
 
 def licence_text() -> str:
