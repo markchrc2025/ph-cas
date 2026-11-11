@@ -81,7 +81,9 @@ Why a Python port and not a Node sidecar: the Ledger is one container per site f
 ### 3.1 The PH Tax Return doctype (one record per company, form, period)
 Fields: company, form (Select from the registry), form_version, period_kind, period_key, period_start, period_end, fiscal (Check), status (Draft, Ready, Filed, Amended, Cancelled; Frappe docstatus 1 = Filed is the seal, docstatus 2 + amended_from = amendment), data (JSON: typed and books figures with `_source`), lines (computed items, refreshed on every save and on open, read-only), needs (JSON, refreshed with lines), warnings (Small Text), export_file (Attach, the eBIRForms file), preview_pdf (Attach, DRAFT-stamped), clear_copy (Attach, made at filing), filed_on, filed_reference, filed_snapshot (JSON: the Company taxpayer block as at filing, plus the alphalist model for a 1601-EQ), confirmation (Link PH BIR Confirmation), alphalist_file (Link PH Alphalist File), amends (Link PH Tax Return), contact_number.
 
-Rules enforced in the controller: validate() refuses a negative on a form with no sign boxes, a centavo on a whole-peso form, more schedule rows than the paper has; before_submit() requires needs empty, a confirmation (or a System Manager override with reason) and the contact number, takes the filed snapshot, renders the clear copy from the stored export, writes the Event Log; on_submit() publishes the figures to PH Tax Return Figures (so the home dashboard, the calendar and the reconciliation report keep reading one place); on_cancel() only through Frappe's amend path, the original stays readable; no deletion of a submitted return (Annex B rule already enforced by ph_cas.controls).
+Status flow: Draft -> Ready (needs empty) -> Filed (submit, read-only) -> Change requested -> Change approved (opens an amendment) ; Amended marks a return superseded by its amendment.
+
+Rules enforced in the controller: validate() refuses a negative on a form with no sign boxes, a centavo on a whole-peso form, more schedule rows than the paper has; before_submit() requires needs empty, a confirmation (or a System Manager override with reason) and the contact number, takes the filed snapshot, renders the clear copy from the stored export, writes the Event Log; on_submit() publishes the figures to PH Tax Return Figures (so the home dashboard, the calendar and the reconciliation report keep reading one place); a change after filing only through the approval workflow (decision 2), which opens an amendment; the original stays filed and readable; no deletion of a submitted return (Annex B rule already enforced by ph_cas.controls).
 
 ### 3.2 Books feed contract (per form feed.py)
 `feed(company, period) -> {figures: {key: value}, lines: [{key, label, amount, records, filter}], warnings: []}`. Filters are list-view routes (`/app/sales-invoice?...`) so every books figure is one click from its records, like the Portal's BookLine filter. The feed only touches the keys it owns; a user's typed keys survive a refresh; a books key the user overrode keeps the override and a warning says so. The feed is re-run on "Refresh from books" and the `_source.asOf` is shown.
@@ -113,14 +115,14 @@ The same `needs` and `compute` back `ph_cas.api.forms.*` whitelisted methods, so
 
 F0 is about a third of the whole: the overlay engine port, the doctype and the seal. After F1 every further form is compute + export + feed + tests on top of a finished machine, roughly a day each for the quarterly ones and two for the annual income-tax returns.
 
-## 5. Decisions the owner makes before F0 starts
-1. Maps and templates: port the Portal's 11 maps and blanks verbatim into ph_cas (same owner, same forms, same versions). Recommended yes; it saves the geometry work entirely.
-2. Seal strength: Frappe submit plus the Annex B no-delete controls (recommended), or also a MariaDB trigger like the Portal's Postgres one.
-3. Confirmation: require the BIR confirmation e-mail to mark filed (recommended, as the Portal), with a System Manager override that is logged.
-4. Where typed figures live: JSON `data` on the return (recommended, mirrors the Portal and keeps every key the export needs) versus more child tables.
-5. Preview rate: the Portal limits live previews to 40 a minute per user; the Ledger renders on a button, so no limit, unless live preview is wanted.
-6. Clear copy branding: the clear copy is the BIR blank with figures only, no Annex B header (it is the taxpayer's filed return, not a Ledger report); the Annex B header stays on every other print and export. Confirm with the CPA.
-7. 1600-VT and 1604-E maps are new work (no Portal map); 1604-C/2316 parked until payroll.
+## 5. Decisions (owner, 11 and 12 Nov 2026)
+1. Maps and templates: the owner put every BIR blank in the repo at `ph_cas/tax/BIR Templates` (commits 3ce5421, 852b1bf). All 11 blanks the Portal maps are byte-identical to the Portal's pinned templates (SHA-256 checked), so the Portal's maps port verbatim. New maps are needed for the 1600-VT, 1604-E, 1604-C, 2316 and 2306 (LDG-86, LDG-87, LDG-88, parked).
+2. Seal strength: Frappe submit makes a filed return read-only; no database trigger (the Ledger is not an official filing system, so the owner does not want it over-restricted). A change to a filed return is still possible, but only through a manager's approval: the user raises a change request with a reason, a user with the Accounts Manager role approves or rejects it (Frappe Workflow on PH Tax Return: Filed -> Change requested -> Change approved), and an approved request opens an amendment (a new return with `amends` set, the original kept as filed and readable). Nothing is ever edited in place. An amendment filing (the BIR's amended return, with the amended box ticked and the tax paid on the original as a credit) is a normal case of the same path.
+3. Confirmation: the BIR confirmation e-mail is required to mark filed, with a System Manager override that is logged with a reason.
+4. Typed figures live as JSON `data` on the return.
+5. Live preview: the DRAFT preview renders as the user types (debounced), with the Portal's per-user limit of 40 renders a minute kept.
+6. Clear copy: the BIR blank with figures only, no Annex B header. The Annex B header stays on every other print and export.
+7. 1604-C and 2316 parked until a payroll source exists; the new maps are tracked as their own issues.
 
 ## 6. Tests that gate each form (same as the Portal's T1 to T5 and C-series)
 - Template SHA pinned; map validates; every export key has a map entry (coverage); geometry re-check against the blank's drawing; proof rendered and committed.
