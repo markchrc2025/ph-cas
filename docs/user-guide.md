@@ -16,3 +16,15 @@ After sign-in you land on Home: a greeting, the six module tiles, the create act
 The sign-in page, the icon in the left rail, the browser tab, the help menu and every email carry the Sentire Ledger mark; the help menu's last item is a contact link to the provider. The About entry under the help menu shows the product version and the open-source licences the system is built on (B38).
 
 Tutorial videos: each step of the standard guides (Make your first sale, Order from your suppliers, and so on) can carry a Sentire Ledger video. The list of steps and their video ids is `ph_cas/setup/data/onboarding_videos.json`; a null entry keeps ERPNext's own video until ours is recorded.
+
+## BIR Returns (B40)
+
+Tax returns > BIR Returns is where a return is made, previewed, exported, filed and kept. One record per company, form and period (period keys: `2026-03` for a month, `2026-Q1` for a quarter, `2026` for a year; a fiscal-year company's quarters count from its fiscal year start on the Company record).
+
+- **What the return still needs** lists, as questions, what is missing on the Company record (TIN, RDO, registered address, contact number and so on) or on the return itself. Open the record it names, fill it in, and the question disappears on the next save. Nothing the books already give is asked for.
+- **Figures** shows every item of the form in the paper's order with its kind: books (summed from posted records; Refresh from books brings them in again), typed (yours), derived (computed, never stored). A books figure you change by hand is kept and flagged.
+- **Preview (DRAFT)** prints the return on the BIR's own blank with a DRAFT stamp. **Export for eBIRForms** writes the file the offline package loads.
+- **Filing.** Attach the BIR's Tax Return Receipt Confirmation e-mail (the .eml, a PDF print of it, or its text) with Attach BIR confirmation; it is checked against the return (sender, form, TIN, branch, period, received time). Then Submit: the return is filed, read-only, the taxpayer block is kept as it was that day, the clear copy (as filed) is attached, and the figures go to Tax Return Figures for the calendar and the dashboard. A System Manager may file without the e-mail by giving an override reason, which is logged.
+- **After filing** nothing changes. A manager opens an amendment (Open amendment, with a reason): a new draft with the same figures, the Amended Return box ticked, linked to the original, which stays filed and readable.
+
+Until a form's engine is built, its return says so under needs and cannot be filed.

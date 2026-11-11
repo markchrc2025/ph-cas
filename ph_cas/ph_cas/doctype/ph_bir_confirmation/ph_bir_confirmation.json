@@ -1,0 +1,161 @@
+{
+ "doctype": "DocType",
+ "name": "PH BIR Confirmation",
+ "module": "PH CAS",
+ "custom": 0,
+ "autoname": "format:BIRC-{YYYY}-{#####}",
+ "naming_rule": "Expression",
+ "engine": "InnoDB",
+ "track_changes": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "field_order": [
+  "form",
+  "tin",
+  "period_key",
+  "col_a",
+  "kind",
+  "reference",
+  "received_at",
+  "sec_file",
+  "file",
+  "parsed_text",
+  "sha256",
+  "col_b",
+  "tax_return",
+  "reason",
+  "attached_by"
+ ],
+ "fields": [
+  {
+   "fieldname": "form",
+   "fieldtype": "Data",
+   "label": "Form",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "tin",
+   "fieldtype": "Data",
+   "label": "TIN",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "period_key",
+   "fieldtype": "Data",
+   "label": "Period",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "col_a",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "kind",
+   "fieldtype": "Select",
+   "label": "Kind",
+   "options": "BIR e-mail\nOverride",
+   "default": "BIR e-mail",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "reference",
+   "fieldtype": "Data",
+   "label": "Reference number",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "received_at",
+   "fieldtype": "Datetime",
+   "label": "Received at"
+  },
+  {
+   "fieldname": "sec_file",
+   "fieldtype": "Section Break",
+   "label": "File"
+  },
+  {
+   "fieldname": "file",
+   "fieldtype": "Attach",
+   "label": "Confirmation (.eml or .pdf)"
+  },
+  {
+   "fieldname": "parsed_text",
+   "fieldtype": "Long Text",
+   "label": "Parsed text",
+   "read_only": 1,
+   "hidden": 1
+  },
+  {
+   "fieldname": "sha256",
+   "fieldtype": "Data",
+   "label": "SHA-256",
+   "read_only": 1
+  },
+  {
+   "fieldname": "col_b",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "tax_return",
+   "fieldtype": "Link",
+   "label": "Tax return",
+   "options": "PH Tax Return",
+   "read_only": 1
+  },
+  {
+   "fieldname": "reason",
+   "fieldtype": "Small Text",
+   "label": "Reason (override)"
+  },
+  {
+   "fieldname": "attached_by",
+   "fieldtype": "Link",
+   "label": "Attached by",
+   "options": "User",
+   "read_only": 1
+  }
+ ],
+ "permissions": [
+  {
+   "role": "Accounts Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "report": 1
+  },
+  {
+   "role": "PH Accounting Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "report": 1
+  },
+  {
+   "role": "Accounts User",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "report": 1
+  },
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "report": 1
+  }
+ ],
+ "links": [],
+ "actions": [],
+ "states": [],
+ "creation": "2026-11-12 02:00:00.000000",
+ "modified": "2026-11-12 02:00:00.000000",
+ "modified_by": "Administrator",
+ "owner": "Administrator",
+ "idx": 0,
+ "docstatus": 0
+}

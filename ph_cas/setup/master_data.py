@@ -31,6 +31,23 @@ def company_fields():
         {"fieldname": "ph_cas_section", "fieldtype": "Section Break", "label": "CAS registration", "insert_after": "ph_top_withholding_agent"},
         {"fieldname": "ph_accn", "fieldtype": "Data", "label": "ACCN", "insert_after": "ph_cas_section"},
         {"fieldname": "ph_accn_date", "fieldtype": "Date", "label": "Date issued", "insert_after": "ph_accn"},
+        # F0: what a BIR return prints about the taxpayer (ph_cas.forms.needs asks for what is blank)
+        {"fieldname": "ph_taxpayer_section", "fieldtype": "Section Break", "label": "Taxpayer details (BIR returns)", "insert_after": "ph_accn_date", "collapsible": 1},
+        {"fieldname": "ph_last_name", "fieldtype": "Data", "label": "Last name", "insert_after": "ph_taxpayer_section", "depends_on": "eval:doc.ph_taxpayer_type=='Individual'"},
+        {"fieldname": "ph_first_name", "fieldtype": "Data", "label": "First name", "insert_after": "ph_last_name", "depends_on": "eval:doc.ph_taxpayer_type=='Individual'"},
+        {"fieldname": "ph_middle_name", "fieldtype": "Data", "label": "Middle name", "insert_after": "ph_first_name", "depends_on": "eval:doc.ph_taxpayer_type=='Individual'"},
+        {"fieldname": "ph_birthdate", "fieldtype": "Date", "label": "Date of birth", "insert_after": "ph_middle_name", "depends_on": "eval:doc.ph_taxpayer_type=='Individual'"},
+        {"fieldname": "ph_civil_status", "fieldtype": "Select", "label": "Civil status", "options": "\nSingle\nMarried\nLegally Separated\nWidow/er", "insert_after": "ph_birthdate", "depends_on": "eval:doc.ph_taxpayer_type=='Individual'"},
+        {"fieldname": "ph_citizenship", "fieldtype": "Data", "label": "Citizenship", "default": "Filipino", "insert_after": "ph_civil_status", "depends_on": "eval:doc.ph_taxpayer_type=='Individual'"},
+        {"fieldname": "ph_incorporation_date", "fieldtype": "Date", "label": "Date of incorporation or organization", "insert_after": "ph_citizenship", "depends_on": "eval:doc.ph_taxpayer_type!='Individual'"},
+        {"fieldname": "ph_taxpayer_col", "fieldtype": "Column Break", "insert_after": "ph_incorporation_date"},
+        {"fieldname": "ph_registered_address", "fieldtype": "Small Text", "label": "Registered address (per COR)", "insert_after": "ph_taxpayer_col"},
+        {"fieldname": "ph_zip", "fieldtype": "Data", "label": "ZIP code", "length": 4, "insert_after": "ph_registered_address"},
+        {"fieldname": "ph_contact_number", "fieldtype": "Data", "label": "Contact number", "insert_after": "ph_zip"},
+        {"fieldname": "ph_email", "fieldtype": "Data", "label": "Email address (as registered)", "options": "Email", "insert_after": "ph_contact_number"},
+        {"fieldname": "ph_line_of_business", "fieldtype": "Data", "label": "Line of business", "insert_after": "ph_email"},
+        {"fieldname": "ph_psic", "fieldtype": "Data", "label": "PSIC code", "length": 5, "insert_after": "ph_line_of_business"},
+        {"fieldname": "ph_fiscal_year_start", "fieldtype": "Date", "label": "Fiscal year start (blank = calendar year)", "insert_after": "ph_psic", "description": "The first day of the fiscal year, for the 2550Q, 1702Q and 1702-RT. Withholding returns and the 2551Q follow the calendar."},
     ]
 
 
