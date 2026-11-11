@@ -34,7 +34,29 @@
 		return false;
 	}
 
+	// Hover peek on the collapsed icon rail (see sentire.css). A short delay on both sides
+	// keeps a pointer crossing the rail from flapping it open and shut.
+	function setup_rail_peek() {
+		const $container = $(".body-sidebar-container");
+		if (!$container.length || $container.data("sl-peek-bound")) return;
+		$container.data("sl-peek-bound", true);
+		let timer = null;
+		const rail = () => !$container.hasClass("expanded") && !$container.hasClass("sidebar-hidden");
+		$container.on("mouseenter", ".body-sidebar", () => {
+			if (!rail() || frappe.is_mobile()) return;
+			clearTimeout(timer);
+			timer = setTimeout(() => $container.addClass("sl-peek"), 120);
+		});
+		$container.on("mouseleave", ".body-sidebar", () => {
+			clearTimeout(timer);
+			timer = setTimeout(() => $container.removeClass("sl-peek"), 200);
+		});
+		// a click that navigates or toggles folds the peek at once
+		$container.on("click", ".body-sidebar .item-anchor, .sidebar-collapse-arrow", () => $container.removeClass("sl-peek"));
+	}
+
 	$(document).on("startup", function () {
+		setup_rail_peek();
 		frappe.ui.misc.about = show_about;
 		frappe.ui.toolbar.show_about = show_about;
 		// B39: Frappe can only land on a workspace; the product lands on its home page.

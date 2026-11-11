@@ -61,6 +61,7 @@ def apply(product: str | None = None, provider: str | None = None) -> str:
     _system_settings(product, provider)
     _email_accounts(product)
     _default_workspace()
+    _dock_floating()
     _dock_first(product)
     _scrub_framework_names(product)
     frappe.clear_cache()
@@ -179,6 +180,19 @@ def _email_accounts(product: str):
             frappe.db.set_value("Email Account", product, "email_account_name", product, update_modified=False)
 
 
+def _dock_floating():
+    """Dock mode Floating gives the frappe-ui rail: a collapsed sidebar folds to icons (and
+    peeks open on hover, sentire.css) instead of disappearing, and the app switcher slides in
+    at the window's edge. Applied once to existing users; new users get it from User.validate.
+    A user who later picks Pinned in their settings keeps it."""
+    if not frappe.get_meta("User").has_field("dock_mode"):
+        return
+    if frappe.db.get_default("ph_dock_floating_applied"):
+        return
+    frappe.db.sql("update `tabUser` set dock_mode='Floating' where enabled=1 and user_type='System User'")
+    frappe.db.set_default("ph_dock_floating_applied", 1)
+
+
 def _default_workspace():
     if not frappe.db.exists("Workspace", WORKSPACE):
         return
@@ -261,6 +275,8 @@ def set_user_workspace(doc, method=None):
     """User.validate: a new system user lands on the product workspace."""
     if not doc.get("default_workspace") and frappe.db.exists("Workspace", WORKSPACE):
         doc.default_workspace = WORKSPACE
+    if doc.is_new() and doc.meta.has_field("dock_mode"):
+        doc.dock_mode = "Floating"
 
 
 def boot_session(bootinfo):

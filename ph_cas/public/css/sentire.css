@@ -77,3 +77,39 @@
 
 /* The sidebar's collapse arrow is shown on hover only; keep it visible so it can be found. */
 .sidebar-collapse-arrow { opacity: 1 !important; pointer-events: auto !important; }
+
+/* Hover peek on the icon rail (dock mode Floating): the collapsed sidebar opens over the page
+   while the pointer is on it and folds back when it leaves. Mirrors frappe-ui's Sidebar: the
+   marks stay put, only the words unfold. */
+@media (min-width: 768px) {
+	.body-sidebar-container.sl-peek:not(.expanded):not(.sidebar-hidden) .body-sidebar {
+		position: absolute;
+		top: 0;
+		bottom: 0;
+		width: var(--sidebar-width);
+		z-index: 1022;
+		box-shadow: var(--shadow-lg, 0 8px 24px rgba(0, 0, 0, 0.14));
+		transition: width 0.25s ease-in-out;
+	}
+	.body-sidebar-container.sl-peek:not(.expanded):not(.sidebar-hidden) .body-sidebar .sidebar-item-label,
+	.body-sidebar-container.sl-peek:not(.expanded):not(.sidebar-hidden) .body-sidebar .sidebar-item-suffix,
+	.body-sidebar-container.sl-peek:not(.expanded):not(.sidebar-hidden) .body-sidebar .sidebar-item-control,
+	.body-sidebar-container.sl-peek:not(.expanded):not(.sidebar-hidden) .body-sidebar .shell-header .title-container,
+	.body-sidebar-container.sl-peek:not(.expanded):not(.sidebar-hidden) .body-sidebar .shell-header .drop-icon,
+	.body-sidebar-container.sl-peek:not(.expanded):not(.sidebar-hidden) .body-sidebar .avatar-name-email {
+		flex: 1 1 auto;
+		width: auto;
+		min-width: 0;
+		margin: 0 0 0 8px !important;
+		opacity: 1;
+		overflow: hidden;
+		transition: opacity 0.2s ease-in-out 0.1s;
+	}
+	.body-sidebar-container.sl-peek:not(.expanded):not(.sidebar-hidden) .body-sidebar .shell-header {
+		width: auto;
+		gap: 8px;
+	}
+	.body-sidebar-container.sl-peek:not(.expanded):not(.sidebar-hidden) .body-sidebar .sidebar-user-button {
+		width: 100% !important;
+	}
+}
