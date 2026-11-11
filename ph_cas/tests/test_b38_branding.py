@@ -149,6 +149,12 @@ class TestB38Branding(IntegrationTestCase):
         self.assertTrue(frappe.db.exists("Sidebar", branding.SIDEBAR))
         rail = get_site_dock_layer("erpnext")
         self.assertEqual((rail[0]["link_type"], rail[0]["link_to"]), ("Sidebar", branding.SIDEBAR))
+        from frappe.desk.doctype.dock.dock import resolve_app_dock
+
+        shells = [r["link_to"] for r in resolve_app_dock("erpnext") if r.get("link_type") == "Sidebar" and not r.get("hidden")]
+        self.assertEqual(shells[0], branding.SIDEBAR)
+        for shell in ("Accounts", "Selling", "Stock", "Setup"):
+            self.assertIn(shell, shells, "the app's own shells must stay on the rail")
         self.assertEqual(frappe.db.get_value("User", "Administrator", "default_workspace"), branding.WORKSPACE)
         boot = get_bootinfo()
         self.assertEqual(boot.home_shell, branding.SIDEBAR)

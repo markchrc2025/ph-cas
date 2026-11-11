@@ -200,27 +200,35 @@ SCRUB = {
 
 
 def _dock_first(product: str):
-    """The Sentire Ledger shell (ph_cas/ph_cas/sidebar) is the first rail entry of the app
-    the users see, so the desk opens on it. Written as the site layer of the dock, which the
-    desk lays over the app's shipped order; entries it does not name keep their order after."""
+    """The Sentire Ledger shell (ph_cas/ph_cas/sidebar) is the first rail entry of the app the
+    users see, so the desk opens on it. Written as the site layer of the dock. The desk keeps
+    only the entries a layer names (keep_unnamed is False in resolve_app_dock), so the layer
+    lists the app's own entries after ours, in their shipped order, or they would vanish."""
     if not frappe.db.exists("Sidebar", SIDEBAR):
         return
     try:
-        from frappe.desk.doctype.dock.dock import get_site_dock_layer, save_site_dock
+        from frappe.desk.doctype.dock.dock import get_app_base, get_site_dock_layer, save_site_dock
     except ImportError:
         return
-    try:
-        current = get_site_dock_layer("erpnext") or []
-    except Exception:
-        current = []
-    if current and current[0].get("link_type") == "Sidebar" and current[0].get("link_to") == SIDEBAR:
-        return
-    rest = [r for r in current if not (r.get("link_type") == "Sidebar" and r.get("link_to") == SIDEBAR)]
-    first = {"link_type": "Sidebar", "link_to": SIDEBAR, "title": product, "icon": "calculator-soft", "added": 0, "hidden": 0}
     user = frappe.session.user
     frappe.set_user("Administrator")
     try:
-        save_site_dock("erpnext", [first, *rest])
+        base = get_app_base("erpnext") or []
+        try:
+            current = get_site_dock_layer("erpnext") or []
+        except Exception:
+            current = []
+        ours = {"link_type": "Sidebar", "link_to": SIDEBAR, "title": product, "icon": "calculator-soft"}
+        key = lambda r: (r.get("link_type") or "", r.get("link_to") or "", r.get("url") or "")  # noqa: E731
+        rest = [
+            {k: r.get(k) for k in ("link_type", "link_to", "url") if r.get(k)}
+            for r in base
+            if key(r) != key(ours)
+        ]
+        wanted = [key(ours), *[key(r) for r in rest]]
+        if [key(r) for r in current] == wanted and (current[0].get("title") or "") == product:
+            return
+        save_site_dock("erpnext", [ours, *rest])
     except Exception:
         frappe.log_error("ph_cas branding: could not place the shell first on the dock")
     finally:
@@ -262,10 +270,12 @@ def boot_session(bootinfo):
     if bootinfo.get("sysdefaults"):
         bootinfo.sysdefaults["app_name"] = product
     for app in bootinfo.get("app_data") or []:
-        if app.get("app_name") in ("erpnext", "frappe"):
+        if app.get("app_name") in ("erpnext", "frappe", "ph_cas"):
             app["app_logo_url"] = ASSETS["logo"]
-            if app.get("app_name") == "erpnext":
+            if app.get("app_name") in ("erpnext", "ph_cas"):
                 app["app_title"] = product
+            elif app.get("app_name") == "frappe":
+                app["app_title"] = "System tools"
     bootinfo.ph_cas_branding = {
         "product": product,
         "provider": provider_name(),
