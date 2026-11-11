@@ -76,6 +76,7 @@ class PHTaxReturn(Document):
             date_filed=self.filed_on.strftime("%Y/%m/%d") if self.docstatus == 1 and self.filed_on else manila_date(),
             final=self.docstatus == 1,
             return_name=self.name or "",
+            extra={"amends": self.amends},
         )
 
     def validate(self):
@@ -99,6 +100,8 @@ class PHTaxReturn(Document):
         out = engine.refresh(data, self._ctx())
         self.set("lines", [])
         for ln in out["lines"]:
+            if str(ln["item"]).startswith("_"):
+                continue
             self.append("lines", {"item": ln["item"], "label": ln["label"], "amount": float(ln["amount"]), "source": ln.get("kind", "derived"), "reason": ln.get("source") or ""})
         self.needs = json.dumps(out["needs"])
         self.warnings = "\n".join(out["warnings"])
@@ -312,6 +315,7 @@ class PHTaxReturn(Document):
         if self.amended_by:
             frappe.throw(_("{0} already amends this return.").format(self.amended_by))
         doc = frappe.copy_doc(self)
+        doc.docstatus = 0
         doc.amends = self.name
         doc.is_amended = 1
         doc.status = "Draft"

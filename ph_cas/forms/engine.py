@@ -46,6 +46,7 @@ TAXPAYER_FIELDS = (
     "ph_email",
     "ph_line_of_business",
     "ph_psic",
+    "ph_pt_atc",
     "ph_fiscal_year_start",
 )
 

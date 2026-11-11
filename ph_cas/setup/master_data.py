@@ -47,7 +47,8 @@ def company_fields():
         {"fieldname": "ph_email", "fieldtype": "Data", "label": "Email address (as registered)", "options": "Email", "insert_after": "ph_contact_number"},
         {"fieldname": "ph_line_of_business", "fieldtype": "Data", "label": "Line of business", "insert_after": "ph_email"},
         {"fieldname": "ph_psic", "fieldtype": "Data", "label": "PSIC code", "length": 5, "insert_after": "ph_line_of_business"},
-        {"fieldname": "ph_fiscal_year_start", "fieldtype": "Date", "label": "Fiscal year start (blank = calendar year)", "insert_after": "ph_psic", "description": "The first day of the fiscal year, for the 2550Q, 1702Q and 1702-RT. Withholding returns and the 2551Q follow the calendar."},
+        {"fieldname": "ph_pt_atc", "fieldtype": "Select", "label": "Percentage tax ATC (2551Q Schedule 1)", "options": "PT010\nPT040\nPT041\nPT060\nPT070\nPT090\nPT120\nPT130", "default": "PT010", "insert_after": "ph_psic", "depends_on": "eval:doc.ph_vat_status!='VAT'"},
+        {"fieldname": "ph_fiscal_year_start", "fieldtype": "Date", "label": "Fiscal year start (blank = calendar year)", "insert_after": "ph_pt_atc", "description": "The first day of the fiscal year, for the 2550Q, 1702Q and 1702-RT. Withholding returns and the 2551Q follow the calendar."},
     ]
 
 

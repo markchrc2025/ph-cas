@@ -53,7 +53,7 @@ FORMS: dict[str, FormSpec] = {
 }
 
 # the forms whose per-form engine has landed; the rest are registered but not yet buildable
-BUILT: set[str] = set()
+BUILT: set[str] = {"2551Q"}
 
 
 def spec(code: str) -> FormSpec:
