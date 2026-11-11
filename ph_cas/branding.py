@@ -283,6 +283,9 @@ def boot_session(bootinfo):
         "version": frappe.get_attr("ph_cas.__version__"),
         "wordmark": ASSETS["wordmark"],
         "licences": licence_text(),
+        "home": {"workspace_path": "/desk/" + frappe.scrub(WORKSPACE).replace("_", "-"), "page": "sentire-home"}
+        if frappe.db.exists("Page", "sentire-home")
+        else None,
     }
 
 

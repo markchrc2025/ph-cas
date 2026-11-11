@@ -2,6 +2,13 @@
 
 One entry per bundle, newest first. Counts are the test totals on main after the merge.
 
+## B39 Home page: dashboard landing, one data call, PH prefix dropped from labels (LDG-64) (11 Nov 2026)
+- PR: #37
+- Built: ph_cas/home/dashboard.py (get, hide_onboarding), Page sentire-home (JS, CSS in ph_cas/public/css/sentire.css), sidebar Home -> Page with the workspace as Overview, branding.js landing redirect and boot 'home', onboarding and workspace labels without the PH prefix, collapse arrow always visible
+- Tests: ph_cas/tests/test_b39_home.py (5): page and sidebar order, one-call payload, periods, onboarding checklist and dismiss, no PH prefix
+- Assumed: VAT and withholding cards are account balances from the PH Account Mapping, not computed returns; receivable and payable count positive outstanding only; the greeting uses the user's first name
+- Known limit: DocType form titles still carry the internal PH names; a label layer for them is a later bundle
+
 ## B38 No framework branding: Sentire Ledger logo, titles, footers, emails, About (LDG-62, LDG-63) (11 Nov 2026)
 - PR: #36 (number assigned at ship time)
 - Built: ph_cas/branding.py (apply on every start and migrate: Website Settings, Navbar Settings, System Settings, Email Accounts, default workspace; boot_session; website context), ph_cas/public/images (provisional original mark: logo.svg, wordmark.svg/png, favicon.ico, icons), ph_cas/public/js/branding.js (About dialog with licences), hooks (app_title, app_logo_url, app_include_js, boot_session, update_website_context, User.validate), deploy_config (Email Account named after the product, branding.apply), audit.header.platform_version for the registration pack, demo/pilot/alert mails with the product header and container

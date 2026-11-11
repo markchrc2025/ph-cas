@@ -11,6 +11,8 @@
 
 The **Sentire Ledger** workspace is the first page after sign-in. Its card "Get to know Sentire Ledger" walks through the six steps a Philippine business takes before issuing its first invoice: set up the Philippine company, confirm the tax rules, print the first BIR invoice, run the 2550Q figures, export the books, build the registration pack. Below the card are shortcuts to the daily documents and the BIR forms, and the books, tax and registration links.
 
+After sign-in you land on Home: a greeting, the six module tiles, the create actions, the "Get to know Sentire Ledger" checklist (until done or dismissed), and the "Business at a glance" cards for the period chosen at the top right (this month, last month, this quarter, this year, all time). Every card opens the list or report behind it. The sidebar collapses with the arrow at its lower edge or with Cmd+/ (Ctrl+/ on Windows).
+
 The sign-in page, the icon in the left rail, the browser tab, the help menu and every email carry the Sentire Ledger mark; the help menu's last item is a contact link to the provider. The About entry under the help menu shows the product version and the open-source licences the system is built on (B38).
 
 Tutorial videos: each step of the standard guides (Make your first sale, Order from your suppliers, and so on) can carry a Sentire Ledger video. The list of steps and their video ids is `ph_cas/setup/data/onboarding_videos.json`; a null entry keeps ERPNext's own video until ours is recorded.

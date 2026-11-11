@@ -31,6 +31,8 @@ Nothing a user sees says Frappe or ERPNext: `ph_cas/branding.py` writes the prod
 
 The desk opens on the Sentire Ledger shell: `ph_cas/ph_cas/sidebar/sentire_ledger` ships a standard Sidebar (Home, the four daily documents, Books, Tax returns, Tax rules, Registration and audit, Masters, Settings) and `branding.apply` writes the site layer of the dock so that shell is first on the rail; every user's `default_workspace` is Sentire Ledger. Text the framework ships that names itself (the "Get to know ERPNext" guide and its steps) is rewritten to the product on every start.
 
+Home page (B39): `/desk/sentire-ledger/sentire-home` is a desk Page (`ph_cas/ph_cas/page/sentire_home`) fed by one call, `ph_cas.home.dashboard.get(company, period)`: greeting, module tiles, create actions, the onboarding checklist until done or dismissed, the period's sales and purchases, cash and bank, receivable and payable, the VAT and withholding balances of the mapped accounts, drafts waiting, a 12-month chart and the next due dates from the compliance calendar. It is the first item of the Sentire Ledger sidebar; because Frappe can only land a user on a workspace, `branding.js` sends the first load of the Sentire Ledger workspace on to the page. The workspace stays as "Overview".
+
 Logo files: `ph_cas/public/images/` (`logo.svg` square mark, `wordmark.svg` and `wordmark.png` for emails, `favicon.ico`, PNG icons 32 to 512). To replace the provisional mark, overwrite those files and redeploy; no settings change is needed. Prints show the product version only; the registration pack and the sworn statement still state the full platform (`platform_version()`), because the BIR is told what the system is built on.
 
 ## Multi-site hosting (B32)

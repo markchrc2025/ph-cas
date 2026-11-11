@@ -37,6 +37,14 @@
 	$(document).on("startup", function () {
 		frappe.ui.misc.about = show_about;
 		frappe.ui.toolbar.show_about = show_about;
+		// B39: Frappe can only land on a workspace; the product lands on its home page.
+		const home = frappe.boot.ph_cas_branding && frappe.boot.ph_cas_branding.home;
+		if (home && home.workspace_path && home.page) {
+			const here = window.location.pathname.replace(/\/$/, "");
+			if (here === home.workspace_path && !window.location.search && !window.location.hash) {
+				frappe.set_route(home.page);
+			}
+		}
 	});
 
 	// the toolbar may be built before "startup"; patch now too
