@@ -26,16 +26,20 @@ class TestB37Website(IntegrationTestCase):
     def test_pages_exist_and_carry_no_dashes_or_broken_internal_links(self):
         pages = ["index.html", "pricing.html", "demo.html", "terms.html", "privacy.html", "dpa.html"]
         for n in pages:
-            p = os.path.join(ROOT, "website", n)
+            p = os.path.join(ROOT, "website", "ledger", n)
             self.assertTrue(os.path.exists(p), n)
             html = open(p, encoding="utf-8").read()
             self.assertNotIn("—", html, n)
             self.assertNotIn("–", html, n)
-            self.assertIn('href="/assets/site.css"', html)
+            self.assertIn('href="/ledger/assets/site.css"', html)
+            self.assertNotIn('href="/assets/', html, n)
             for other in pages:
-                if f'href="/{other}"' in html:
-                    self.assertTrue(os.path.exists(os.path.join(ROOT, "website", other)))
-        pricing = open(os.path.join(ROOT, "website", "pricing.html"), encoding="utf-8").read()
+                if f'href="/ledger/{other}"' in html:
+                    self.assertTrue(os.path.exists(os.path.join(ROOT, "website", "ledger", other)))
+        front = open(os.path.join(ROOT, "website", "index.html"), encoding="utf-8").read()
+        self.assertIn('href="/ledger/"', front)
+        self.assertNotIn("—", front)
+        pricing = open(os.path.join(ROOT, "website", "ledger", "pricing.html"), encoding="utf-8").read()
         for s in ("Ledger Solo", "Ledger Team", "Ledger Business", "Ledger Enterprise", "1,490", "3,990", "9,990", "24,990"):
             self.assertIn(s, pricing)
         self.assertTrue(os.path.exists(os.path.join(ROOT, "website", "Dockerfile")))
