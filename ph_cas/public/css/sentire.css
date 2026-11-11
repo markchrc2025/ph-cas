@@ -113,3 +113,74 @@
 		width: 100% !important;
 	}
 }
+
+/* Dock peek: the pinned column of shell icons names its tiles on hover. The names fly out to
+   the right of the tiles over the page, so the page does not reflow; the tile's hover fill
+   stretches across its name. */
+@media (min-width: 768px) {
+	body.dock-pinned .dock.sl-dock-peek {
+		overflow: visible;
+		z-index: 1025;
+	}
+	body.dock-pinned .dock.sl-dock-peek::before {
+		content: "";
+		position: absolute;
+		top: 0;
+		bottom: 0;
+		left: 100%;
+		width: 168px;
+		background: var(--surface-base, #fff);
+		border-right: 1px solid var(--outline-gray-1, #e3e8ee);
+		box-shadow: 8px 0 24px rgba(0, 0, 0, 0.1);
+		z-index: 0;
+	}
+	body.dock-pinned .dock.sl-dock-peek .dock-items,
+	body.dock-pinned .dock.sl-dock-peek .dock-utilities,
+	body.dock-pinned .dock.sl-dock-peek .dock-user,
+	body.dock-pinned .dock.sl-dock-peek .dock-logo {
+		overflow: visible;
+		position: relative;
+		z-index: 1;
+	}
+	body.dock-pinned .dock.sl-dock-peek .dock-items,
+	body.dock-pinned .dock.sl-dock-peek .dock-utilities,
+	body.dock-pinned .dock.sl-dock-peek .dock-user {
+		align-items: flex-start;
+		overflow-y: visible;
+	}
+	body.dock-pinned .dock.sl-dock-peek .dock-items {
+		width: 100%;
+		margin-inline: 0;
+	}
+	body.dock-pinned .dock.sl-dock-peek .dock-item {
+		width: calc(var(--dock-tile) + 168px);
+		margin-left: calc((var(--dock-width) - var(--dock-tile)) / 2);
+		justify-content: flex-start;
+		gap: 10px;
+	}
+	body.dock-pinned .dock.sl-dock-peek .dock-item > :first-child {
+		flex: 0 0 var(--dock-tile);
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+	}
+	body.dock-pinned .dock.sl-dock-peek .dock-item .dock-item-label {
+		display: inline;
+		white-space: nowrap;
+		font-size: 0.9rem;
+		font-weight: 500;
+		color: var(--text-color, #1f272e);
+	}
+	body.dock-pinned .dock.sl-dock-peek .dock-logo .shell-header {
+		width: calc(var(--dock-tile) + 168px);
+	}
+	body.dock-pinned .dock.sl-dock-peek .dock-logo .title-container {
+		display: block;
+		white-space: nowrap;
+	}
+}
+
+/* No adverts in the menus. */
+.body-sidebar .promotional-banners { display: none !important; }
+body:has(.dock.sl-dock-peek) .es-tooltip--plain,
+body:has(.dock.sl-dock-peek) .es-tooltip { display: none !important; }

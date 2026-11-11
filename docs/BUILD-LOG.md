@@ -3,10 +3,11 @@
 One entry per bundle, newest first. Counts are the test totals on main after the merge.
 
 ## B39 Home page: dashboard landing, one data call, PH prefix dropped from labels (LDG-64) (11 Nov 2026)
-- PR: #37
+- PR: #39, #40
 - Built: ph_cas/home/dashboard.py (get, hide_onboarding), Page sentire-home (JS, CSS in ph_cas/public/css/sentire.css), sidebar Home -> Page with the workspace as Overview, branding.js landing redirect and boot 'home', onboarding and workspace labels without the PH prefix, collapse arrow always visible
 - Tests: ph_cas/tests/test_b39_home.py (5): page and sidebar order, one-call payload, periods, onboarding checklist and dismiss, no PH prefix
 - Assumed: VAT and withholding cards are account balances from the PH Account Mapping, not computed returns; receivable and payable count positive outstanding only; the greeting uses the user's first name
+- Dock and sidebar (after frappe-ui's Sidebar, studied on request; PR #40): the dock, the pinned column of shell icons, names its tiles on hover: the labels fly out beside the tiles over the page (`.sl-dock-peek`, no reflow), tooltips hidden meanwhile, our tile titled with the product. The module sidebar collapses to the desk's icon rail (Cmd+/ or the edge arrow) and opens on hover (`.sl-peek`). The Floating dock mode was tried in #39 and reverted (it hides the column); users switched by that build are put back to Pinned once. The "Switch to Helpdesk" advert in the Support menu is hidden.
 - Known limit: DocType form titles still carry the internal PH names; a label layer for them is a later bundle
 
 ## B38 No framework branding: Sentire Ledger logo, titles, footers, emails, About (LDG-62, LDG-63) (11 Nov 2026)

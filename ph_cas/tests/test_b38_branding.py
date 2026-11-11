@@ -63,6 +63,9 @@ class TestB38Branding(IntegrationTestCase):
         for app in bootinfo.app_data:
             self.assertEqual(app["app_logo_url"], branding.ASSETS["logo"])
         self.assertEqual(bootinfo.ph_cas_branding["product"], "Sentire Ledger")
+        rail = frappe._dict(dock={"erpnext": [{"link_type": "Sidebar", "link_to": branding.SIDEBAR, "title": "PH CAS"}]}, app_data=[])
+        branding.boot_session(rail)
+        self.assertEqual(rail.dock["erpnext"][0]["title"], "Sentire Ledger")
         self.assertIn("GPL", bootinfo.ph_cas_branding["licences"])
 
     def test_emails_carry_the_product_and_no_framework_footer(self):
