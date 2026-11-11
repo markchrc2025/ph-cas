@@ -192,5 +192,7 @@
 
 /* No adverts in the menus. */
 .body-sidebar .promotional-banners { display: none !important; }
+/* while the dock's names are out, the collapse-arrow tab (another stacking layer) hides */
+body:has(.dock:is(:hover, .sl-dock-peek)) .sidebar-collapse-arrow { opacity: 0 !important; pointer-events: none !important; }
 body:has(.dock:is(:hover, .sl-dock-peek)) .es-tooltip--plain,
 body:has(.dock:is(:hover, .sl-dock-peek)) .es-tooltip { display: none !important; }
