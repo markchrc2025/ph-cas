@@ -2,6 +2,13 @@
 
 One entry per bundle, newest first. Counts are the test totals on main after the merge.
 
+## B37 Website restructure for sentire.solutions (LDG-43) (11 Nov 2026)
+- PR: #41
+- Built: website/index.html is the Sentire Solutions front page (product family); the Ledger site moved to website/ledger/ with links rewritten; served at sentire.solutions/ledger/
+- Tests: test_b37_website adjusted to the ledger/ layout
+- Assumed: sentire.solutions had no site behind it (old Hetzner A record, dead Sliplane www CNAME); it now points at the Dokploy server
+- Known limit: AAAA and www records are the owner's to fix in GoDaddy
+
 ## B39 Home page: dashboard landing, one data call, PH prefix dropped from labels (LDG-64) (11 Nov 2026)
 - PR: #39, #40
 - Built: ph_cas/home/dashboard.py (get, hide_onboarding), Page sentire-home (JS, CSS in ph_cas/public/css/sentire.css), sidebar Home -> Page with the workspace as Overview, branding.js landing redirect and boot 'home', onboarding and workspace labels without the PH prefix, collapse arrow always visible
