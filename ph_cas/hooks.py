@@ -18,6 +18,7 @@ app_logo_url = "/assets/ph_cas/images/logo.svg"
 app_include_js = ["/assets/ph_cas/js/branding.js"]
 app_include_css = ["/assets/ph_cas/css/sentire.css"]
 boot_session = "ph_cas.branding.boot_session"
+extend_bootinfo = "ph_cas.branding.extend_bootinfo"
 update_website_context = "ph_cas.branding.website_context"
 website_context = {
     "favicon": "/assets/ph_cas/images/favicon.ico",
