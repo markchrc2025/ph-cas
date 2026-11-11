@@ -142,6 +142,27 @@ class TestB38Branding(IntegrationTestCase):
         finally:
             frappe.delete_doc("User", email, force=True, ignore_permissions=True)
 
+    def test_shell_is_first_on_the_rail_and_the_desk_opens_on_it(self):
+        from frappe.boot import get_bootinfo
+        from frappe.desk.doctype.dock.dock import get_site_dock_layer
+
+        self.assertTrue(frappe.db.exists("Sidebar", branding.SIDEBAR))
+        rail = get_site_dock_layer("erpnext")
+        self.assertEqual((rail[0]["link_type"], rail[0]["link_to"]), ("Sidebar", branding.SIDEBAR))
+        self.assertEqual(frappe.db.get_value("User", "Administrator", "default_workspace"), branding.WORKSPACE)
+        boot = get_bootinfo()
+        self.assertEqual(boot.home_shell, branding.SIDEBAR)
+        erp = [a for a in boot.app_data if a.get("app_name") == "erpnext"]
+        self.assertEqual(erp[0]["app_title"] if erp else "Sentire Ledger", "Sentire Ledger")
+
+    def test_framework_onboarding_text_says_the_product(self):
+        for name, title in frappe.get_all("Module Onboarding", fields=["name", "title"], as_list=True):
+            for s in FRAMEWORK:
+                self.assertNotIn(s, title or "", name)
+        for name, title in frappe.get_all("Onboarding Step", fields=["name", "title"], as_list=True):
+            for s in FRAMEWORK:
+                self.assertNotIn(s, title or "", name)
+
     def test_no_framework_names_in_user_facing_templates_and_website(self):
         offenders = []
         for base in ("ph_cas/www", "ph_cas/templates", "website", "ph_cas/public/js"):
