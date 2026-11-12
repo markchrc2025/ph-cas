@@ -38,6 +38,7 @@ def company_fields():
         {"fieldname": "ph_middle_name", "fieldtype": "Data", "label": "Middle name", "insert_after": "ph_first_name", "depends_on": "eval:doc.ph_taxpayer_type=='Individual'"},
         {"fieldname": "ph_birthdate", "fieldtype": "Date", "label": "Date of birth", "insert_after": "ph_middle_name", "depends_on": "eval:doc.ph_taxpayer_type=='Individual'"},
         {"fieldname": "ph_civil_status", "fieldtype": "Select", "label": "Civil status", "options": "\nSingle\nMarried\nLegally Separated\nWidow/er", "insert_after": "ph_birthdate", "depends_on": "eval:doc.ph_taxpayer_type=='Individual'"},
+        {"fieldname": "ph_individual_type", "fieldtype": "Select", "label": "Individual taxpayer type (1701 forms)", "options": "\nSingle Proprietorship\nProfessional", "insert_after": "ph_civil_status", "depends_on": "eval:doc.ph_taxpayer_type=='Individual'"},
         {"fieldname": "ph_citizenship", "fieldtype": "Data", "label": "Citizenship", "default": "Filipino", "insert_after": "ph_civil_status", "depends_on": "eval:doc.ph_taxpayer_type=='Individual'"},
         {"fieldname": "ph_incorporation_date", "fieldtype": "Date", "label": "Date of incorporation or organization", "insert_after": "ph_citizenship", "depends_on": "eval:doc.ph_taxpayer_type!='Individual'"},
         {"fieldname": "ph_taxpayer_col", "fieldtype": "Column Break", "insert_after": "ph_incorporation_date"},

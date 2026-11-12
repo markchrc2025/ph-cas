@@ -238,12 +238,21 @@ class PHTaxReturn(Document):
         except ExportRefusal as e:
             frappe.throw(str(e))
 
+    def _export_text(self, rows: list) -> str:
+        """The eBIRForms file in the form's own layout: the engine's writer when it has one
+        (the income-tax returns), else the tabbed 2551Q layout or the lined one."""
+        s = self._spec()
+        writer = getattr(engine.module(s), "write_export", None)
+        if writer:
+            return writer(rows)
+        return write_tabbed(rows) if s.key == "2551Q" else write_lined(rows)
+
     def _write_export(self, final: bool = False) -> str:
         s = self._spec()
         rows, file_name = self._rows()
         if final:
             rows = [(k, "1" if k == "txtFinalFlag" else v) for k, v in rows]
-        text = write_tabbed(rows) if s.key == "2551Q" else write_lined(rows)
+        text = self._export_text(rows)
         f = self._attach(file_name, text.encode("utf-8"), "export_file")
         self.export_file, self.export_file_name = f.file_url, file_name
         return f.file_url
@@ -271,8 +280,7 @@ class PHTaxReturn(Document):
                 content = frappe.get_doc("File", {"file_url": self.export_file}).get_content()
                 return parse_ebir_export(content.decode("utf-8") if isinstance(content, bytes) else content)
             rows, _n = self._rows()
-            text = write_tabbed(rows) if s.key == "2551Q" else write_lined(rows)
-            return parse_ebir_export(text)
+            return parse_ebir_export(self._export_text(rows))
         rows, _n = self._rows()
         return rows
 

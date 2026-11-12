@@ -92,15 +92,15 @@ class TestF0TaxReturn(IntegrationTestCase):
     def setUp(self):
         frappe.set_user("Administrator")
         self.company = frappe.get_all("Company", pluck="name", limit=1)[0]
-        for n in frappe.get_all("PH Tax Return", {"company": self.company, "form": "1702Q", "period_key": "2026-Q1", "docstatus": 0}, pluck="name"):
+        for n in frappe.get_all("PH Tax Return", {"company": self.company, "form": "1601-C", "period_key": "2026-01", "docstatus": 0}, pluck="name"):
             frappe.delete_doc("PH Tax Return", n, force=True, ignore_permissions=True)
 
     def test_a_return_knows_its_period_and_its_needs_and_refuses_to_file_unbuilt(self):
-        doc = frappe.get_doc({"doctype": "PH Tax Return", "company": self.company, "form": "1702Q", "period_key": "2026-q1"})
+        doc = frappe.get_doc({"doctype": "PH Tax Return", "company": self.company, "form": "1601-C", "period_key": "2026-01"})
         doc.insert()
-        self.assertEqual(doc.period_key, "2026-Q1")
+        self.assertEqual(doc.period_key, "2026-01")
         self.assertEqual(str(doc.period_start), "2026-01-01")
-        self.assertEqual(str(doc.period_end), "2026-03-31")
+        self.assertEqual(str(doc.period_end), "2026-01-31")
         self.assertEqual(doc.form_version, "2018-01")
         needs = json.loads(doc.needs)
         self.assertTrue(any(n["key"] == "engine" for n in needs))

@@ -38,6 +38,7 @@ TAXPAYER_FIELDS = (
     "ph_middle_name",
     "ph_birthdate",
     "ph_civil_status",
+    "ph_individual_type",
     "ph_citizenship",
     "ph_incorporation_date",
     "ph_registered_address",
