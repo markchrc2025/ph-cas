@@ -100,3 +100,31 @@ def generate_quarter(company: str, quarter_start: str) -> list:
         doc = frappe.get_doc({"doctype": "PH 2307 Issued", "company": company, "supplier": s, "period_from": qs, "period_to": qe}).insert()
         out.append(doc.name)
     return out
+
+
+@frappe.whitelist()
+def print_bir_form(name: str):
+    """Print one issued certificate on page 1 of the BIR 2307 blank and attach it."""
+    from datetime import datetime
+
+    from ph_cas.forms import f2307
+    from ph_cas.forms.confirmation import MANILA
+    from ph_cas.forms.engine import taxpayer_block
+    from ph_cas.forms.export import ExportRefusal
+
+    cert = frappe.get_doc("PH 2307 Issued", name)
+    cert.check_permission("read")
+    c = taxpayer_block(frappe.get_cached_doc("Company", cert.company))
+    qn = (cert.period_from.month - 1) // 3 + 1
+    draft = cert.docstatus != 1
+    try:
+        pdf = f2307.certificate_pdf(cert, c, {}, qn, cert.period_from.year, "DRAFT" if draft else None, datetime.now(MANILA) if draft else None)
+    except ExportRefusal as e:
+        frappe.throw(str(e))
+    fname = f"{name} BIR 2307{' DRAFT' if draft else ''}.pdf"
+    for old in frappe.get_all("File", {"attached_to_doctype": "PH 2307 Issued", "attached_to_name": name, "file_name": fname}, pluck="name"):
+        frappe.delete_doc("File", old, ignore_permissions=True, force=True)
+    f = frappe.get_doc({"doctype": "File", "file_name": fname, "attached_to_doctype": "PH 2307 Issued", "attached_to_name": name, "is_private": 1, "content": pdf})
+    f.flags.ignore_permissions = True
+    f.insert()
+    return f.file_url

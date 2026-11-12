@@ -130,7 +130,7 @@ class PHTaxReturn(Document):
             frappe.throw(_("The return still needs: {0}").format("; ".join(n["question"] for n in needs[:5])))
         if not (self.contact_number or "").strip():
             frappe.throw(_("A contact number is needed before a return is submitted."))
-        basis = self._confirmation_basis()
+        basis = {"filed_on": getdate(), "reference": "issued"} if s.output == "certificate" else self._confirmation_basis()
         self.filed_on = basis["filed_on"]
         self.filed_reference = basis["reference"]
         snapshot = {"snapshot_version": 1, "taken_at": now_datetime().isoformat(), "company": engine.taxpayer_block(frappe.get_cached_doc("Company", self.company)), "contact_number": self.contact_number}
@@ -168,9 +168,12 @@ class PHTaxReturn(Document):
         return conf.check_against(facts, self._spec().key, comp.get("tax_id") or "", comp.get("ph_branch_code") or "0", p.kind, p.year, p.n)
 
     def on_submit(self):
-        if self._spec().output in ("export", "print"):
-            self._render(clear=True)
-        self._publish_figures()
+        self._render(clear=True)
+        mod = engine.module(self._spec())
+        if hasattr(mod, "on_filed"):
+            mod.on_filed(self)
+        if self._spec().output != "certificate":
+            self._publish_figures()
         if self.amends:
             frappe.db.set_value("PH Tax Return", self.amends, {"status": "Amended", "amended_by": self.name})
         frappe.db.set_value("PH Tax Return", self.name, "status", "Filed")
@@ -275,17 +278,16 @@ class PHTaxReturn(Document):
 
     def _render(self, clear: bool = False) -> str:
         s = self._spec()
-        rows = self._print_rows_for_pdf()
         try:
-            if clear:
-                pdf = render_return(s.key, s.version, rows)
-                name = f"{self.name} as filed.pdf"
-                field = "clear_copy"
+            if s.output == "certificate":
+                mod = engine.module(s)
+                pdf = mod.print_all(self._data(), self._ctx(), None if clear else "DRAFT", None if clear else datetime.now(conf.MANILA))
             else:
-                pdf = render_return(s.key, s.version, rows, "DRAFT", datetime.now(conf.MANILA))
-                name = f"{self.name} DRAFT.pdf"
-                field = "preview_pdf"
-        except BirPdfError as e:
+                rows = self._print_rows_for_pdf()
+                pdf = render_return(s.key, s.version, rows) if clear else render_return(s.key, s.version, rows, "DRAFT", datetime.now(conf.MANILA))
+            name = f"{self.name} as filed.pdf" if clear else f"{self.name} DRAFT.pdf"
+            field = "clear_copy" if clear else "preview_pdf"
+        except (BirPdfError, ExportRefusal) as e:
             frappe.throw(_("The {0} could not be printed: {1}").format(self.form, str(e)))
         f = self._attach(name, pdf, field)
         if clear:
@@ -389,6 +391,15 @@ class PHTaxReturn(Document):
         self.db_set("alphalist_file", next((m for m in made if not m.endswith(")")), None))
         tie = self._slsp_tie_out()
         return {"files": made, "tie_out": tie}
+
+    @frappe.whitelist()
+    def generate_attachment(self):
+        """The form's attachment file (the QAP of a 1601-EQ, the annual alphalist of a 1604-E),
+        written by the engine as a PH Alphalist File and linked to the return."""
+        mod = engine.module(self._spec())
+        if mod is None or not hasattr(mod, "write_attachment"):
+            frappe.throw(_("The {0} has no attachment file.").format(self.form))
+        return mod.write_attachment(self)
 
     def _slsp_tie_out(self) -> list[str]:
         mod = engine.module(self._spec())

@@ -13,6 +13,11 @@ frappe.ui.form.on("PH Tax Return", {
 			}));
 			frm.add_custom_button(__("Export for eBIRForms"), () => call(frm, "export_for_ebirforms", null, (url) => window.open(url)));
 		}
+		if (["1601-EQ", "1604-E"].includes(frm.doc.form)) {
+			frm.add_custom_button(frm.doc.form === "1601-EQ" ? __("Generate QAP (.dat)") : __("Generate alphalist (.dat)"), () =>
+				call(frm, "generate_attachment", null, (name) => frappe.show_alert({ message: __("Written: {0}", [name]), indicator: "green" }))
+			);
+		}
 		if (frm.doc.form === "2550Q") {
 			frm.add_custom_button(__("Generate SLSP (.dat)"), () =>
 				call(frm, "generate_slsp", null, (r) => {
