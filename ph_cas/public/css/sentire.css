@@ -196,3 +196,8 @@
 body:has(.dock:is(:hover, .sl-dock-peek)) .sidebar-collapse-arrow { opacity: 0 !important; pointer-events: none !important; }
 body:has(.dock:is(:hover, .sl-dock-peek)) .es-tooltip--plain,
 body:has(.dock:is(:hover, .sl-dock-peek)) .es-tooltip { display: none !important; }
+
+/* approvals (M5.3) */
+.sl-approvals-card { margin-bottom: 16px; }
+.sl-approval-steps tr.sl-current td { background: var(--bg-light-yellow, #fff8e1); }
+.sl-approval-steps td { vertical-align: top; }

@@ -1,0 +1,181 @@
+{
+ "doctype": "DocType",
+ "name": "PH Approval Request",
+ "module": "PH CAS",
+ "custom": 0,
+ "engine": "InnoDB",
+ "track_changes": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "istable": 0,
+ "editable_grid": 0,
+ "field_order": [
+  "document_type",
+  "document_name",
+  "company",
+  "chain",
+  "col",
+  "status",
+  "current_step",
+  "requested_by",
+  "requested_at",
+  "decided_at",
+  "reason",
+  "sec",
+  "decisions",
+  "sec2",
+  "fingerprint",
+  "snapshot"
+ ],
+ "fields": [
+  {
+   "fieldname": "document_type",
+   "fieldtype": "Link",
+   "label": "Document type",
+   "options": "DocType",
+   "reqd": 1,
+   "read_only": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "document_name",
+   "fieldtype": "Dynamic Link",
+   "label": "Document",
+   "options": "document_type",
+   "reqd": 1,
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "read_only": 1
+  },
+  {
+   "fieldname": "chain",
+   "fieldtype": "Link",
+   "label": "Chain",
+   "options": "PH Approval Chain",
+   "read_only": 1
+  },
+  {
+   "fieldname": "col",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Pending\nApproved\nRejected\nWithdrawn\nConsumed\nVoid",
+   "default": "Pending",
+   "read_only": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "current_step",
+   "fieldtype": "Int",
+   "label": "Current step",
+   "read_only": 1
+  },
+  {
+   "fieldname": "requested_by",
+   "fieldtype": "Link",
+   "label": "Requested by",
+   "options": "User",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "requested_at",
+   "fieldtype": "Datetime",
+   "label": "Requested at",
+   "read_only": 1
+  },
+  {
+   "fieldname": "decided_at",
+   "fieldtype": "Datetime",
+   "label": "Decided at",
+   "read_only": 1
+  },
+  {
+   "fieldname": "reason",
+   "fieldtype": "Small Text",
+   "label": "Reason",
+   "read_only": 1
+  },
+  {
+   "fieldname": "sec",
+   "fieldtype": "Section Break",
+   "label": "Decisions"
+  },
+  {
+   "fieldname": "decisions",
+   "fieldtype": "Table",
+   "label": "Decisions",
+   "options": "PH Approval Decision",
+   "read_only": 1
+  },
+  {
+   "fieldname": "sec2",
+   "fieldtype": "Section Break",
+   "label": "Snapshot",
+   "collapsible": 1
+  },
+  {
+   "fieldname": "fingerprint",
+   "fieldtype": "Data",
+   "label": "Document fingerprint",
+   "read_only": 1
+  },
+  {
+   "fieldname": "snapshot",
+   "fieldtype": "JSON",
+   "label": "Chain snapshot",
+   "read_only": 1
+  }
+ ],
+ "permissions": [
+  {
+   "role": "Accounts Manager",
+   "read": 1,
+   "report": 1
+  },
+  {
+   "role": "PH Accounting Manager",
+   "read": 1,
+   "report": 1
+  },
+  {
+   "role": "System Manager",
+   "read": 1,
+   "report": 1
+  },
+  {
+   "role": "Accounts User",
+   "read": 1,
+   "report": 1
+  },
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "delete": 1,
+   "report": 1
+  }
+ ],
+ "links": [],
+ "actions": [],
+ "states": [],
+ "idx": 0,
+ "docstatus": 0,
+ "modified": "2026-11-12 00:00:00.000000",
+ "modified_by": "Administrator",
+ "owner": "Administrator",
+ "creation": "2026-11-12 00:00:00.000000",
+ "autoname": "format:APR-{YYYY}-{#####}",
+ "naming_rule": "Expression"
+}

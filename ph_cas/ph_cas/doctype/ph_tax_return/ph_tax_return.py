@@ -317,14 +317,16 @@ class PHTaxReturn(Document):
     @frappe.whitelist()
     def open_amendment(self, reason: str):
         """A manager opens an amendment of a filed return: a new draft with the same data,
-        linked back; the original stays filed and readable. Replaced by the approval chain
-        (M5.3) when it lands; the role check is the chain's one step."""
+        linked back; the original stays filed and readable. With an approval chain on PH
+        Tax Return (M5.3) the approved change request opens it; without one, the manager's
+        role is the gate."""
         if self.docstatus != 1:
             frappe.throw(_("Only a filed return is amended."))
         if not (reason or "").strip():
             frappe.throw(_("Give the reason for the amendment."))
-        if not set(frappe.get_roles()) & set(MANAGER_ROLES):
-            frappe.throw(_("Only an accounts manager may open an amendment of a filed return."))
+        approved = frappe.flags.get("ph_approval_amend") == self.name
+        if not approved and not set(frappe.get_roles()) & set(MANAGER_ROLES):
+            frappe.throw(_("Only an accounts manager may open an amendment of a filed return; ask for one with Request change."))
         if self.amended_by:
             frappe.throw(_("{0} already amends this return.").format(self.amended_by))
         doc = frappe.copy_doc(self)

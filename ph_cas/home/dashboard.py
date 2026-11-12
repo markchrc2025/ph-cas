@@ -195,6 +195,15 @@ def _greeting(now=None) -> str:
     return _("Good evening")
 
 
+def _approvals() -> list:
+    try:
+        from ph_cas.approvals.requests import pending_for
+
+        return pending_for()
+    except Exception:
+        return []
+
+
 @frappe.whitelist()
 def get(company: str | None = None, period: str = "month") -> dict:
     """Everything the home page shows, for one company and one period."""
@@ -221,6 +230,7 @@ def get(company: str | None = None, period: str = "month") -> dict:
         "monthly": [],
         "due": [],
         "onboarding": _onboarding(),
+        "approvals": _approvals(),
     }
     if not company:
         return out

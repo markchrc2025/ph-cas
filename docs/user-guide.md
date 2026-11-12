@@ -17,6 +17,14 @@ The sign-in page, the icon in the left rail, the browser tab, the help menu and 
 
 Tutorial videos: each step of the standard guides (Make your first sale, Order from your suppliers, and so on) can carry a Sentire Ledger video. The list of steps and their video ids is `ph_cas/setup/data/onboarding_videos.json`; a null entry keeps ERPNext's own video until ours is recorded.
 
+## Approval chains (B45)
+
+Settings > Approval Chains. Nothing is on by default: switch the module on in Settings (Modules > Approval chains) and enable a chain per document type (Sales Invoice, Purchase Order, Journal Entry, any posted document), for one company or all. A chain is any number of steps; each step names its recipients (a role, a named user, a group, or a field of the document such as the cost center's owner, looked up in Approval Lookup), its receiving order (sequential, any one, or everyone), whether it approves or is only notified, whether the requestor may decide it, an optional condition that skips the step (two steps with opposite conditions branch by amount), and a private note the recipients see. Templates ("Manager approves above an amount", "Supervisor, then manager by amount band", "Everyone in a group") give a disabled chain to finish.
+
+- On a document a chain applies to, Submit is replaced by **Request approval**. The recipients of the first step get an e-mail and the request on their home page under Awaiting your approval; they open the document and Approve or Reject (a rejection needs a reason and returns the document to the maker, who edits and requests again). The last approval posts the document: the posting event, the BIR series number, the event log with every approver.
+- A change to the document after the request voids the request. The maker may withdraw a pending request. A site with one user, or a form with no chain, posts as before.
+- A filed BIR return changes only through the chain on PH Tax Return (one step, Accounts Manager, by default): **Request change** with a reason; the approval opens the amendment. Without a chain, an accounts manager opens it directly.
+
 ## BIR Returns (B40)
 
 Tax returns > BIR Returns is where a return is made, previewed, exported, filed and kept. One record per company, form and period (period keys: `2026-03` for a month, `2026-Q1` for a quarter, `2026` for a year; a fiscal-year company's quarters count from its fiscal year start on the Company record).
