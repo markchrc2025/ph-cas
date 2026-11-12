@@ -33,6 +33,8 @@
   "warnings",
   "sec_lines",
   "lines",
+  "sec_inputs",
+  "inputs_html",
   "sec_data",
   "data",
   "books_as_of",
@@ -191,6 +193,16 @@
    "label": "Items",
    "options": "PH Tax Return Line",
    "read_only": 1
+  },
+  {
+   "fieldname": "sec_inputs",
+   "fieldtype": "Section Break",
+   "label": "Figures to type"
+  },
+  {
+   "fieldname": "inputs_html",
+   "fieldtype": "HTML",
+   "label": "Inputs"
   },
   {
    "fieldname": "sec_data",
@@ -377,7 +389,7 @@
  "title_field": "period_label",
  "show_title_field_in_link": 0,
  "creation": "2026-11-12 02:00:00.000000",
- "modified": "2026-11-12 02:00:00.000000",
+ "modified": "2026-11-12 10:30:00.000000",
  "modified_by": "Administrator",
  "owner": "Administrator",
  "idx": 0,

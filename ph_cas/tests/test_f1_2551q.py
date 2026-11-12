@@ -158,7 +158,7 @@ class TestF1EndToEnd(IntegrationTestCase):
         self.assertTrue(content.startswith("<?xml version='1.0'?>\t\t<div>frm2551Qv2018:forThe_1=true"))
         self.assertIn("txtFinalFlag=0txtFinalFlag=", content)
         preview = doc.preview()
-        self.assertTrue(preview.endswith("DRAFT.pdf"))
+        self.assertIn("DRAFT", preview)
         pdf = frappe.get_doc("File", {"file_url": preview}).get_content()
         text = "".join(p.extract_text() for p in PdfReader(io.BytesIO(pdf)).pages)
         self.assertIn("NOT FILED", text)

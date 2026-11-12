@@ -25,6 +25,40 @@ NS = "frm2551Qv2018:"
 # The eBIRForms Schedule 1 dropdown, 1-based, in the package's order; 0 is an empty line.
 ATC_INDEX = {"PT010": 1, "PT040": 2, "PT041": 3, "PT060": 4, "PT070": 5, "PT090": 6, "PT120": 7, "PT130": 8}
 SCHEDULE_1_ROWS = 6
+INPUTS = [
+    ("i16", "16 Tax paid in return previously filed (amended)", "money"),
+    ("i17", "17 Other tax credit or payment", "money"),
+    ("i17label", "17 specify", "text"),
+    ("i20", "20 Surcharge", "money"),
+    ("i21", "21 Interest", "money"),
+    ("i22", "22 Compromise", "money"),
+    ("over", "Overpayment: refund or TCC", "select:refund,tcc"),
+    ("taxRelief", "Availing of tax relief (Item 12)", "select:no,yes"),
+    ("taxReliefSpec", "Relief: specify (Item 12A)", "text"),
+    ("itRate", "Item 13 income tax rate (individuals, Q1)", "select:graduated,eight"),
+    ("sheets", "Number of sheets attached", "text"),
+    ("taxAgentNo", "Tax agent accreditation number", "text"),
+    ("taxAgentIssue", "Tax agent date of issue (MM/DD/YYYY)", "text"),
+    ("taxAgentExpiry", "Tax agent expiry date (MM/DD/YYYY)", "text"),
+    ("pay25bank", "25 Cash/bank debit memo: bank", "text"),
+    ("pay25num", "25 number", "text"),
+    ("pay25date", "25 date (MM/DD/YYYY)", "text"),
+    ("pay25amt", "25 amount", "money"),
+    ("pay26bank", "26 Check: bank", "text"),
+    ("pay26num", "26 number", "text"),
+    ("pay26date", "26 date", "text"),
+    ("pay26amt", "26 amount", "money"),
+    ("pay27bank", "27 Tax debit memo: agency", "text"),
+    ("pay27num", "27 number", "text"),
+    ("pay27date", "27 date", "text"),
+    ("pay27amt", "27 amount", "money"),
+    ("pay28particular", "28 Others: particulars", "text"),
+    ("pay28bank", "28 agency", "text"),
+    ("pay28num", "28 number", "text"),
+    ("pay28date", "28 date", "text"),
+    ("pay28amt", "28 amount", "money"),
+]
+SCHEDULES = {"rows": ("Schedule 1: percentage tax by ATC (6 rows on the paper)", ["ATC", "Taxable amount", "Rate %"], ["atc", "taxable", "rate"])}
 CREATE_WINDOW = ("2020-07-01", "2023-06-30")
 
 

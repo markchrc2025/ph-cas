@@ -3,6 +3,7 @@ frappe.ui.form.on("PH Tax Return", {
 	refresh(frm) {
 		render_needs(frm);
 		colour_lines(frm);
+		render_inputs(frm);
 		frm.page.clear_actions_menu && frm.page.clear_inner_toolbar();
 		if (frm.is_new()) return;
 		const filed = frm.doc.docstatus === 1;
@@ -11,6 +12,14 @@ frappe.ui.form.on("PH Tax Return", {
 				frappe.show_alert({ message: __("{0} figures taken from the books", [r.figures]), indicator: "green" });
 			}));
 			frm.add_custom_button(__("Export for eBIRForms"), () => call(frm, "export_for_ebirforms", null, (url) => window.open(url)));
+		}
+		if (frm.doc.form === "2550Q") {
+			frm.add_custom_button(__("Generate SLSP (.dat)"), () =>
+				call(frm, "generate_slsp", null, (r) => {
+					const tie = (r.tie_out || []).length ? r.tie_out.join("<br>") : __("Totals tie out with the return.");
+					frappe.msgprint({ title: __("SLSP"), message: (r.files || []).join("<br>") + "<hr>" + tie, indicator: (r.tie_out || []).length ? "orange" : "green" });
+				})
+			);
 		}
 		frm.add_custom_button(filed ? __("Clear copy (as filed)") : __("Preview (DRAFT)"), () =>
 			call(frm, "preview", null, (url) => url && window.open(url))
@@ -104,5 +113,87 @@ function attach_confirmation(frm) {
 				frm.reload_doc();
 			});
 		},
+	});
+}
+
+
+// The inputs editor: the form's typed figures and schedules as fields, written into
+// the draft's data on change (one call, server recomputes). Books figures show
+// read-only with their value; typing over one keeps the typed value and flags it.
+function render_inputs(frm) {
+	const $w = frm.fields_dict.inputs_html && frm.fields_dict.inputs_html.$wrapper;
+	if (!$w || frm.is_new()) return;
+	frm.call({ doc: frm.doc, method: "form_spec" }).then((r) => {
+		const spec = r.message || {};
+		if (!spec.built) {
+			$w.html(`<div class="text-muted">${__("This form's engine is not built yet.")}</div>`);
+			return;
+		}
+		const e = frappe.utils.escape_html;
+		const data = spec.data || {};
+		const filed = frm.doc.docstatus === 1;
+		const dis = filed ? "disabled" : "";
+		const control = (key, type, val) => {
+			if (type.startsWith("select:")) {
+				const opts = type.slice(7).split(",").map((o) => `<option value="${e(o)}" ${val === o ? "selected" : ""}>${e(o)}</option>`).join("");
+				return `<select class="form-control input-sm sl-in" data-key="${e(key)}" ${dis}><option value=""></option>${opts}</select>`;
+			}
+			const cls = type === "money" ? "text-right" : "";
+			return `<input class="form-control input-sm sl-in ${cls}" data-key="${e(key)}" value="${e(val == null ? "" : String(val))}" ${dis}>`;
+		};
+		let html = `<table class="table table-bordered table-sm sl-inputs"><thead><tr><th style="width:55%">${__("Item")}</th><th>${__("Value")}</th><th style="width:80px"></th></tr></thead><tbody>`;
+		Object.keys(spec.books || {}).forEach((k) => {
+			if (Array.isArray(spec.books[k])) return;
+			const typed = data[k] !== spec.books[k];
+			const label = (spec.labels || {})[k] || k;
+			html += `<tr><td>${e(label)} <span class="text-muted small">${__("from the books")}: ${e(spec.books[k])}</span></td><td>${control(k, "money", data[k])}</td><td><span class="indicator-pill ${typed ? "orange" : "blue"}">${typed ? __("typed") : __("books")}</span></td></tr>`;
+		});
+		(spec.inputs || []).forEach(([key, label, type]) => {
+			if (spec.books && key in spec.books) return;
+			html += `<tr><td>${e(label)}</td><td>${control(key, type, data[key])}</td><td><span class="indicator-pill orange">${__("typed")}</span></td></tr>`;
+		});
+		html += `</tbody></table>`;
+		Object.keys(spec.schedules || {}).forEach((sk) => {
+			const sch = spec.schedules[sk];
+			const rows = Array.isArray(data[sk]) ? data[sk] : [];
+			html += `<div class="sl-sched" data-sched="${e(sk)}"><b>${e(sch.label)}</b> <span class="indicator-pill ${Array.isArray((spec.books || {})[sk]) ? "blue" : "orange"}">${Array.isArray((spec.books || {})[sk]) ? __("books") : __("typed")}</span>
+				<table class="table table-bordered table-sm"><thead><tr><th>#</th>${sch.columns.map((c) => `<th>${e(c)}</th>`).join("")}<th></th></tr></thead><tbody>`;
+			rows.forEach((row, i) => {
+				html += `<tr data-row="${i}"><td>${i + 1}</td>${sch.columns.map((c, ci) => `<td><input class="form-control input-sm sl-cell" data-col="${e(sch.keys[ci])}" value="${e(row[sch.keys[ci]] == null ? "" : String(row[sch.keys[ci]]))}" ${dis}></td>`).join("")}<td>${filed ? "" : `<a class="sl-del" href="#">${__("remove")}</a>`}</td></tr>`;
+			});
+			html += `</tbody></table>${filed ? "" : `<a class="sl-add" href="#">${__("Add row")}</a>`}</div>`;
+		});
+		$w.html(html);
+		if (filed) return;
+		const write = (values) => call(frm, "set_inputs", { values: JSON.stringify(values) });
+		$w.find(".sl-in").on("change", function () {
+			write({ [$(this).data("key")]: $(this).val() });
+		});
+		const sched_values = ($s) => {
+			const rows = [];
+			$s.find("tbody tr").each(function () {
+				const row = {};
+				$(this).find(".sl-cell").each(function () {
+					row[$(this).data("col")] = $(this).val();
+				});
+				rows.push(row);
+			});
+			return rows;
+		};
+		$w.find(".sl-cell").on("change", function () {
+			const $s = $(this).closest(".sl-sched");
+			write({ [$s.data("sched")]: sched_values($s) });
+		});
+		$w.find(".sl-add").on("click", function (ev) {
+			ev.preventDefault();
+			const $s = $(this).closest(".sl-sched");
+			write({ [$s.data("sched")]: sched_values($s).concat([{}]) });
+		});
+		$w.find(".sl-del").on("click", function (ev) {
+			ev.preventDefault();
+			const $s = $(this).closest(".sl-sched");
+			const i = $(this).closest("tr").data("row");
+			write({ [$s.data("sched")]: sched_values($s).filter((_, k) => k !== i) });
+		});
 	});
 }

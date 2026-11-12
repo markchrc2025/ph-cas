@@ -104,7 +104,10 @@ class PHTaxReturn(Document):
                 continue
             self.append("lines", {"item": ln["item"], "label": ln["label"], "amount": float(ln["amount"]), "source": ln.get("kind", "derived"), "reason": ln.get("source") or ""})
         self.needs = json.dumps(out["needs"])
-        self.warnings = "\n".join(out["warnings"])
+        warnings = list(out["warnings"])
+        if self.form == "2550Q" and self.alphalist_file and not self.is_new():
+            warnings += self._slsp_tie_out()
+        self.warnings = "\n".join(warnings)
         self.data = json.dumps(data, default=str)
 
     def _needs(self) -> list:
@@ -328,6 +331,70 @@ class PHTaxReturn(Document):
 
         record("tax_return.amendment_opened", "PH Tax Return", self.name, 1, {"amendment": doc.name, "reason": reason.strip()})
         return doc.name
+
+
+    @frappe.whitelist()
+    def form_spec(self):
+        """What the inputs editor shows: the form's typed inputs and schedules (from the
+        engine's INPUTS and SCHEDULES), the books keys with their values, and the data."""
+        mod = engine.module(self._spec())
+        data = self._data()
+        src = data.get("_source") or {}
+        books = src.get("books") or {}
+        labels = {ln["key"]: ln["label"] for ln in (src.get("lines") or []) if ln.get("key")}
+        for key, label in (getattr(mod, "LABELS", []) or []):
+            labels.setdefault(key, f"{key[1:].upper()} {label}")
+        return {
+            "built": mod is not None,
+            "labels": labels,
+            "inputs": list(getattr(mod, "INPUTS", []) or []),
+            "schedules": {k: {"label": v[0], "columns": v[1], "keys": v[2] if len(v) > 2 else [f"c{i}" for i in range(len(v[1]))]} for k, v in (getattr(mod, "SCHEDULES", {}) or {}).items()},
+            "books": books,
+            "data": data,
+            "money": self._spec().money,
+        }
+
+    @frappe.whitelist()
+    def set_inputs(self, values):
+        """Write typed values (a dict of key: value) into the draft's data and recompute."""
+        if self.docstatus != 0:
+            frappe.throw(_(SEALED))
+        values = json.loads(values) if isinstance(values, str) else (values or {})
+        data = self._data()
+        for k, v in values.items():
+            if k.startswith("_"):
+                continue
+            if v in (None, ""):
+                data.pop(k, None)
+            else:
+                data[k] = v
+        self.data = json.dumps(data, default=str)
+        self.save()
+        return {"status": self.status, "needs": self._needs(), "warnings": self.warnings}
+
+    @frappe.whitelist()
+    def generate_slsp(self):
+        """2550Q only: write the quarter's RELIEF sales, purchases and importations files
+        (PH Alphalist File records) and tie their totals out against the return."""
+        if self.form != "2550Q":
+            frappe.throw(_("The SLSP goes with the 2550Q."))
+        from ph_cas.dat.relief import generate
+
+        made = []
+        for kind in ("S", "P", "I"):
+            try:
+                made.append(generate(self.company, kind, self.period_start, self.period_end))
+            except Exception as e:
+                made.append(f"{kind}: not written ({e})")
+        self.db_set("alphalist_file", next((m for m in made if not m.endswith(")")), None))
+        tie = self._slsp_tie_out()
+        return {"files": made, "tie_out": tie}
+
+    def _slsp_tie_out(self) -> list[str]:
+        mod = engine.module(self._spec())
+        if mod is None or not hasattr(mod, "slsp_tie_out"):
+            return []
+        return mod.slsp_tie_out(self._data(), self._ctx())
 
 
 def take_preview_slot(user: str, now: float | None = None) -> bool:
