@@ -17,8 +17,12 @@ class TestB29Relief(IntegrationTestCase):
         frappe.set_user("Administrator")
         setup_philippine_company(TEST_COMPANY)
         _set_regime("VAT")
-        frappe.db.set_value("Company", TEST_COMPANY, {"tax_id": "123-456-789", "ph_branch_code": "00000", "ph_rdo": "045", "ph_registered_name": "SAMPLE TAXPAYER CORP", "ph_business_style": "SAMPLE TRADING"}, update_modified=False)
+        frappe.db.set_value("Company", TEST_COMPANY, {"tax_id": "123-456-789", "ph_branch_code": "00000", "ph_rdo": "045", "ph_registered_name": "SAMPLE TAXPAYER CORP", "ph_business_style": "SAMPLE TRADING", "ph_registered_address": "1 Ayala Ave, Brgy San Lorenzo\nMakati City", "ph_zip": "1226"}, update_modified=False)
         frappe.clear_document_cache("Company", TEST_COMPANY)
+        # the RELIEF validator needs an address on every row; other tests' parties have none
+        for dt in ("Customer", "Supplier"):
+            frappe.db.sql(f"update `tab{dt}` set ph_address_line1 = 'TEST ADDRESS' where ifnull(ph_address_line1, '') = '' and ifnull(ph_address_line2, '') = ''")
+            frappe.clear_cache(doctype=dt)
         self.qs, self.qe = quarter_bounds(today())
 
     def tearDown(self):
@@ -33,18 +37,18 @@ class TestB29Relief(IntegrationTestCase):
         name, content, n = build_sales(TEST_COMPANY, self.qs, self.qe)
         lines = content.decode().split("\r\n")
         d = f"{self.qe.month:02d}/{self.qe.day:02d}/{self.qe.year}"
-        self.assertTrue(lines[0].startswith(f'H,S,"123456789","SAMPLE TAXPAYER CORP","","","","SAMPLE TRADING","","",'))
+        self.assertTrue(lines[0].startswith('H,S,"123456789","SAMPLE TAXPAYER CORP","","","","SAMPLE TRADING","1 AYALA AVE BRGY SAN LORENZO","MAKATI CITY 1226",'))
         self.assertTrue(lines[0].endswith(f",045,{d},12"))
         rows = [l for l in lines if l.startswith("D,S,") and "777888999" in l]
         self.assertEqual(len(rows), 1)
-        self.assertRegex(rows[0], rf'^D,S,"777888999","BUYER CORP","","","",1 MAIN ST,PASIG,(\d+\.\d\d),0\.00,(\d+\.\d\d),(\d+\.\d\d),123456789,{d}$')
+        self.assertRegex(rows[0], rf'^D,S,"777888999","BUYER CORP",,,,"1 MAIN ST","PASIG",(\d+\.\d\d),0,(\d+\.\d\d),(\d+\.\d\d),123456789,{d}$')
         parts = rows[0].split(",")
         self.assertGreaterEqual(flt(parts[9]), 200)
         self.assertGreaterEqual(flt(parts[11]), 1000)
         self.assertEqual(name, f"123456789S{self.qe.month:02d}{self.qe.year}.DAT")
 
     def test_purchases_list(self):
-        sup = ensure_supplier_profile("_Test PH VAT Supplier", ph_vat_status="VAT", ph_tin="888-999-000", ph_registered_name="SUPPLY CO", ph_ewt_category="None (no withholding)", ph_is_rbe=0, ph_is_nonresident_dsp=0)
+        sup = ensure_supplier_profile("_Test PH VAT Supplier", ph_vat_status="VAT", ph_tin="888-999-000", ph_registered_name="SUPPLY CO", ph_address_line1="2 SUPPLY ST", ph_ewt_category="None (no withholding)", ph_is_rbe=0, ph_is_nonresident_dsp=0)
         make_purchase_invoice(sup, [(ensure_service_item(), 1, 1000, {})], submit=True)
         name, content, n = build_purchases(TEST_COMPANY, self.qs, self.qe)
         lines = content.decode().split("\r\n")
@@ -69,8 +73,10 @@ class TestB29Relief(IntegrationTestCase):
         name, content, n = build_importations(TEST_COMPANY, self.qs, self.qe)
         row = [l for l in content.decode().split("\r\n") if "IE-2026-001" in l][0]
         self.assertIn('"_TEST PH FOREIGN SUPPLIER"', row)
-        self.assertIn("CHINA,50000.00,5000.00,", row)
-        self.assertIn(",6600.00,OR-77,", row)
+        self.assertIn('"CHINA",50000.00,5000.00,', row)
+        self.assertIn(',6600.00,"OR-77",', row)
+        self.assertTrue(row.startswith('D,I,"IE-2026-001",'))
+        self.assertTrue(content.decode().startswith('H,I,"123456789","SAMPLE TAXPAYER CORP"'))
         self.assertEqual(name, f"123456789I{self.qe.month:02d}{self.qe.year}.DAT")
         d = get_or_create(TEST_COMPANY, "2550Q", self.qs, self.qe)
         f = {r.item: flt(r.amount) for r in d.lines}
@@ -79,4 +85,19 @@ class TestB29Relief(IntegrationTestCase):
 
     def test_generate_stores(self):
         name = generate(TEST_COMPANY, "S", str(self.qs), str(self.qe))
-        self.assertEqual(frappe.db.get_value("PH Alphalist File", name, "layout_status"), "sample")
+        self.assertEqual(frappe.db.get_value("PH Alphalist File", name, "layout_status"), "verified")
+
+    def test_party_address_is_required(self):
+        cust = ensure_customer("_Test PH SLSP No Address")
+        frappe.db.set_value("Customer", cust, {"ph_tin": "777-000-111", "ph_registered_name": "NO ADDRESS CORP", "ph_payee_type": "Non-individual", "ph_address_line1": "", "ph_address_line2": "", "ph_zip": ""})
+        frappe.clear_document_cache("Customer", cust)
+        _invoice([(_item("_PH VATable", "VATable"), 1, 1000, {})], customer=cust, submit=True)
+        with self.assertRaises(frappe.ValidationError) as cm:
+            build_sales(TEST_COMPANY, self.qs, self.qe)
+        self.assertIn(cust, str(cm.exception))
+
+    def test_owner_address_is_required(self):
+        frappe.db.set_value("Company", TEST_COMPANY, "ph_registered_address", "", update_modified=False)
+        frappe.clear_document_cache("Company", TEST_COMPANY)
+        with self.assertRaises(frappe.ValidationError):
+            build_sales(TEST_COMPANY, self.qs, self.qe)
