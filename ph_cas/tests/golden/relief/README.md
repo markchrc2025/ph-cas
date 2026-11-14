@@ -18,3 +18,8 @@ bir-cdn.bir.gov.ph) running under Wine, from invented data only:
 All three pass the RELIEF 2.3 Validation module ("No errors encountered").
 The validator's e-Submission copy is the same file plus one V stamp line,
 which the validator adds; the CAS never writes it.
+
+`individual-owner-474079835S112026.DAT`: a second RELIEF install with an
+individual owner (SANTOS, MARIA LOPEZ, trade name MARIAS BAKESHOP, RDO 046)
+and one sale. The header leaves the registered name blank ("") and carries
+the person's names.
