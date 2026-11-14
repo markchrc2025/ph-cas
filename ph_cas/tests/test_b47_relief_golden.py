@@ -46,3 +46,10 @@ class TestB47ReliefGolden(unittest.TestCase):
                  "dutiable": 100000, "charges": 15000, "exempt": 0, "taxable": 115000, "vat": 13800, "or_no": "OR998877", "paid": "2026-11-06"}]
         self.assertEqual(importations_file(OWNER, rows, END), golden("474079835I112026.DAT"))
         self.assertEqual(importations_file(OWNER, [], END), b"")
+
+    def test_individual_owner_header_matches_relief(self):
+        """An individual owner: registered name blank, the person's names quoted, header zeros as 0.00."""
+        o = {"tin": "474079835", "names": ["", "SANTOS", "MARIA", "LOPEZ"], "trade": "MARIAS BAKESHOP",
+             "a1": "LOT 3 5 MABINI ST BRGY 2", "a2": "SAN JUAN METRO MANILA 1500", "rdo": "046", "fiscal_month": 12}
+        merged = {"123456789": company("BAYANI RETAIL STORES INC", "45 MABINI ST BRGY 1", "PASIG CITY 1600", exempt=0, zero=0, taxable=10000, vat=1200)}
+        self.assertEqual(sales_file(o, merged, END), golden("individual-owner-474079835S112026.DAT"))
