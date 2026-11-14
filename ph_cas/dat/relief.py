@@ -29,6 +29,8 @@ What RELIEF does, and so do we:
 - Rows are merged per TIN and sorted by registered name, then last, first and
   middle name (so persons, whose registered name is blank, come first).
 - Importation rows are in date order and the file has its own H,I header.
+- One file per month: a quarter is submitted as three monthly files (RDO
+  answer 11, 14 Nov 2026), as RELIEF itself captures one taxable month per file.
 """
 import re
 
@@ -223,6 +225,18 @@ def build_importations(company, start, end):
         "or_no": _clean(b.ph_import_or_no), "paid": b.ph_import_payment_date,
     } for b in bills]
     return _fname(company, "I", end), importations_file(o, rows, end), len(rows)
+
+
+def months(start, end) -> list[tuple]:
+    """(first day, last day) of each month from start to end: the summary list is
+    one file per month, three per quarterly submission (RDO answer 11)."""
+    from frappe.utils import add_months, get_first_day, get_last_day
+
+    out, d, end = [], get_first_day(start), getdate(end)
+    while d <= end:
+        out.append((d, get_last_day(d)))
+        d = add_months(d, 1)
+    return out
 
 
 @frappe.whitelist()

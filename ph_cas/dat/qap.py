@@ -107,7 +107,7 @@ def build_1600vt(company, start, end):
         if s.get("ph_tin") or s.get("tax_id"):
             p = party_fields("Supplier", r.party)
         else:  # a non-resident provider has no Philippine TIN
-            p = {"tin": "000000000", "branch": "0000", "registered_name": (s.get("ph_registered_name") or s.supplier_name or r.party).upper(), "last": "", "first": "", "middle": ""}
+            p = {"tin": "000000000", "branch": "00000", "registered_name": (s.get("ph_registered_name") or s.supplier_name or r.party).upper(), "last": "", "first": "", "middle": ""}
         data.append({**p, "atc": r.atc, "income": flt(r.income), "tax": flt(r.tax), "rate": flt(r.tax / r.income * 100, 2) if r.income else 0})
     data.sort(key=lambda x: (x["tin"], x["atc"]))
     lines = [record(["HMAP", "H1600VT", a["tin"], a["branch"], a["name"], end, a["rdo"]], ["u", "u", "u", "u", "q", "p", "u"])]
@@ -143,8 +143,13 @@ def generate(company: str, form: str, period_start: str, period_end: str) -> str
 
 
 def unknown_atcs() -> list[str]:
-    """ATCs the engine uses that the Alphalist module 7.4 does not list (RDO question 8c)."""
-    known_missing = {"WI840", "WC840", "WI850", "WC850", "WI860", "WC860", "WV080", "WV090", "WV100", "WV110"}
+    """ATCs the engine uses that the current Alphalist module does not list.
+
+    Empty since the BIR patched module 7.4: WV080, WV090, WV100 and WV110 (July 2025,
+    after RMO 13-2025 and 27-2025) and WI/WC 840, 850 and 860 (tax advisory of
+    18 Nov 2025, patch on bir.gov.ph > Downloadables). Clients must run the patched
+    module. Add a code here when the engine uses one the module lacks."""
+    known_missing: set[str] = set()
     used = {r[0] for r in frappe.db.sql("select distinct ph_ewt_atc from `tabPurchase Invoice` where ifnull(ph_ewt_atc,'') != ''")}
     used |= {r[0] for r in frappe.db.sql("select distinct ph_rc_atc from `tabPurchase Invoice` where ifnull(ph_rc_atc,'') != ''")}
     return sorted(used & known_missing)

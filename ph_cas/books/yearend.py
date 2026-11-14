@@ -1,8 +1,12 @@
 """B25: the year-end e-books pack.
 
-RR 16-2006 record format: the BIR's layout has not been supplied (gate G7),
-so the pack writes each book as CSV with the Annex B header and the RMO 9-2021
-transmittal, with a manifest of SHA-256 hashes. The writer is pluggable: when
+RR 16-2006 fixes no single column order: the files may be text, CSV, DAT or DBF
+with a file layout description (field name, type, width, decimals). RMO 9-2021
+V (books of accounts) 2: soft copies within 30 days after the close of the
+taxable year, on a USB drive or other storage device labelled with the taxpayer's
+name and the taxable year, with a transmittal letter listing each file's name,
+type and size. So the pack writes each book as CSV with the Annex B header,
+FILE-LAYOUT.txt, the transmittal and a manifest of SHA-256 hashes. The writer is pluggable: when
 the record format arrives, a writer registered in FORMAT_WRITERS replaces the
 CSV writer for that book without changing the pack.
 """
@@ -38,11 +42,38 @@ def _rows_as_lists(columns, rows):
     return [c["label"] for c in columns], [[r.get(k) for k in keys] for r in rows]
 
 
+_TYPES = {"Currency": ("Numeric", 2), "Float": ("Numeric", 2), "Int": ("Numeric", 0), "Percent": ("Numeric", 2),
+          "Date": ("Date (YYYY-MM-DD)", 0), "Datetime": ("Date and time", 0)}
+
+
+def file_layout(company: str, year: int, books: list) -> str:
+    """The file layout description RR 16-2006 asks for: every field's name, type,
+    width and decimals, per file. books: [(file name, title, columns, rows)]."""
+    header_lines = len(ph_header_lines(company))
+    lines = [
+        f"FILE LAYOUT DESCRIPTION, COMPUTERIZED BOOKS OF ACCOUNTS, TAXABLE YEAR {year} (RR 16-2006)",
+        "",
+        "Every file: comma-separated text (CSV), UTF-8, CRLF line ends, text in double quotes when it holds a comma.",
+        f"Lines 1 to {header_lines}: the Annex B header (taxpayer, address, TIN, software). Line {header_lines + 1}: blank.",
+        f"Line {header_lines + 2}: the column names below. Then one line per record.",
+        "Numbers: no thousands separator, a leading minus sign for negatives, decimals as stated.",
+        "",
+    ]
+    for name, title, columns, rows in books:
+        lines += [f"{name}  ({title}, {len(rows)} records)", f"  {'No.':<4}{'Field':<34}{'Type':<20}{'Width':>6}{'Decimals':>10}"]
+        for i, c in enumerate(columns, 1):
+            kind, decimals = _TYPES.get(c.get("fieldtype"), ("Character", 0))
+            width = max([len(str(c.get("label") or ""))] + [len(str(r.get(c["fieldname"]) if r.get(c["fieldname"]) is not None else "")) for r in rows])
+            lines.append(f"  {i:<4}{str(c.get('label') or c['fieldname'])[:33]:<34}{kind:<20}{width:>6}{decimals:>10}")
+        lines.append("")
+    return "\r\n".join(lines) + "\r\n"
+
+
 def build_pack(company: str, year: int) -> dict:
     start, end = f"{year}-01-01", f"{year}-12-31"
     tin = (frappe.get_cached_value("Company", company, "tax_id") or "000-000-000").replace("-", "")
     branch = frappe.get_cached_value("Company", company, "ph_branch_code") or "00000"
-    files = {}
+    files, layout = {}, []
     for title, path, code in BOOKS:
         fn = frappe.get_attr(path)
         filters = {"company": company, "from_date": start, "to_date": end}
@@ -53,10 +84,12 @@ def build_pack(company: str, year: int) -> dict:
         else:
             name, content = f"{tin}{branch}_{year}_{code}.csv", csv_with_header(labels, data, company)
         files[name] = content
+        layout.append((name, title, columns, rows))
+    files["FILE-LAYOUT.txt"] = file_layout(company, year, layout).encode("utf-8")
     manifest = {
         "company": company, "tin": tin, "branch": branch, "year": year,
         "generated_on": now_datetime().strftime("%Y-%m-%d %H:%M:%S"), "generated_by": frappe.session.user,
-        "format": "CSV with Annex B header (RR 16-2006 record format pending, gate G7)",
+        "format": "CSV with the Annex B header and a file layout description (RR 16-2006)",
         "files": {name: {"sha256": hashlib.sha256(content).hexdigest(), "bytes": len(content)} for name, content in files.items()},
     }
     files["MANIFEST.json"] = json.dumps(manifest, indent=1).encode("utf-8")
@@ -74,11 +107,13 @@ def transmittal(company: str, year: int, manifest: dict) -> str:
         header[2],
         f"Taxable year: {year}",
         f"Submitted within 30 days after year-end to the RDO (due {year + 1}-01-30).",
+        f"USB label: {header[0]}, taxable year {year}",
         "",
-        "Files on the USB:",
+        "Files on the USB (name, type, size):",
     ]
     for name, meta in manifest["files"].items():
-        lines.append(f"  {name}  SHA-256 {meta['sha256']}  ({meta['bytes']} bytes)")
+        kind = "Text (file layout description)" if name == "FILE-LAYOUT.txt" else "CSV (comma-separated text)"
+        lines.append(f"  {name}  {kind}  {meta['bytes']} bytes  SHA-256 {meta['sha256']}")
     lines += [
         "",
         "Software and version: " + header[3].replace("Software: ", ""),

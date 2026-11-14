@@ -45,7 +45,7 @@ doc_events = {
         "before_insert": ["ph_cas.controls.serial.clear_serial_on_copy", "ph_cas.invoicing.rules.refuse_amendment"],
         "before_validate": ["ph_cas.tax.sc_pwd.before_validate", "ph_cas.tax.vat.before_validate"],
         "validate": ["ph_cas.tax.vat.validate", "ph_cas.tax.customer_withholding.validate", "ph_cas.invoicing.rules.validate_buyer_details"],
-        "before_submit": ["ph_cas.controls.serial.assign_serial", "ph_cas.hosting.tiers.validate_invoice_volume"],
+        "before_submit": ["ph_cas.controls.serial.assign_serial", "ph_cas.invoicing.rules.validate_manual_invoice_no", "ph_cas.hosting.tiers.validate_invoice_volume"],
         "before_cancel": "ph_cas.invoicing.rules.refuse_cancel",
     },
     "Purchase Invoice": {
@@ -62,7 +62,7 @@ doc_events = {
         "before_submit": "ph_cas.controls.serial.assign_serial",
     },
     "Company": {
-        "validate": ["ph_cas.controls.dates.validate_company_inventory", "ph_cas.setup.master_data.validate_company"],
+        "validate": ["ph_cas.controls.dates.validate_company_inventory", "ph_cas.setup.master_data.validate_company", "ph_cas.invoicing.rules.warn_eis"],
         "before_insert": "ph_cas.hosting.tiers.validate_company",
     },
     "Branch": {"before_insert": "ph_cas.hosting.tiers.validate_branch"},

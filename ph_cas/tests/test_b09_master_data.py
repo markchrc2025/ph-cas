@@ -72,10 +72,12 @@ class TestB09MasterData(IntegrationTestCase):
             item.save()
 
     def test_dat_branch_code(self):
-        self.assertEqual(dat_branch("00000"), "0000")
-        self.assertEqual(dat_branch("00012"), "0012")
+        # RDO answer 8b: the full 5-digit code, leading zeroes kept
+        self.assertEqual(dat_branch("00000"), "00000")
+        self.assertEqual(dat_branch("00012"), "00012")
+        self.assertEqual(dat_branch("10000"), "10000")
         with self.assertRaises(frappe.ValidationError):
-            dat_branch("10000")
+            dat_branch("123")
 
     def test_normalize_tin(self):
         self.assertEqual(normalize_tin("123456789"), "123-456-789")

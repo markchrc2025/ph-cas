@@ -386,18 +386,22 @@ class PHTaxReturn(Document):
 
     @frappe.whitelist()
     def generate_slsp(self):
-        """2550Q only: write the quarter's RELIEF sales, purchases and importations files
-        (PH Alphalist File records) and tie their totals out against the return."""
+        """2550Q only: write the RELIEF sales, purchases and importations files, one per
+        month of the quarter (PH Alphalist File records), and tie their totals out
+        against the return."""
         if self.form != "2550Q":
             frappe.throw(_("The SLSP goes with the 2550Q."))
         from ph_cas.dat.relief import generate
 
+        from ph_cas.dat.relief import months
+
         made = []
-        for kind in ("S", "P", "I"):
-            try:
-                made.append(generate(self.company, kind, self.period_start, self.period_end))
-            except Exception as e:
-                made.append(f"{kind}: not written ({e})")
+        for first, last in months(self.period_start, self.period_end):  # one file per month (RDO answer 11)
+            for kind in ("S", "P", "I"):
+                try:
+                    made.append(generate(self.company, kind, str(first), str(last)))
+                except Exception as e:
+                    made.append(f"{kind} {first:%m/%Y}: not written ({e})")
         self.db_set("alphalist_file", next((m for m in made if not m.endswith(")")), None))
         tie = self._slsp_tie_out()
         return {"files": made, "tie_out": tie}

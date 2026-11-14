@@ -146,7 +146,7 @@ class TestG1EndToEnd(IntegrationTestCase):
         self.assertIn("DRAFT", doc.preview())
         # SLSP files and the tie-out
         out = doc.generate_slsp()
-        self.assertEqual(len(out["files"]), 3)
+        self.assertEqual(len(out["files"]), 9)  # S, P and I for each month of the quarter (RDO answer 11)
         doc.reload()
         if doc.alphalist_file:
             self.assertTrue(frappe.db.exists("PH Alphalist File", doc.alphalist_file))

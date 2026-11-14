@@ -29,28 +29,28 @@ class TestB28QAP(IntegrationTestCase):
         name, content, n = build_1601eq(TEST_COMPANY, self.qs, self.qe)
         lines = content.decode().split("\r\n")
         p = f"{self.qe.month:02d}/{self.qe.year}"
-        self.assertEqual(lines[0], f'HQAP,H1601EQ,123456789,0000,"SAMPLE TAXPAYER CORP",{p},045')
+        self.assertEqual(lines[0], f'HQAP,H1601EQ,123456789,00000,"SAMPLE TAXPAYER CORP",{p},045')
         d1 = [l for l in lines if l.startswith("D1,") and "222333444" in l][0]
-        self.assertRegex(d1, rf'^D1,1601EQ,\d+,222333444,0000,"","REYES","ANA","B",{p},WI100,5\.00,\d+\.\d\d,\d+\.\d\d$')
+        self.assertRegex(d1, rf'^D1,1601EQ,\d+,222333444,00000,"","REYES","ANA","B",{p},WI100,5\.00,\d+\.\d\d,\d+\.\d\d$')
         c1 = [l for l in lines if l.startswith("C1,")][0]
-        self.assertTrue(c1.startswith(f"C1,1601EQ,123456789,0000,{p},"))
+        self.assertTrue(c1.startswith(f"C1,1601EQ,123456789,00000,{p},"))
         d2 = [l for l in lines if l.startswith("D2,") and "333444555" in l][0]
-        self.assertRegex(d2, rf'^D2,1601EQ,\d+,333444555,0000,"BUILDERS CORP","","","",{p},EI900,\d+\.\d\d$')
+        self.assertRegex(d2, rf'^D2,1601EQ,\d+,333444555,00000,"BUILDERS CORP","","","",{p},EI900,\d+\.\d\d$')
         c2 = [l for l in lines if l.startswith("C2,")][0]
-        self.assertTrue(c2.startswith(f"C2,1601EQ,123456789,0000,{p},"))
-        self.assertEqual(name, f"1234567890000{self.qe.month:02d}{self.qe.year}1601EQ.DAT")
+        self.assertTrue(c2.startswith(f"C2,1601EQ,123456789,00000,{p},"))
+        self.assertEqual(name, f"12345678900000{self.qe.month:02d}{self.qe.year}1601EQ.DAT")
         self.assertEqual(lines.index(c1) < lines.index(d2), True)
 
     def test_1604e(self):
         year = getdate(today()).year
         name, content, n = build_1604e(TEST_COMPANY, year)
         lines = content.decode().split("\r\n")
-        self.assertEqual(lines[0], f"H1604E,123456789,0000,12/31/{year},N,0,045")
+        self.assertEqual(lines[0], f"H1604E,123456789,00000,12/31/{year},N,0,045")
         d3 = [l for l in lines if l.startswith("D3,") and "222333444" in l][0]
-        self.assertRegex(d3, rf'^D3,1604E,123456789,0000,12/31/{year},\d+,222333444,0000,"","REYES","ANA","B",WI100,\d+\.\d\d,5\.00,\d+\.\d\d$')
-        self.assertTrue([l for l in lines if l.startswith("C3,1604E,123456789,0000,12/31/")])
+        self.assertRegex(d3, rf'^D3,1604E,123456789,00000,12/31/{year},\d+,222333444,00000,"","REYES","ANA","B",WI100,\d+\.\d\d,5\.00,\d+\.\d\d$')
+        self.assertTrue([l for l in lines if l.startswith("C3,1604E,123456789,00000,12/31/")])
         self.assertTrue([l for l in lines if l.startswith("D4,") and "333444555" in l])
-        self.assertEqual(name, f"12345678900001231{year}1604E.DAT")
+        self.assertEqual(name, f"123456789000001231{year}1604E.DAT")
 
     def test_1600vt_map(self):
         _set_regime("VAT")
@@ -60,16 +60,16 @@ class TestB28QAP(IntegrationTestCase):
             name, content, n = build_1600vt(TEST_COMPANY, self.ms, self.me)
             lines = content.decode().split("\r\n")
             p = f"{self.me.month:02d}/{self.me.year}"
-            self.assertEqual(lines[0], f'HMAP,H1600VT,123456789,0000,"SAMPLE TAXPAYER CORP",{p},045')
+            self.assertEqual(lines[0], f'HMAP,H1600VT,123456789,00000,"SAMPLE TAXPAYER CORP",{p},045')
             dm = [l for l in lines if l.startswith("DMAP,")]
             self.assertTrue(dm, lines)
             d = [l for l in dm if "CLOUDCO" in l]
             self.assertTrue(d, dm)
             d = d[0]
-            self.assertRegex(d, rf'^DMAP,D1600VT,\d+,000000000,0000,CLOUDCO LLC,,,,{p},WV080,,12\.00,\d+\.\d\d,\d+\.\d\d$')
-            self.assertTrue([l for l in lines if l.startswith(f"CMAP,C1600VT,123456789,0000,{p},")])
-            self.assertEqual(name, f"1234567890000{self.me.month:02d}{self.me.year}1600VT.DAT")
-            self.assertIn("WV080", unknown_atcs())
+            self.assertRegex(d, rf'^DMAP,D1600VT,\d+,000000000,00000,CLOUDCO LLC,,,,{p},WV080,,12\.00,\d+\.\d\d,\d+\.\d\d$')
+            self.assertTrue([l for l in lines if l.startswith(f"CMAP,C1600VT,123456789,00000,{p},")])
+            self.assertEqual(name, f"12345678900000{self.me.month:02d}{self.me.year}1600VT.DAT")
+            self.assertNotIn("WV080", unknown_atcs())  # in the patched module 7.4 (July 2025)
         finally:
             _set_regime("Non-VAT")
 

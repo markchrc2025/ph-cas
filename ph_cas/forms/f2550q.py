@@ -405,23 +405,25 @@ def key_figures(comp: list[dict]) -> dict[str, Decimal]:
 def slsp_tie_out(data: dict, ctx: Context) -> list[str]:
     """Compare the quarter's RELIEF sales and purchases totals with the return's items.
     A mismatch is a warning the user clears before filing."""
-    from ph_cas.dat.relief import build_purchases, build_sales
+    from ph_cas.dat.relief import build_purchases, build_sales, months
 
     company = ctx.company["name"]
-    start, end = ctx.period.start, ctx.period.end
     out = []
-    try:
-        _n, s_bytes, _k = build_sales(company, start, end)
-        _n, p_bytes, _k = build_purchases(company, start, end)
-    except Exception as e:  # the writer refuses (a party without TIN, say): say so, do not block
-        return [f"SLSP could not be built for the tie-out: {e}"]
-    s_head = s_bytes.decode("utf-8", errors="replace").splitlines()[0].split(",")
-    p_head = p_bytes.decode("utf-8", errors="replace").splitlines()[0].split(",")
-    try:
-        slsp_sales = whole_peso(dec(s_head[10]) + dec(s_head[11]) + dec(s_head[12]))
-        slsp_input = whole_peso(dec(p_head[15]))  # the purchases header's input tax total
-    except (IndexError, ValueError):
-        return ["SLSP header could not be read for the tie-out."]
+    sales = inputs = dec("0")
+    for start, end in months(ctx.period.start, ctx.period.end):  # three monthly files (RDO answer 11)
+        try:
+            _n, s_bytes, _k = build_sales(company, start, end)
+            _n, p_bytes, _k = build_purchases(company, start, end)
+        except Exception as e:  # the writer refuses (a party without an address, say): say so, do not block
+            return [f"SLSP could not be built for the tie-out: {e}"]
+        s_head = s_bytes.decode("utf-8", errors="replace").splitlines()[0].split(",")
+        p_head = p_bytes.decode("utf-8", errors="replace").splitlines()[0].split(",")
+        try:
+            sales += dec(s_head[10]) + dec(s_head[11]) + dec(s_head[12])
+            inputs += dec(p_head[15])  # the purchases header's input tax total
+        except (IndexError, ValueError):
+            return ["SLSP header could not be read for the tie-out."]
+    slsp_sales, slsp_input = whole_peso(sales), whole_peso(inputs)
     o = _o(compute(data, ctx))
     if slsp_sales != o["i34a"]:
         out.append(f"SLSP sales ({slsp_sales}) differ from Item 34A ({o['i34a']}).")

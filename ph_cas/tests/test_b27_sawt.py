@@ -34,8 +34,8 @@ class TestB27SAWT(IntegrationTestCase):
         self.assertEqual(fmt("2026-09-30", "p"), "09/2026")
         self.assertEqual(fmt("2026-12-31", "d"), "12/31/2026")
         self.assertEqual(record(["D1", 7, 100], ["u", "i", "n"]), "D1,7,100.00")
-        self.assertEqual(file_name("123-456-789", "00000", "2026-09-30", "1601EQ"), "12345678900000920261601EQ.DAT")
-        self.assertEqual(file_name("123-456-789", "00000", "2026-12-31", "1604E", kind="annual"), "1234567890000123120261604E.DAT")
+        self.assertEqual(file_name("123-456-789", "00000", "2026-09-30", "1601EQ"), "123456789000000920261601EQ.DAT")
+        self.assertEqual(file_name("123-456-789", "00000", "2026-12-31", "1604E", kind="annual"), "12345678900000123120261604E.DAT")
 
     def test_sawt_1702q_layout(self):
         name, content, n = build(TEST_COMPANY, "1702Q", self.qs, self.qe)
@@ -43,14 +43,14 @@ class TestB27SAWT(IntegrationTestCase):
         lines = text.split("\r\n")
         self.assertEqual(lines[-1], "")  # trailing CRLF
         mmyyyy = f"{self.qe.month:02d}/{self.qe.year}"
-        self.assertEqual(lines[0], f'HSAWT,H1702Q,123456789,0000,"SAMPLE TAXPAYER CORP","","","",{mmyyyy},045')
+        self.assertEqual(lines[0], f'HSAWT,H1702Q,123456789,00000,"SAMPLE TAXPAYER CORP","","","",{mmyyyy},045')
         d = [l for l in lines if l.startswith("DSAWT")]
         self.assertEqual(len(d), n)
         row = [l for l in d if "111222333" in l][0]
-        self.assertEqual(row, f'DSAWT,D1702Q,{d.index(row) + 1},111222333,0000,"ACME PAYOR INC",,,,{mmyyyy},,WC160,2.00,10000.00,200.00')
+        self.assertEqual(row, f'DSAWT,D1702Q,{d.index(row) + 1},111222333,00000,"ACME PAYOR INC",,,,{mmyyyy},,WC160,2.00,10000.00,200.00')
         c = [l for l in lines if l.startswith("CSAWT")][0]
-        self.assertTrue(c.startswith(f"CSAWT,C1702Q,123456789,0000,{mmyyyy},"))
-        self.assertEqual(name, f"1234567890000{self.qe.month:02d}{self.qe.year}1702Q.DAT")
+        self.assertTrue(c.startswith(f"CSAWT,C1702Q,123456789,00000,{mmyyyy},"))
+        self.assertEqual(name, f"12345678900000{self.qe.month:02d}{self.qe.year}1702Q.DAT")
         self.assertNotIn("\n", text.replace("\r\n", ""))
 
     def test_individual_payor_uses_name_parts(self):
@@ -61,7 +61,7 @@ class TestB27SAWT(IntegrationTestCase):
         rec.submit()
         name, content, n = build(TEST_COMPANY, "1702Q", self.qs, self.qe)
         row = [l for l in content.decode().split("\r\n") if "444555666" in l][0]
-        self.assertIn(',444555666,0000,,"DELA CRUZ","JUAN","SANTOS",', row)
+        self.assertIn(',444555666,00000,,"DELA CRUZ","JUAN","SANTOS",', row)
 
     def test_generate_stores_file_with_hash(self):
         name = generate(TEST_COMPANY, "1702Q", str(self.qs), str(self.qe))

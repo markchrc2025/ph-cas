@@ -21,7 +21,7 @@ class TestB25Ebooks(IntegrationTestCase):
         names = set(out["files"])
         self.assertIn("MANIFEST.json", names)
         self.assertIn("TRANSMITTAL.txt", names)
-        self.assertEqual(len(names), len(BOOKS) + 2)
+        self.assertEqual(len(names), len(BOOKS) + 3)  # manifest, transmittal, file layout
         gj = [n for n in names if n.endswith("_GJ.csv")][0]
         text = out["files"][gj].decode("utf-8-sig")
         self.assertIn("Software: PH CAS", text)

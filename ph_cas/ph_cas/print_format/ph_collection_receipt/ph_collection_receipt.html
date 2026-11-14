@@ -23,7 +23,11 @@
   </table>
   {% endif %}
   {% if doc.ph_wht_deducted %}<div style="margin-top: 6px;">Tax withheld by the payor (2307 to follow): {{ frappe.format(doc.ph_wht_deducted, {"fieldtype": "Currency"}) }}</div>{% endif %}
+  {% if seller.cr_atp_no %}
+  <div style="margin-top: 14px; font-size: 9pt;">ATP No. {{ seller.cr_atp_no }}{% if seller.cr_atp_date %} &middot; date issued {{ frappe.format(seller.cr_atp_date, {"fieldtype": "Date"}) }}{% endif %}</div>
+  {% else %}
   <div style="margin-top: 14px; font-weight: bold; font-size: 11pt;">THIS DOCUMENT IS NOT VALID FOR CLAIM OF INPUT TAX</div>
+  {% endif %}
   <div style="margin-top: 8px; font-size: 8pt; border-top: 1px solid #000; padding-top: 4px;">ACCN {{ series.accn or seller.accn }} &middot; Series {{ series.range }}{% if copy == "DUPLICATE" %}<br>{{ ph_attr("ph_cas.audit.header.ph_header")(doc) }}{% endif %}</div>
 </div>
 {% endfor %}
