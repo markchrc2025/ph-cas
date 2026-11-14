@@ -6,6 +6,8 @@ A layout is a list of record specs; each spec is a list of (field, kind):
   q  quoted text        u  unquoted text       n  amount, 2 decimals
   i  integer            p  period MM/YYYY      d  date MM/DD/YYYY
   e  empty field (no quotes)                   qe quoted empty ("") when blank, quoted otherwise
+  qn quoted, or an empty field with no quotes when blank (RELIEF detail rows)
+  nz amount, 2 decimals, but a bare 0 when zero (RELIEF detail rows)
 
 Verification status per layout is kept in docs/dat/VERIFICATION.md: only the
 1601-EQ layout is confirmed against the BIR Validation module (gate G5).
@@ -28,8 +30,14 @@ def fmt(value, kind: str) -> str:
         return '"' + s.replace('"', "") + '"' if s else '""'
     if kind == "u":
         return str(value if value is not None else "").replace(",", " ").replace('"', "")
+    if kind == "qn":
+        s = str(value if value is not None else "").replace('"', "")
+        return f'"{s}"' if s else ""
     if kind == "n":
         return f"{flt(value):.2f}"
+    if kind == "nz":
+        v = round(flt(value), 2)
+        return "0" if v == 0 else f"{v:.2f}"
     if kind == "i":
         return str(int(value or 0))
     if kind == "p":
