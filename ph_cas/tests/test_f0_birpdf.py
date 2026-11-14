@@ -102,6 +102,29 @@ class TestF0BirPdf(unittest.TestCase):
         pdf = render_return("2307", "2018-01", fixture_rows("2307-sample.json"))
         self.assertEqual(len(PdfReader(__import__("io").BytesIO(pdf)).pages), 1)
 
+    def test_a_long_2307_description_wraps_inside_its_row(self):
+        """LDG-97: a 68-character ATC description used to fail the whole print."""
+        m = load_map("2307", "2018-01")
+        rows = dict(fixture_rows("2307-sample.json"))
+        desc = "Professional fees, individual, gross up to 3M and not VAT-registered"
+        rows["c2307:a1Desc"] = desc
+        f = next(x for x in m["fields"] if x["key"] == "c2307:a1Desc")
+        met = metrics()
+        ops = [o for o in layout_return(m, list(rows.items()), met) if o.y > f["y"] - 8 and o.y < f["y"] + 8 and o.x < f["x1"]]
+        self.assertEqual(len(ops), 2)
+        self.assertEqual(" ".join(o.text for o in ops), desc.upper())
+        for o in ops:
+            self.assertGreaterEqual(o.size, f["minSize"])
+            self.assertLessEqual(met.width(o.text, o.size), f["x1"] - f["x0"])
+        # the block stays inside the row: top cap to bottom baseline within rowHeight
+        top = max(o.y for o in ops) + met.cap_height(ops[0].size)
+        self.assertLessEqual(top - min(o.y for o in ops), f["rowHeight"])
+        # a short description is untouched: one line at the full size
+        rows["c2307:a1Desc"] = "Rentals"
+        one = [o for o in layout_return(m, list(rows.items()), met) if o.text == "RENTALS"]
+        self.assertEqual([(o.y, o.size) for o in one], [(f["y"], f["size"])])
+        render_return("2307", "2018-01", list(rows.items()))
+
     def test_a_draft_preview_is_stamped_and_needs_the_time(self):
         rows = fixture_rows("2551Q-sample.xml")
         with self.assertRaises(BirPdfError):

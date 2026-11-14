@@ -37,6 +37,8 @@ SQUEEZE_MIN = 5.5
 _SQUEEZE_INSET = 2
 # Room left at each end of a free-text line or cell.
 _TEXT_INSET = 1.5
+# Baseline to baseline, as a multiple of the size, for a wrapped free-text field.
+_LEADING = 1.15
 
 _AMOUNT = re.compile(r"^(-?)([0-9][0-9,]*)(?:\.([0-9]+))?$")
 _DATE = re.compile(r"^(\d{1,2})/(\d{1,2})/(\d{4})$")
@@ -311,6 +313,32 @@ def _centavo_amount(v: str, raw: str, who: str, key: str) -> str:
     return f"{a.group(1)}{grouped}.{dec.ljust(2, '0')[:2]}"
 
 
+def _text_lines(f: dict, v: str, room: float, size: float, met: Metrics) -> tuple[float, list[DrawOp]] | None:
+    """A free-text value broken over up to f["lines"] lines inside its row.
+
+    The largest size from `size` down to minSize at which every line fits the
+    width and the block fits f["rowHeight"] (the clear height between the
+    row's rules). The block is centred on the middle of the single line it
+    replaces. None when even minSize does not fit."""
+    n = int(f["lines"])
+    height = float(f["rowHeight"])
+    tenths = round(size * 10)
+    while tenths >= round(f["minSize"] * 10):
+        s = tenths / 10
+        lead = s * _LEADING
+        if (n - 1) * lead + met.cap_height(s) <= height:
+            lines = _wrap_measured(v, [room] * n, s, met)
+            if lines is not None:
+                lines = [ln for ln in lines if ln]
+                k = len(lines)
+                # middle of the block = middle of the single line at `size`
+                top = f["y"] + met.cap_height(size) / 2 - met.cap_height(s) / 2 + (k - 1) * lead / 2
+                x = f["x0"] + _TEXT_INSET
+                return s, [DrawOp(f["page"], x, top - i * lead, ln, s) for i, ln in enumerate(lines)]
+        tenths -= 1
+    return None
+
+
 def _text(m: dict, f: dict, raw: str, size: float, met: Metrics) -> list[DrawOp]:
     who = _where(f, m)
     v = (raw.upper() if f.get("case", "upper") == "upper" else raw).strip()
@@ -334,6 +362,9 @@ def _text(m: dict, f: dict, raw: str, size: float, met: Metrics) -> list[DrawOp]
     w = met.width(v, size)
     if w > room:
         s = math.floor((size * room / w) * 10) / 10
+        wrapped = _text_lines(f, v, room, size, met) if int(f.get("lines") or 1) > 1 else None
+        if wrapped is not None and wrapped[0] > s:
+            return wrapped[1]
         if s < f["minSize"]:
             raise BirPdfError(
                 f'{who}: "{raw}" is {len(v)} characters; it needs {w * f["minSize"] / size:.1f} pt at the minimum {f["minSize"]} pt size but the line is {room:.1f} pt',

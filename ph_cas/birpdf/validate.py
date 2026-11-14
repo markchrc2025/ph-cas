@@ -96,6 +96,13 @@ def _check_field(m: dict, f: dict):
             _fail(m, f"{key}: x1 must be right of x0")
         if not (_is_num(f.get("minSize")) and f["minSize"] > 0):
             _fail(m, f"{key}: a text field needs minSize")
+        if f.get("lines") is not None:
+            if not (isinstance(f["lines"], int) and f["lines"] >= 1):
+                _fail(m, f"{key}: lines is a whole number of 1 or more")
+            if f["lines"] > 1 and not (_is_num(f.get("rowHeight")) and f["rowHeight"] > 0):
+                _fail(m, f"{key}: a text field on more than one line needs rowHeight")
+            if f["lines"] > 1 and (f.get("align", "left") != "left" or f.get("amount")):
+                _fail(m, f"{key}: only left-aligned free text wraps")
         if f.get("amount") and f.get("case") == "keep":
             _fail(m, f"{key}: an amount cell has no case")
         a = f.get("amount")

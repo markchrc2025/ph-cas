@@ -43,7 +43,12 @@ class TestB02Locks(IntegrationTestCase):
         transaction and the rows come back with the rollback; here we roll back
         to a savepoint to check the same thing."""
         si = make_sales_invoice()
-        si.cancel()
+        # an issued invoice is never cancelled (LDG-96); unlock just to make one
+        frappe.conf.ph_cas_unlocked = 1
+        try:
+            si.cancel()
+        finally:
+            frappe.conf.pop("ph_cas_unlocked", None)
         frappe.db.savepoint("ph_b02_toggle")
         frappe.db.set_single_value("Accounts Settings", "delete_linked_ledger_entries", 1)
         frappe.db.set_single_value("Accounts Settings", "enable_immutable_ledger", 0)

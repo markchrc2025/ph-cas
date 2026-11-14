@@ -11,7 +11,7 @@ after_migrate = "ph_cas.setup.install.after_migrate"
 
 before_tests = "ph_cas.tests.setup.before_tests"
 
-doctype_js = {"Company": "public/js/company.js"}
+doctype_js = {"Company": "public/js/company.js", "Sales Invoice": "public/js/sales_invoice.js"}
 
 # B38 branding: the product, never the framework, is what users see (ph_cas.branding)
 app_logo_url = "/assets/ph_cas/images/logo.svg"
@@ -46,6 +46,7 @@ doc_events = {
         "before_validate": ["ph_cas.tax.sc_pwd.before_validate", "ph_cas.tax.vat.before_validate"],
         "validate": ["ph_cas.tax.vat.validate", "ph_cas.tax.customer_withholding.validate", "ph_cas.invoicing.rules.validate_buyer_details"],
         "before_submit": ["ph_cas.controls.serial.assign_serial", "ph_cas.hosting.tiers.validate_invoice_volume"],
+        "before_cancel": "ph_cas.invoicing.rules.refuse_cancel",
     },
     "Purchase Invoice": {
         "before_validate": ["ph_cas.tax.purchase.before_validate", "ph_cas.tax.reverse_charge.before_validate"],
@@ -124,5 +125,6 @@ jinja = {
         "ph_cas.audit.header.ph_header_lines",
         "ph_cas.audit.header.software_name",
         "ph_cas.audit.header.software_version",
+        "ph_cas.invoicing.printing.ph_attr",
     ]
 }

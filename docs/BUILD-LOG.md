@@ -2,6 +2,13 @@
 
 One entry per bundle, newest first. Counts are the test totals on main after the merge.
 
+## B46 Fixes found while recording the tutorials (LDG-95, LDG-96, LDG-97) (14 Nov 2026)
+- PR: (filled in at merge)
+- Built: LDG-95: the PH Sales Invoice, PH Collection Receipt and PH BIR 2307 print formats called frappe.get_attr, which Frappe v16 no longer exposes in safe Jinja, so every print failed. They now call ph_attr, a jinja method that resolves only the seven listed print helpers (ph_cas.invoicing.printing.PRINT_HELPERS). The print tests used to pass the full frappe module into the template, which hid the failure; they now render with the safe globals only, the way the print view does. LDG-96: an issued Sales Invoice, Credit Note or Debit Note (one with a BIR serial) cannot be cancelled by any role, Administrator included (before_cancel refusal naming the serial and the correction document); the form hides Cancel and says how to correct it. LDG-97: a free-text field on a BIR blank can wrap over up to two lines inside its row (map keys lines and rowHeight), used when it prints larger than one shrunk line; the 2307 Part III description fields use it, so a 68-character ATC description prints at 5.9 pt on two lines instead of failing. The setup_philippine_company action also ticks its onboarding step.
+- Tests: +3 (no-cancel for invoice and credit note, print helpers through ph_attr only, 2307 long description wraps inside its row); four tests that cancelled an invoice now cancel a journal entry or use the test unlock.
+- Assumed: D6 (cancel and reissue) stays for journal entries and other vouchers; for invoices the correction is a credit or debit note only, as B21 already said for amendments and as the user guide and tutorials say.
+- Left out: nothing in scope.
+
 ## B37 Website restructure for sentire.solutions (LDG-43) (11 Nov 2026)
 - PR: #41
 - Built: website/index.html is the Sentire Solutions front page (product family); the Ledger site moved to website/ledger/ with links rewritten; served at sentire.solutions/ledger/

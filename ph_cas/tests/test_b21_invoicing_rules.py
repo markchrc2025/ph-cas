@@ -45,7 +45,6 @@ class TestB21InvoicingRules(IntegrationTestCase):
 
     def test_issued_invoice_cannot_be_amended(self):
         si = _invoice([(ensure_service_item(), 1, 1000, {})], submit=True)
-        si.cancel()
         amended = frappe.copy_doc(si)
         amended.amended_from = si.name
         amended.docstatus = 0
@@ -61,6 +60,20 @@ class TestB21InvoicingRules(IntegrationTestCase):
         cn.submit()
         self.assertEqual(cn.return_against, si.name)
         self.assertTrue(cn.bir_serial)
+
+    def test_issued_documents_cannot_be_cancelled_by_any_role(self):
+        """LDG-96: Accounts Manager keeps ERPNext's cancel permission; the refusal holds anyway."""
+        si = _invoice([(ensure_service_item(), 1, 1000, {})], submit=True)
+        from erpnext.accounts.doctype.sales_invoice.sales_invoice import make_sales_return
+
+        cn = make_sales_return(si.name)
+        cn.insert()
+        cn.submit()
+        for doc in (si, cn):
+            with self.assertRaises(PHLockError) as cm:
+                frappe.get_doc("Sales Invoice", doc.name).cancel()
+            self.assertIn(doc.bir_serial, str(cm.exception))
+            self.assertEqual(frappe.db.get_value("Sales Invoice", doc.name, "docstatus"), 1)
 
     def test_end_of_day_invoice(self):
         _set_regime("Non-VAT")
