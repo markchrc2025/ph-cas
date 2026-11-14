@@ -19,12 +19,21 @@ from ph_cas.controls.locks import PHLockError
 COMPANY_FIELDS = [
     {"fieldname": "ph_inv_section", "fieldtype": "Section Break", "label": "Invoicing", "insert_after": "ph_corp_small"},
     {"fieldname": "ph_use_collection_receipt", "fieldtype": "Check", "label": "Issue Collection Receipts (supplementary) on customer payments", "default": "1", "insert_after": "ph_inv_section"},
-    {"fieldname": "ph_walkin_customer", "fieldtype": "Link", "label": "Walk-in customer for end-of-day invoices", "options": "Customer", "insert_after": "ph_use_collection_receipt"},
+    {"fieldname": "ph_cr_atp_no", "fieldtype": "Data", "label": "Collection Receipt ATP number", "depends_on": "ph_use_collection_receipt", "insert_after": "ph_use_collection_receipt",
+     "description": "With an ATP the receipt prints its ATP details; without one it prints THIS DOCUMENT IS NOT VALID FOR CLAIM OF INPUT TAX."},
+    {"fieldname": "ph_cr_atp_date", "fieldtype": "Date", "label": "Collection Receipt ATP date issued", "depends_on": "ph_cr_atp_no", "insert_after": "ph_cr_atp_no"},
+    {"fieldname": "ph_walkin_customer", "fieldtype": "Link", "label": "Walk-in customer for end-of-day invoices", "options": "Customer", "insert_after": "ph_cr_atp_date"},
+    {"fieldname": "ph_uses_eis", "fieldtype": "Check", "label": "Issues e-invoices through the BIR EIS", "insert_after": "ph_walkin_customer",
+     "description": "Off: every invoice, credit note and debit note also takes the manual invoice number typed by the user, beside the system control number."},
+    {"fieldname": "ph_ecommerce", "fieldtype": "Check", "label": "Engaged in e-commerce or internet transactions", "insert_after": "ph_uses_eis",
+     "description": "RMC 98-2026: a taxpayer that is not micro and sells through e-commerce or the internet must issue e-invoices through the EIS."},
 ]
 
 SI_FIELDS = [
     {"fieldname": "ph_end_of_day", "fieldtype": "Check", "label": "End-of-day invoice for small sales", "read_only": 1, "insert_after": "ph_ovc_claim_quarter"},
     {"fieldname": "ph_on_request", "fieldtype": "Check", "label": "Issued on the buyer's request (below the threshold)", "insert_after": "ph_end_of_day"},
+    {"fieldname": "ph_manual_invoice_no", "fieldtype": "Data", "label": "Manual invoice number", "insert_after": "naming_series", "in_list_view": 1, "in_standard_filter": 1, "no_copy": 1,
+     "description": "Typed by the user before submit (not for companies on the EIS). The BIR serial stays the system control number."},
 ]
 
 
@@ -91,6 +100,51 @@ def refuse_cancel(doc, method=None):
         _("{0} {1} (BIR serial {2}) has been issued and cannot be cancelled. {3}").format(_(kind), doc.name, doc.get(SERIAL_FIELD), fix),
         PHLockError,
     )
+
+
+def eis_required(company: str) -> bool:
+    """RMC 98-2026 as the owner reads it: micro taxpayers are exempt; the others
+    engaged in e-commerce or internet transactions must issue e-invoices."""
+    c = frappe.get_cached_doc("Company", company)
+    return bool(c.get("ph_ecommerce")) and (c.get("ph_taxpayer_class") or "Micro") != "Micro"
+
+
+def warn_eis(doc, method=None):
+    """doc_events['Company'].validate: say so when the company must be on the EIS."""
+    if doc.get("ph_ecommerce") and (doc.get("ph_taxpayer_class") or "Micro") != "Micro" and not doc.get("ph_uses_eis"):
+        frappe.msgprint(_("{0} is not micro and is engaged in e-commerce or internet transactions: it must issue e-invoices through the BIR EIS (RMC 98-2026).").format(doc.name), indicator="orange", alert=True)
+
+
+def manual_invoice_no_required(doc) -> bool:
+    return doc.doctype == "Sales Invoice" and not frappe.get_cached_value("Company", doc.company, "ph_uses_eis")
+
+
+def validate_manual_invoice_no(doc, method=None):
+    """doc_events['Sales Invoice'].before_submit, after the serial: the user types the
+    manual invoice number (RDO answer 2); it is unique per company and document type.
+
+    Under the test runner an empty number is filled from the serial so the many
+    tests that submit invoices need not type one; tests of this rule set
+    frappe.flags.ph_strict_manual_invoice_no."""
+    from ph_cas.controls.serial import SERIAL_FIELD, document_type_of
+
+    if not manual_invoice_no_required(doc):
+        return
+    no = (doc.get("ph_manual_invoice_no") or "").strip()
+    if not no and frappe.flags.in_test and not frappe.flags.ph_strict_manual_invoice_no:
+        no = f"T-{doc.get(SERIAL_FIELD) or doc.name}"
+    if not no:
+        frappe.throw(_("Type the manual invoice number before submitting {0}.").format(_(document_type_of(doc) or "Sales Invoice")), title=_("Manual invoice number"))
+    doc.ph_manual_invoice_no = no
+    kind = document_type_of(doc)
+    flags = {"Credit Note": ("is_return", 1), "Debit Note": ("is_debit_note", 1)}
+    filters = {"company": doc.company, "docstatus": 1, "ph_manual_invoice_no": no, "name": ("!=", doc.name),
+               "is_return": 1 if kind == "Credit Note" else 0}
+    if kind != "Credit Note":
+        filters["is_debit_note"] = 1 if kind == "Debit Note" else 0
+    other = frappe.db.get_value("Sales Invoice", filters, "name")
+    if other:
+        frappe.throw(_("Manual invoice number {0} is already used on {1}.").format(no, other), title=_("Manual invoice number"))
 
 
 def collection_receipts_enabled(company: str) -> bool:

@@ -21,7 +21,12 @@
       </td>
       <td style="width: 40%; vertical-align: top; text-align: right;">
         <div style="font-size: 15pt; font-weight: bold;">{{ title }}</div>
+        {% if doc.ph_manual_invoice_no %}
+        <div style="font-size: 13pt;">No. <b>{{ doc.ph_manual_invoice_no }}</b></div>
+        <div style="font-size: 9pt;">System control no. {{ doc.bir_serial or "(not yet issued)" }}</div>
+        {% else %}
         <div style="font-size: 13pt;">No. <b>{{ doc.bir_serial or "(not yet issued)" }}</b></div>
+        {% endif %}
         <div>Date: {{ frappe.format(doc.posting_date, {"fieldtype": "Date"}) }}</div>
         <div style="font-size: 8pt; margin-top: 4px;">{{ copy }} COPY</div>
       </td>

@@ -73,6 +73,8 @@ def company_facts(company: str) -> dict:
     f["business_style"] = c.get("ph_business_style") or ""
     f["accn"] = c.get("ph_accn") or ""
     f["accn_date"] = c.get("ph_accn_date")
+    f["cr_atp_no"] = c.get("ph_cr_atp_no") or ""
+    f["cr_atp_date"] = c.get("ph_cr_atp_date")
     return f
 
 

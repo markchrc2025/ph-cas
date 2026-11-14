@@ -1,6 +1,6 @@
 # DAT layout verification
 
-Status of each alphalist layout the CAS writes. "verified" means byte-for-byte against a golden file from the BIR Data Entry module that passed the Validation module (gate G5); "sample" means built from docs/reference/bir-dat-sample-layouts.md only.
+Status of each alphalist layout the CAS writes. Since B48 every alphalist file carries the full 5-digit branch code (owner answer 8b); the samples and RMC 15-2025 Annex B show 4 digits, so check one file of each kind against the patched Validation module. "verified" means byte-for-byte against a golden file from the BIR Data Entry module that passed the Validation module (gate G5); "sample" means built from docs/reference/bir-dat-sample-layouts.md only.
 
 | File | Builder | Status | Notes |
 |---|---|---|---|

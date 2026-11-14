@@ -71,6 +71,7 @@ def tin9(tin: str) -> str:
 
 
 def branch4(branch: str) -> str:
+    """The DAT branch code: now the full 5 digits (RDO answer 8b); the name is kept for the callers."""
     from ph_cas.setup.master_data import dat_branch
 
     return dat_branch(branch or "00000")

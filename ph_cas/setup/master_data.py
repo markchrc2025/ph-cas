@@ -140,13 +140,11 @@ def validate_branch(code: str, label: str = "Branch code"):
 
 
 def dat_branch(code: str) -> str:
-    """The 4-digit branch code the alphalist DAT files take (RDO question 8b):
-    a 5-digit code with a leading zero drops it; anything else is refused."""
+    """The branch code the alphalist DAT files take: the full 5-digit code with its
+    leading zeroes (RDO answer 8b, 14 Nov 2026: the correct and complete branch code)."""
     code = (code or "00000").strip() or "00000"
     validate_branch(code)
-    if code[0] != "0":
-        frappe.throw(_("Branch code {0} cannot be written in a 4-digit DAT field. Ask the RDO (question 8b).").format(code))
-    return code[1:]
+    return code
 
 
 def validate_company(doc, method=None):
