@@ -98,4 +98,6 @@ def setup_philippine_company(company: str) -> dict:
     from ph_cas.audit.events import record
 
     record("settings_change", "Company", company, 0, {"setup_philippine_company": out})
+    if frappe.db.exists("Onboarding Step", "PH Set Up Company"):
+        frappe.db.set_value("Onboarding Step", "PH Set Up Company", "is_complete", 1)  # ticks the home card step
     return out

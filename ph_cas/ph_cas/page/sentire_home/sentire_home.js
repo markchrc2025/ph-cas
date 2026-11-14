@@ -49,6 +49,7 @@ class SentireHome {
 			<div class="sl-tiles"></div>
 			<div class="sl-section"><h2>${__("Create")}</h2><div class="sl-chips"></div></div>
 			<div class="sl-onboarding"></div>
+			<div class="sl-approvals"></div>
 			<div class="sl-section"><h2>${__("Business at a glance")}</h2><div class="sl-cards"></div></div>
 			<div class="sl-grid-2">
 				<div class="sl-card sl-chart-card"><div class="sl-card-head"><span>${__("Sales and purchases, last 12 months")}</span></div><div class="sl-chart"></div></div>
@@ -107,6 +108,23 @@ class SentireHome {
 		this.render_cards(d);
 		this.render_chart(d.monthly || []);
 		this.render_due(d.due || []);
+		this.render_approvals(d.approvals || []);
+	}
+
+	render_approvals(rows) {
+		const e = frappe.utils.escape_html;
+		const $el = this.$body.find(".sl-approvals").empty();
+		if (!rows.length) return;
+		$el.html(
+			`<div class="sl-card sl-approvals-card"><div class="sl-card-head"><span>${__("Awaiting your approval")}</span><a href="/app/ph-approval-request?status=Pending">${__("All requests")} &rarr;</a></div><ul class="sl-due-list">` +
+				rows
+					.map(
+						(r) => `<li class="soon"><a href="${r.url}"><b>${e(r.document_type)} ${e(r.document_name)}</b> <span>${e(r.step_title || "")}</span>
+							<span class="sl-due-when">${__("from {0}, {1}", [e(r.requested_by), frappe.datetime.prettyDate(r.requested_at)])}</span></a></li>`
+					)
+					.join("") +
+				`</ul></div>`
+		);
 	}
 
 	render_onboarding(ob) {

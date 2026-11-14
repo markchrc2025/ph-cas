@@ -1,9 +1,9 @@
-{%- set seller = frappe.get_attr("ph_cas.invoicing.printing.company_facts")(doc.company) -%}
-{%- set series = frappe.get_attr("ph_cas.invoicing.printing.series_facts")(doc) -%}
-{%- set buyer = frappe.get_attr("ph_cas.invoicing.printing.buyer_facts")(doc) -%}
-{%- set title = frappe.get_attr("ph_cas.invoicing.printing.document_title")(doc) -%}
+{%- set seller = ph_attr("ph_cas.invoicing.printing.company_facts")(doc.company) -%}
+{%- set series = ph_attr("ph_cas.invoicing.printing.series_facts")(doc) -%}
+{%- set buyer = ph_attr("ph_cas.invoicing.printing.buyer_facts")(doc) -%}
+{%- set title = ph_attr("ph_cas.invoicing.printing.document_title")(doc) -%}
 {%- set regime = doc.ph_tax_regime or "Non-VAT" -%}
-{%- set wht_line = frappe.get_attr("ph_cas.tax.customer_withholding.shows_less_withholding_line")(doc) -%}
+{%- set wht_line = ph_attr("ph_cas.tax.customer_withholding.shows_less_withholding_line")(doc) -%}
 {%- for copy in ["ORIGINAL", "DUPLICATE"] %}
 <div class="ph-invoice" style="font-family: Arial, Helvetica, sans-serif; font-size: 10pt; {% if not loop.first %}page-break-before: always;{% endif %}">
   {% if doc.ph_is_reprint %}
@@ -99,7 +99,7 @@
   <div style="margin-top: 14px; font-size: 8pt; border-top: 1px solid #000; padding-top: 4px;">
     ACCN {{ series.accn or seller.accn }} &middot; Date issued {{ frappe.format(series.date_issued or seller.accn_date, {"fieldtype": "Date"}) if (series.date_issued or seller.accn_date) else "" }} &middot; Series {{ series.range }}<br>
     {% if regime == "VAT" %}THIS INVOICE SHALL BE VALID FOR FIVE (5) YEARS FROM THE DATE OF THE ACKNOWLEDGMENT CERTIFICATE. Buyer's name and TIN are required to claim input tax.{% endif %}
-    {% if copy == "DUPLICATE" %}<br>{{ frappe.get_attr("ph_cas.audit.header.ph_header")(doc) }}{% endif %}
+    {% if copy == "DUPLICATE" %}<br>{{ ph_attr("ph_cas.audit.header.ph_header")(doc) }}{% endif %}
   </div>
 </div>
 {% endfor %}

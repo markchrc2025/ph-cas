@@ -1,0 +1,397 @@
+{
+ "doctype": "DocType",
+ "name": "PH Tax Return",
+ "module": "PH CAS",
+ "custom": 0,
+ "is_submittable": 1,
+ "autoname": "format:{form}-{period_key}-{company_abbr}",
+ "naming_rule": "Expression",
+ "engine": "InnoDB",
+ "editable_grid": 1,
+ "track_changes": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "field_order": [
+  "company",
+  "form",
+  "form_version",
+  "col_a",
+  "period_key",
+  "period_label",
+  "period_start",
+  "period_end",
+  "fiscal",
+  "col_b",
+  "status",
+  "is_amended",
+  "amends",
+  "amended_by",
+  "contact_number",
+  "sec_needs",
+  "needs_html",
+  "needs",
+  "warnings",
+  "sec_lines",
+  "lines",
+  "sec_inputs",
+  "inputs_html",
+  "sec_data",
+  "data",
+  "books_as_of",
+  "sec_files",
+  "export_file",
+  "export_file_name",
+  "col_c",
+  "preview_pdf",
+  "clear_copy",
+  "alphalist_file",
+  "sec_filing",
+  "confirmation",
+  "override_reason",
+  "col_d",
+  "filed_on",
+  "filed_reference",
+  "filed_snapshot",
+  "sec_notes",
+  "notes",
+  "amended_from",
+  "company_abbr"
+ ],
+ "fields": [
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "form",
+   "fieldtype": "Select",
+   "label": "Form",
+   "options": "\n2551Q\n2550Q\n0619-E\n1601-EQ\n1601-C\n1600-VT\n1701Q\n1701\n1701A\n1702Q\n1702-RT\n1604-E\n2307",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "form_version",
+   "fieldtype": "Data",
+   "label": "Form version",
+   "read_only": 1
+  },
+  {
+   "fieldname": "col_a",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "period_key",
+   "fieldtype": "Data",
+   "label": "Period",
+   "reqd": 1,
+   "in_list_view": 1,
+   "description": "2026-03 for a month, 2026-Q1 for a quarter, 2026 for a year"
+  },
+  {
+   "fieldname": "period_label",
+   "fieldtype": "Data",
+   "label": "Period label",
+   "read_only": 1
+  },
+  {
+   "fieldname": "period_start",
+   "fieldtype": "Date",
+   "label": "Period start",
+   "read_only": 1
+  },
+  {
+   "fieldname": "period_end",
+   "fieldtype": "Date",
+   "label": "Period end",
+   "read_only": 1
+  },
+  {
+   "fieldname": "fiscal",
+   "fieldtype": "Check",
+   "label": "Fiscal year",
+   "read_only": 1
+  },
+  {
+   "fieldname": "col_b",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Draft\nReady\nFiled\nAmended",
+   "read_only": 1,
+   "default": "Draft",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "allow_on_submit": 1
+  },
+  {
+   "fieldname": "is_amended",
+   "fieldtype": "Check",
+   "label": "Amended return",
+   "description": "Ticks the Amended Return box; the tax paid on the original counts as a credit."
+  },
+  {
+   "fieldname": "amends",
+   "fieldtype": "Link",
+   "label": "Amends",
+   "options": "PH Tax Return",
+   "read_only": 1
+  },
+  {
+   "fieldname": "amended_by",
+   "fieldtype": "Link",
+   "label": "Amended by",
+   "options": "PH Tax Return",
+   "read_only": 1,
+   "allow_on_submit": 1
+  },
+  {
+   "fieldname": "contact_number",
+   "fieldtype": "Data",
+   "label": "Contact number",
+   "description": "Printed on the return; fetched from the company and kept with the return."
+  },
+  {
+   "fieldname": "sec_needs",
+   "fieldtype": "Section Break",
+   "label": "What the return still needs"
+  },
+  {
+   "fieldname": "needs_html",
+   "fieldtype": "HTML",
+   "label": "Needs"
+  },
+  {
+   "fieldname": "needs",
+   "fieldtype": "JSON",
+   "label": "Needs (data)",
+   "hidden": 1
+  },
+  {
+   "fieldname": "warnings",
+   "fieldtype": "Small Text",
+   "label": "Warnings",
+   "read_only": 1
+  },
+  {
+   "fieldname": "sec_lines",
+   "fieldtype": "Section Break",
+   "label": "Figures"
+  },
+  {
+   "fieldname": "lines",
+   "fieldtype": "Table",
+   "label": "Items",
+   "options": "PH Tax Return Line",
+   "read_only": 1
+  },
+  {
+   "fieldname": "sec_inputs",
+   "fieldtype": "Section Break",
+   "label": "Figures to type"
+  },
+  {
+   "fieldname": "inputs_html",
+   "fieldtype": "HTML",
+   "label": "Inputs"
+  },
+  {
+   "fieldname": "sec_data",
+   "fieldtype": "Section Break",
+   "label": "Typed and books figures",
+   "collapsible": 1
+  },
+  {
+   "fieldname": "data",
+   "fieldtype": "JSON",
+   "label": "Data",
+   "description": "The draft's figures: the books' (with _source) and the typed ones. Derived figures are never stored."
+  },
+  {
+   "fieldname": "books_as_of",
+   "fieldtype": "Datetime",
+   "label": "Books figures as of",
+   "read_only": 1
+  },
+  {
+   "fieldname": "sec_files",
+   "fieldtype": "Section Break",
+   "label": "Files"
+  },
+  {
+   "fieldname": "export_file",
+   "fieldtype": "Attach",
+   "label": "eBIRForms file",
+   "read_only": 1
+  },
+  {
+   "fieldname": "export_file_name",
+   "fieldtype": "Data",
+   "label": "eBIRForms file name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "col_c",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "preview_pdf",
+   "fieldtype": "Attach",
+   "label": "Preview (DRAFT)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "clear_copy",
+   "fieldtype": "Attach",
+   "label": "Clear copy (as filed)",
+   "read_only": 1,
+   "allow_on_submit": 1
+  },
+  {
+   "fieldname": "alphalist_file",
+   "fieldtype": "Link",
+   "label": "Alphalist file",
+   "options": "PH Alphalist File",
+   "allow_on_submit": 1
+  },
+  {
+   "fieldname": "sec_filing",
+   "fieldtype": "Section Break",
+   "label": "Filing"
+  },
+  {
+   "fieldname": "confirmation",
+   "fieldtype": "Link",
+   "label": "BIR confirmation",
+   "options": "PH BIR Confirmation"
+  },
+  {
+   "fieldname": "override_reason",
+   "fieldtype": "Small Text",
+   "label": "Override reason",
+   "description": "System Manager only: file without the BIR confirmation e-mail, with the reason logged."
+  },
+  {
+   "fieldname": "col_d",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "filed_on",
+   "fieldtype": "Date",
+   "label": "Filed on",
+   "read_only": 1
+  },
+  {
+   "fieldname": "filed_reference",
+   "fieldtype": "Data",
+   "label": "BIR reference",
+   "read_only": 1
+  },
+  {
+   "fieldname": "filed_snapshot",
+   "fieldtype": "JSON",
+   "label": "Taxpayer block as filed",
+   "read_only": 1,
+   "hidden": 1
+  },
+  {
+   "fieldname": "sec_notes",
+   "fieldtype": "Section Break",
+   "label": "Notes",
+   "collapsible": 1
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Small Text",
+   "label": "Notes",
+   "allow_on_submit": 1
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "options": "PH Tax Return",
+   "read_only": 1,
+   "no_copy": 1,
+   "print_hide": 1
+  },
+  {
+   "fieldname": "company_abbr",
+   "fieldtype": "Data",
+   "label": "Company abbr",
+   "hidden": 1,
+   "read_only": 1
+  }
+ ],
+ "permissions": [
+  {
+   "role": "Accounts Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "submit": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1,
+   "amend": 1
+  },
+  {
+   "role": "PH Accounting Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "submit": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1,
+   "amend": 1
+  },
+  {
+   "role": "Accounts User",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "submit": 0,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "submit": 1,
+   "amend": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1
+  }
+ ],
+ "links": [],
+ "actions": [],
+ "states": [],
+ "title_field": "period_label",
+ "show_title_field_in_link": 0,
+ "creation": "2026-11-12 02:00:00.000000",
+ "modified": "2026-11-12 11:00:00.000000",
+ "modified_by": "Administrator",
+ "owner": "Administrator",
+ "idx": 0,
+ "docstatus": 0
+}

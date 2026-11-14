@@ -28,7 +28,9 @@
   "max_users",
   "max_companies",
   "max_branches",
-  "monthly_invoice_limit"
+  "monthly_invoice_limit",
+  "modules_section",
+  "approval_chains_enabled"
  ],
  "fields": [
   {
@@ -171,6 +173,17 @@
    "fieldtype": "Int",
    "label": "Invoices per month (0 = unlimited)",
    "read_only": 1
+  },
+  {
+   "fieldname": "modules_section",
+   "fieldtype": "Section Break",
+   "label": "Modules"
+  },
+  {
+   "fieldname": "approval_chains_enabled",
+   "fieldtype": "Check",
+   "label": "Approval chains",
+   "description": "Off: every chain is suspended and documents submit as usual. On: enabled chains gate Submit and Request approval shows on the form."
   }
  ],
  "index_web_pages_for_search": 0,

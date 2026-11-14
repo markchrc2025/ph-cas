@@ -13,10 +13,11 @@ from ph_cas.tests.test_b13_customer_withholding import _customer
 
 def render(doc, fmt):
     """Render the format's Jinja with the document, the way printview does,
-    without the bundled assets the test bench lacks."""
+    without the bundled assets the test bench lacks. The template sees the safe
+    Jinja globals only (no full `frappe` module): passing the module hid LDG-95."""
     doc.run_method("before_print", frappe._dict({"method": "print"}))
     pf = frappe.get_doc("Print Format", fmt)
-    return frappe.render_template(pf.html, {"doc": doc, "frappe": frappe})
+    return frappe.render_template(pf.html, {"doc": doc})
 
 
 class TestB20Prints(IntegrationTestCase):
@@ -97,6 +98,28 @@ class TestB20Prints(IntegrationTestCase):
         self.assertIn("THIS DOCUMENT IS NOT VALID FOR CLAIM OF INPUT TAX", html)
         self.assertIn(si.bir_serial, html)
         self.assertIn(pe.bir_serial, html)
+
+    def test_formats_call_helpers_through_ph_attr_only(self):
+        """LDG-95: Frappe v16's safe Jinja has no frappe.get_attr; ph_attr resolves
+        the allowlisted print helpers and nothing else."""
+        import os
+        import re
+
+        from ph_cas.invoicing.printing import PRINT_HELPERS, ph_attr
+
+        root = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "ph_cas", "print_format")
+        used = set()
+        for d in os.listdir(root):
+            html = os.path.join(root, d, f"{d}.html")
+            if os.path.exists(html):
+                text = open(html, encoding="utf-8").read()
+                self.assertNotIn("get_attr(", text, d)
+                used |= set(re.findall(r"ph_attr\(['\"]([^'\"]+)['\"]\)", text))
+        self.assertTrue(used)
+        self.assertLessEqual(used, PRINT_HELPERS)
+        self.assertTrue(callable(ph_attr("ph_cas.invoicing.printing.buyer_facts")))
+        with self.assertRaises(frappe.ValidationError):
+            ph_attr("frappe.db.sql")
 
     def test_default_print_formats_are_set(self):
         self.assertEqual(frappe.get_meta("Sales Invoice").default_print_format, "PH Sales Invoice")

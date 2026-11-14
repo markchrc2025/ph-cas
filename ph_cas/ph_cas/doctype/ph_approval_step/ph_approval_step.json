@@ -1,0 +1,146 @@
+{
+ "doctype": "DocType",
+ "name": "PH Approval Step",
+ "module": "PH CAS",
+ "custom": 0,
+ "engine": "InnoDB",
+ "track_changes": 0,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "istable": 1,
+ "editable_grid": 1,
+ "field_order": [
+  "step",
+  "title",
+  "recipient_type",
+  "role",
+  "user",
+  "group",
+  "dynamic_field",
+  "use_lookup",
+  "col",
+  "receiving_order",
+  "role_type",
+  "allow_self_approval",
+  "condition",
+  "private_note"
+ ],
+ "fields": [
+  {
+   "fieldname": "step",
+   "fieldtype": "Int",
+   "label": "Step",
+   "reqd": 1,
+   "in_list_view": 1,
+   "columns": 1
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title",
+   "reqd": 1,
+   "in_list_view": 1,
+   "columns": 2
+  },
+  {
+   "fieldname": "recipient_type",
+   "fieldtype": "Select",
+   "label": "Recipients",
+   "options": "Role\nUser\nGroup\nDynamic",
+   "reqd": 1,
+   "default": "Role",
+   "in_list_view": 1,
+   "columns": 1
+  },
+  {
+   "fieldname": "role",
+   "fieldtype": "Link",
+   "label": "Role",
+   "options": "Role",
+   "depends_on": "eval:doc.recipient_type=='Role'",
+   "mandatory_depends_on": "eval:doc.recipient_type=='Role'",
+   "in_list_view": 1,
+   "columns": 2
+  },
+  {
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "label": "User",
+   "options": "User",
+   "depends_on": "eval:doc.recipient_type=='User'",
+   "mandatory_depends_on": "eval:doc.recipient_type=='User'"
+  },
+  {
+   "fieldname": "group",
+   "fieldtype": "Link",
+   "label": "Group",
+   "options": "PH Approval Group",
+   "depends_on": "eval:doc.recipient_type=='Group'",
+   "mandatory_depends_on": "eval:doc.recipient_type=='Group'"
+  },
+  {
+   "fieldname": "dynamic_field",
+   "fieldtype": "Data",
+   "label": "Document field",
+   "depends_on": "eval:doc.recipient_type=='Dynamic'",
+   "mandatory_depends_on": "eval:doc.recipient_type=='Dynamic'",
+   "description": "A field naming a user (owner), an Employee (its reports-to user approves), or a value looked up in PH Approval Lookup"
+  },
+  {
+   "fieldname": "use_lookup",
+   "fieldtype": "Check",
+   "label": "Look the value up in PH Approval Lookup",
+   "depends_on": "eval:doc.recipient_type=='Dynamic'"
+  },
+  {
+   "fieldname": "col",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "receiving_order",
+   "fieldtype": "Select",
+   "label": "Receiving order",
+   "options": "Sequential\nAny one\nEveryone",
+   "default": "Any one",
+   "reqd": 1,
+   "in_list_view": 1,
+   "columns": 1
+  },
+  {
+   "fieldname": "role_type",
+   "fieldtype": "Select",
+   "label": "Role",
+   "options": "Approver\nNotify",
+   "default": "Approver",
+   "reqd": 1,
+   "in_list_view": 1,
+   "columns": 1
+  },
+  {
+   "fieldname": "allow_self_approval",
+   "fieldtype": "Check",
+   "label": "Requestor may decide this step"
+  },
+  {
+   "fieldname": "condition",
+   "fieldtype": "Small Text",
+   "label": "Condition",
+   "description": "Python expression on doc; the step is skipped when false. Example: doc.grand_total > 50000"
+  },
+  {
+   "fieldname": "private_note",
+   "fieldtype": "Small Text",
+   "label": "Private note to the recipients"
+  }
+ ],
+ "permissions": [],
+ "links": [],
+ "actions": [],
+ "states": [],
+ "idx": 0,
+ "docstatus": 0,
+ "modified": "2026-11-12 00:00:00.000000",
+ "modified_by": "Administrator",
+ "owner": "Administrator",
+ "creation": "2026-11-12 00:00:00.000000"
+}

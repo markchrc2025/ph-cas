@@ -11,11 +11,11 @@ after_migrate = "ph_cas.setup.install.after_migrate"
 
 before_tests = "ph_cas.tests.setup.before_tests"
 
-doctype_js = {"Company": "public/js/company.js"}
+doctype_js = {"Company": "public/js/company.js", "Sales Invoice": "public/js/sales_invoice.js"}
 
 # B38 branding: the product, never the framework, is what users see (ph_cas.branding)
 app_logo_url = "/assets/ph_cas/images/logo.svg"
-app_include_js = ["/assets/ph_cas/js/branding.js"]
+app_include_js = ["/assets/ph_cas/js/branding.js", "/assets/ph_cas/js/approvals.js"]
 app_include_css = ["/assets/ph_cas/css/sentire.css"]
 boot_session = "ph_cas.branding.boot_session"
 extend_bootinfo = "ph_cas.branding.extend_bootinfo"
@@ -30,9 +30,10 @@ doc_events = {
         "on_trash": "ph_cas.controls.locks.refuse_delete",
         "before_update_after_submit": "ph_cas.controls.posted_fields.refuse_posted_field_changes",
         "validate": "ph_cas.controls.dates.validate_posting_date",
+        "before_submit": "ph_cas.approvals.gate.before_submit",
         "before_print": ["ph_cas.controls.dates.refuse_draft_print", "ph_cas.invoicing.printing.before_print", "ph_cas.audit.events.on_before_print"],
         "after_insert": "ph_cas.audit.events.on_after_insert",
-        "on_update": "ph_cas.audit.events.on_update",
+        "on_update": ["ph_cas.audit.events.on_update", "ph_cas.approvals.gate.on_update"],
         "on_submit": "ph_cas.audit.events.on_submit",
         "on_cancel": "ph_cas.audit.events.on_cancel",
         "on_update_after_submit": "ph_cas.audit.events.on_update_after_submit",
@@ -45,6 +46,7 @@ doc_events = {
         "before_validate": ["ph_cas.tax.sc_pwd.before_validate", "ph_cas.tax.vat.before_validate"],
         "validate": ["ph_cas.tax.vat.validate", "ph_cas.tax.customer_withholding.validate", "ph_cas.invoicing.rules.validate_buyer_details"],
         "before_submit": ["ph_cas.controls.serial.assign_serial", "ph_cas.hosting.tiers.validate_invoice_volume"],
+        "before_cancel": "ph_cas.invoicing.rules.refuse_cancel",
     },
     "Purchase Invoice": {
         "before_validate": ["ph_cas.tax.purchase.before_validate", "ph_cas.tax.reverse_charge.before_validate"],
@@ -123,5 +125,6 @@ jinja = {
         "ph_cas.audit.header.ph_header_lines",
         "ph_cas.audit.header.software_name",
         "ph_cas.audit.header.software_version",
+        "ph_cas.invoicing.printing.ph_attr",
     ]
 }

@@ -1,5 +1,5 @@
 {%- set c = frappe.get_cached_doc("Company", doc.company) -%}
-{%- set facts = frappe.get_attr("ph_cas.audit.header.company_facts")(doc.company) -%}
+{%- set facts = ph_attr("ph_cas.audit.header.company_facts")(doc.company) -%}
 {%- macro boxes(s, n) -%}
   {%- set s = (s or "")|string -%}
   <span class="boxes">{% for i in range(n) %}<span class="bx">{{ s[i] if i < s|length else "&nbsp;" }}</span>{% endfor %}</span>

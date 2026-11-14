@@ -103,3 +103,15 @@ def buyer_facts(doc) -> dict:
     if not address and doc.get("address_display"):
         address = frappe.utils.strip_html(doc.address_display).replace("\n", ", ")
     return {"name": party.get("ph_registered_name") or party.get("customer_name") or party.name, "tin": f"{tin}-{branch}" if tin else "", "address": address, "vat_status": party.get("ph_vat_status") or ""}
+
+
+# Print formats call these helpers by dotted path. Frappe v16 no longer exposes
+# frappe.get_attr in the safe Jinja environment, so the formats use ph_attr, a
+# jinja method (hooks.py) that only resolves the paths listed here.
+PRINT_HELPERS = frozenset({"ph_cas.audit.header.company_facts", "ph_cas.audit.header.ph_header", "ph_cas.invoicing.printing.buyer_facts", "ph_cas.invoicing.printing.company_facts", "ph_cas.invoicing.printing.document_title", "ph_cas.invoicing.printing.series_facts", "ph_cas.tax.customer_withholding.shows_less_withholding_line"})
+
+
+def ph_attr(path: str):
+    if path not in PRINT_HELPERS:
+        frappe.throw(f"{path} is not a print helper")
+    return frappe.get_attr(path)

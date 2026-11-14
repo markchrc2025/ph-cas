@@ -1,0 +1,86 @@
+{
+ "doctype": "DocType",
+ "name": "PH Approval Decision",
+ "module": "PH CAS",
+ "custom": 0,
+ "engine": "InnoDB",
+ "track_changes": 0,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "istable": 1,
+ "editable_grid": 1,
+ "field_order": [
+  "step",
+  "step_title",
+  "recipient",
+  "role_type",
+  "decision",
+  "decided_at",
+  "comment"
+ ],
+ "fields": [
+  {
+   "fieldname": "step",
+   "fieldtype": "Int",
+   "label": "Step",
+   "in_list_view": 1,
+   "columns": 1
+  },
+  {
+   "fieldname": "step_title",
+   "fieldtype": "Data",
+   "label": "Step",
+   "in_list_view": 1,
+   "columns": 2
+  },
+  {
+   "fieldname": "recipient",
+   "fieldtype": "Link",
+   "label": "Recipient",
+   "options": "User",
+   "in_list_view": 1,
+   "columns": 2
+  },
+  {
+   "fieldname": "role_type",
+   "fieldtype": "Select",
+   "label": "Role",
+   "options": "Approver\nNotify",
+   "in_list_view": 1,
+   "columns": 1
+  },
+  {
+   "fieldname": "decision",
+   "fieldtype": "Select",
+   "label": "Decision",
+   "options": "Waiting\nPending\nApproved\nRejected\nSkipped\nNotified",
+   "default": "Waiting",
+   "in_list_view": 1,
+   "columns": 1
+  },
+  {
+   "fieldname": "decided_at",
+   "fieldtype": "Datetime",
+   "label": "Decided at",
+   "in_list_view": 1,
+   "columns": 2
+  },
+  {
+   "fieldname": "comment",
+   "fieldtype": "Small Text",
+   "label": "Comment",
+   "in_list_view": 1,
+   "columns": 2
+  }
+ ],
+ "permissions": [],
+ "links": [],
+ "actions": [],
+ "states": [],
+ "idx": 0,
+ "docstatus": 0,
+ "modified": "2026-11-12 00:00:00.000000",
+ "modified_by": "Administrator",
+ "owner": "Administrator",
+ "creation": "2026-11-12 00:00:00.000000"
+}

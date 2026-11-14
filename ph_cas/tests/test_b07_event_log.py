@@ -28,10 +28,10 @@ class TestB07EventLog(IntegrationTestCase):
         events = [r.event for r in _rows(ref_name=si.name)]
         self.assertIn("create", events)
         self.assertIn("submit", events)
-        si.cancel()
-        self.assertIn("cancel", [r.event for r in _rows(ref_name=si.name)])
+        # an issued invoice is never cancelled (LDG-96): the cancel event is a journal entry's
         je = make_journal_entry()
         je.cancel()
+        self.assertIn("cancel", [r.event for r in _rows(ref_name=je.name)])
         amended = frappe.copy_doc(je)
         amended.amended_from = je.name
         amended.docstatus = 0

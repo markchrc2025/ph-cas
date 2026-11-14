@@ -170,6 +170,9 @@ def _ensure_demo_company(code: str, hint: str) -> str:
     from ph_cas.setup.chart import setup_philippine_company
 
     setup_philippine_company(name)
+    from ph_cas.approvals.chains import install_demo
+
+    install_demo(name)
     return name
 
 

@@ -1,0 +1,79 @@
+{
+ "doctype": "DocType",
+ "name": "PH Approval Group",
+ "module": "PH CAS",
+ "custom": 0,
+ "engine": "InnoDB",
+ "track_changes": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "istable": 0,
+ "editable_grid": 0,
+ "field_order": [
+  "group_name",
+  "description",
+  "users"
+ ],
+ "fields": [
+  {
+   "fieldname": "group_name",
+   "fieldtype": "Data",
+   "label": "Group name",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "label": "Description"
+  },
+  {
+   "fieldname": "users",
+   "fieldtype": "Table",
+   "label": "Members",
+   "options": "PH Approval Group User",
+   "reqd": 1
+  }
+ ],
+ "permissions": [
+  {
+   "role": "Accounts Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "report": 1,
+   "delete": 1
+  },
+  {
+   "role": "PH Accounting Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "report": 1,
+   "delete": 1
+  },
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "report": 1,
+   "delete": 1
+  },
+  {
+   "role": "Accounts User",
+   "read": 1
+  }
+ ],
+ "links": [],
+ "actions": [],
+ "states": [],
+ "idx": 0,
+ "docstatus": 0,
+ "modified": "2026-11-12 00:00:00.000000",
+ "modified_by": "Administrator",
+ "owner": "Administrator",
+ "creation": "2026-11-12 00:00:00.000000",
+ "autoname": "field:group_name",
+ "naming_rule": "By fieldname"
+}

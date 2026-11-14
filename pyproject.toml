@@ -5,7 +5,7 @@ description = "BIR-registrable Philippine computerized accounting system (CAS) o
 requires-python = ">=3.14"
 readme = "README.md"
 dynamic = ["version"]
-dependencies = []
+dependencies = ["reportlab>=4.0", "fonttools>=4.0"]
 
 [build-system]
 requires = ["flit_core >=3.4,<4"]

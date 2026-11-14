@@ -47,7 +47,7 @@ class TestB26_2307(IntegrationTestCase):
         doc = frappe.get_doc("PH 2307 Issued", {"supplier": self.sup, "docstatus": 0})
         doc.submit()
         pf = frappe.get_doc("Print Format", "PH BIR 2307")
-        html = frappe.render_template(pf.html, {"doc": doc, "frappe": frappe})
+        html = frappe.render_template(pf.html, {"doc": doc})
         for needle in ["Certificate of Creditable Tax Withheld at Source", "Part I", "Payee Information", "Part II", "Payor Information", "Part III", "WI100", "Santos, Maria, Cruz", "CONFORME", "Money Payments Subject to Withholding of Business Tax", "Data Privacy Act"]:
             self.assertIn(needle, html, needle)
         self.assertEqual(html.count('class="bx"'), 8 + 8 + 14 + 4 + 14 + 4 + 8 * 4)
