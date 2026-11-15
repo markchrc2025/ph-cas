@@ -20,6 +20,7 @@
 #   ledger-site report                usage of every site as CSV (for the PH Subscription records on MCRC's site)
 #   ledger-site snapshot-demo <site>  take the golden snapshot of a demo site (done once after the seed)
 #   ledger-site reset-demo <site>     restore the golden snapshot and re-issue access to still-valid demo users
+#   ledger-site reset-staging <site>  restore the staging QA snapshot (docs/STAGING.md)
 set -euo pipefail
 BENCH=/home/frappe/bench
 DOMAIN="${CLIENT_DOMAIN:-${SITE_NAME:-}}"
@@ -149,6 +150,17 @@ import ast,sys; u=ast.literal_eval(sys.stdin.read().strip()); print(','.join(str
     as_frappe "bench --site '$SITE' clear-cache" >/dev/null
     echo "demo $SITE reset from golden snapshot"
     ;;
+  reset-staging)
+    SITE=$(site_of "${1:?site}")
+    GOLD="$BENCH/sites/$SITE/private/golden-database.sql.gz"
+    [ -f "$GOLD" ] || { echo "no QA snapshot for $SITE"; exit 1; }
+    grep -q '"ph_staging_site": 1' "$BENCH/sites/$SITE/site_config.json" || { echo "$SITE is not a staging site"; exit 1; }
+    as_frappe "bench --site '$SITE' --force restore '$GOLD' --db-root-password '$DBROOT'" >/dev/null
+    as_frappe "bench --site '$SITE' migrate" >/dev/null
+    as_frappe "bench --site '$SITE' execute ph_cas.qa.api.ensure_qa_user" >/dev/null
+    as_frappe "bench --site '$SITE' clear-cache" >/dev/null
+    echo "staging $SITE reset from the QA snapshot"
+    ;;
   *)
-    sed -n '2,21p' "$0"; exit 2 ;;
+    sed -n '2,22p' "$0"; exit 2 ;;
 esac

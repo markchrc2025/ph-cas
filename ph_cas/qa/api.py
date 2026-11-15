@@ -1,0 +1,228 @@
+"""Staging QA (docs/STAGING.md): the QA company, the QA admin, scenarios, and a status call for the
+QA connector (ph_cas.qa.mcp_server).
+
+Everything here refuses to run unless the site is a staging site: site config `ph_staging_site: 1`
+and not `ph_cas_production: 1`. The container sets those only when PH_STAGING=1.
+"""
+
+import os
+
+import frappe
+from frappe import _
+from frappe.utils import add_days, getdate, today
+
+QA_USER = "qa.admin@sentire.solutions"
+QA_ROLES = (
+    "System Manager", "Accounting Manager", "Accounts Manager", "Accounts User", "Sales Manager", "Sales User",
+    "Purchase Manager", "Purchase User", "Stock Manager", "Stock User", "Manufacturing Manager", "Projects Manager",
+    "Item Manager", "Maintenance Manager", "Quality Manager", "Support Team",
+)
+
+
+def is_staging() -> bool:
+    return bool(frappe.conf.get("ph_staging_site")) and not frappe.conf.get("ph_cas_production")
+
+
+def require_staging():
+    if not is_staging():
+        frappe.throw(_("This works only on the staging site."), frappe.PermissionError)
+
+
+# ---- the base data, created once per container and kept as the golden snapshot -------------------
+def seed():
+    """bench --site <staging> execute ph_cas.qa.api.seed"""
+    require_staging()
+    from ph_cas import demo
+    from ph_cas.modules.api import catalogue, set_modules
+
+    frappe.set_user("Administrator")
+    demo.seed()  # the VAT company with an invoice, a bill and the quarter's 2550Q
+    set_modules([m["key"] for m in catalogue()])  # staging tests every module
+    s = frappe.get_single("PH CAS Settings")
+    s.product_name = "Sentire Ledger (staging)"
+    s.save()
+    ensure_qa_user()
+    frappe.db.set_single_value("System Settings", "enable_two_factor_auth", 0)
+    frappe.db.commit()
+    return "seeded"
+
+
+def ensure_qa_user():
+    """The QA admin the connector signs in as. Its password is STAGING_ADMIN_PASSWORD (Dokploy)."""
+    require_staging()
+    password = os.environ.get("STAGING_ADMIN_PASSWORD")
+    if not frappe.db.exists("User", QA_USER):
+        frappe.get_doc({"doctype": "User", "email": QA_USER, "first_name": "QA", "last_name": "Admin", "send_welcome_email": 0, "user_type": "System User"}).insert(ignore_permissions=True)
+    user = frappe.get_doc("User", QA_USER)
+    have = {r.role for r in user.roles}
+    for role in QA_ROLES:
+        if role not in have and frappe.db.exists("Role", role):
+            user.append("roles", {"role": role})
+    user.enabled = 1
+    user.flags.ignore_permissions = True
+    user.save()
+    if password:
+        from frappe.utils.password import update_password
+
+        update_password(QA_USER, password)
+    company = frappe.get_all("Company", pluck="name", limit=1)
+    if company:
+        frappe.defaults.set_user_default("company", company[0], QA_USER)
+    frappe.db.commit()
+
+
+# ---- for the connector ----------------------------------------------------------------------------
+@frappe.whitelist()
+def status() -> dict:
+    require_staging()
+    from ph_cas.modules.api import modules_on
+
+    import ph_cas
+
+    try:
+        erp = frappe.get_attr("erpnext.__version__")
+    except Exception:
+        erp = None
+    return {
+        "site": frappe.local.site,
+        "user": frappe.session.user,
+        "versions": {"ph_cas": ph_cas.__version__, "erpnext": erp, "frappe": frappe.__version__},
+        "companies": frappe.get_all("Company", fields=["name", "abbr", "tax_id", "ph_vat_status"]),
+        "modules_on": modules_on(),
+        "counts": {dt: frappe.db.count(dt, {"docstatus": 1}) for dt in ("Sales Invoice", "Purchase Invoice", "Payment Entry", "Journal Entry")},
+        "tax_rules": {
+            "confirmed": frappe.db.count("PH Tax Rule", {"status": "confirmed"}),
+            "draft": frappe.db.count("PH Tax Rule", {"status": "draft"}),
+        },
+        "tax_returns": frappe.db.count("PH Tax Return"),
+        "scenarios": sorted(SCENARIOS),
+    }
+
+
+@frappe.whitelist(methods=["POST"])
+def seed_scenario(scenario: str, company: str | None = None) -> dict:
+    require_staging()
+    frappe.only_for("System Manager")
+    if scenario not in SCENARIOS:
+        frappe.throw(_("Unknown scenario {0}. Choose one of: {1}").format(scenario, ", ".join(sorted(SCENARIOS))))
+    company = company or frappe.defaults.get_user_default("company") or frappe.get_all("Company", pluck="name")[0]
+    out = SCENARIOS[scenario](company)
+    frappe.db.commit()
+    return {"scenario": scenario, "company": company, **out}
+
+
+# ---- scenarios ------------------------------------------------------------------------------------
+def _abbr(company):
+    return frappe.get_cached_value("Company", company, "abbr")
+
+
+def _item(code, vat_class="VATable", group="Services"):
+    if not frappe.db.exists("Item", code):
+        frappe.get_doc({"doctype": "Item", "item_code": code, "item_name": code, "item_group": group if frappe.db.exists("Item Group", group) else "All Item Groups", "stock_uom": "Nos", "is_stock_item": 0, "ph_vat_class": vat_class}).insert(ignore_permissions=True)
+    return code
+
+
+def _customer(name, **f):
+    if not frappe.db.exists("Customer", name):
+        frappe.get_doc({"doctype": "Customer", "customer_name": name, "customer_type": "Company", "customer_group": "Commercial" if frappe.db.exists("Customer Group", "Commercial") else "All Customer Groups", "territory": "All Territories", **f}).insert(ignore_permissions=True)
+    return name
+
+
+def _supplier(name, **f):
+    if not frappe.db.exists("Supplier", name):
+        frappe.get_doc({"doctype": "Supplier", "supplier_name": name, "supplier_type": "Company", "supplier_group": "All Supplier Groups", **f}).insert(ignore_permissions=True)
+    return name
+
+
+def _sales(company, customer, lines, posting_date, manual_no):
+    a = _abbr(company)
+    si = frappe.get_doc({
+        "doctype": "Sales Invoice", "company": company, "customer": customer, "posting_date": posting_date, "set_posting_time": int(str(posting_date) != today()),
+        "due_date": add_days(posting_date, 30), "debit_to": f"Debtors - {a}", "ph_manual_invoice_no": manual_no,
+        "items": [{"item_code": code, "qty": qty, "rate": rate, "income_account": f"Sales - {a}", "cost_center": f"Main - {a}"} for code, qty, rate in lines],
+    })
+    si.insert(ignore_permissions=True)
+    si.submit()
+    return si.name
+
+
+def _bill(company, supplier, lines, posting_date, bill_no):
+    a = _abbr(company)
+    pi = frappe.get_doc({
+        "doctype": "Purchase Invoice", "company": company, "supplier": supplier, "posting_date": posting_date, "set_posting_time": int(str(posting_date) != today()),
+        "due_date": add_days(posting_date, 30), "bill_no": bill_no, "bill_date": posting_date, "credit_to": f"Creditors - {a}",
+        "items": [{"item_code": code, "qty": qty, "rate": rate, "expense_account": f"Administrative Expenses - {a}", "cost_center": f"Main - {a}"} for code, qty, rate in lines],
+    })
+    pi.insert(ignore_permissions=True)
+    pi.submit()
+    return pi.name
+
+
+class _history:
+    """Seeding only: a quarter of history needs earlier posting dates, which the posting-date lock
+    refuses (documents carry the day they are posted). On a staging site the scenario lifts the
+    locks for its own inserts, the way the test escape hatch does, and puts them back."""
+
+    def __enter__(self):
+        require_staging()
+        self.before = frappe.local.conf.get("ph_cas_unlocked")
+        frappe.local.conf["ph_cas_unlocked"] = 1
+
+    def __exit__(self, *exc):
+        if self.before is None:
+            frappe.local.conf.pop("ph_cas_unlocked", None)
+        else:
+            frappe.local.conf["ph_cas_unlocked"] = self.before
+
+
+def scenario_vat_quarter(company):
+    """Three months of sales and bills in the current quarter: VATable, zero-rated and exempt sales,
+    a top-withholding-agent customer, goods and professional-fee suppliers with EWT."""
+    from ph_cas.tax.returns import quarter_bounds
+
+    qs, _qe = quarter_bounds(today())
+    c1 = _customer("QA Retail Corp.", ph_tin="000-901-001", ph_branch_code="00000", ph_vat_status="VAT", ph_top_withholding_agent=1, ph_registered_name="QA RETAIL CORP.", ph_address_line1="1 QA Street, Pasig City", ph_zip="1605")
+    c2 = _customer("QA Exporters Inc.", ph_tin="000-901-002", ph_branch_code="00000", ph_vat_status="VAT", ph_registered_name="QA EXPORTERS INC.", ph_address_line1="2 QA Street, Cebu City", ph_zip="6000")
+    s1 = _supplier("QA Supplies Corp.", ph_tin="000-902-001", ph_branch_code="00000", ph_vat_status="VAT", ph_payee_type="Non-individual", ph_ewt_category="goods", ph_registered_name="QA SUPPLIES CORP.", ph_address_line1="3 QA Street, Makati City", ph_zip="1200")
+    s2 = _supplier("QA Law Office", ph_tin="000-902-002", ph_branch_code="00000", ph_vat_status="VAT", ph_payee_type="Non-individual", ph_ewt_category="professional", ph_registered_name="QA LAW OFFICE", ph_address_line1="4 QA Street, Taguig City", ph_zip="1630")
+    vat, zero, exempt = _item("QA Service", "VATable"), _item("QA Export Service", "Zero-rated"), _item("QA Exempt Book", "VAT-exempt")
+    made = {"sales_invoices": [], "purchase_invoices": []}
+    with _history():
+        _fill_quarter(company, qs, c1, c2, s1, s2, vat, zero, exempt, made)
+    return made
+
+
+def _fill_quarter(company, qs, c1, c2, s1, s2, vat, zero, exempt, made):
+    if frappe.get_cached_value("Company", company, "ph_vat_status") != "VAT":
+        zero = vat  # a non-VAT seller has no zero-rated sales (percentage tax on everything it sells)
+    for m in range(3):
+        d = add_days(getdate(qs), 30 * m + 5)
+        if d > getdate(today()):
+            break
+        made["sales_invoices"].append(_sales(company, c1, [(vat, 2, 15000), (exempt, 5, 300)], d, f"QA-{d:%m}-001"))
+        made["sales_invoices"].append(_sales(company, c2, [(zero, 1, 40000)], d, f"QA-{d:%m}-002"))
+        made["purchase_invoices"].append(_bill(company, s1, [(vat, 1, 12000)], d, f"QA-SUP-{d:%m}"))
+        made["purchase_invoices"].append(_bill(company, s2, [(vat, 1, 20000)], d, f"QA-LAW-{d:%m}"))
+
+
+def scenario_non_vat_company(company):
+    """A second, non-VAT company (percentage tax, 2551Q) with two sales."""
+    from ph_cas.setup.chart import setup_philippine_company
+
+    name = "QA Corner Store"
+    if not frappe.db.exists("Company", name):
+        frappe.get_doc({"doctype": "Company", "company_name": name, "abbr": "QACS", "default_currency": "PHP", "country": "Philippines", "chart_of_accounts": "Standard"}).insert(ignore_permissions=True)
+    frappe.db.set_value("Company", name, {"tax_id": "000-903-001", "ph_branch_code": "00000", "ph_rdo": "045", "ph_vat_status": "Non-VAT", "ph_registered_name": "QA CORNER STORE", "ph_incorporation_date": "2022-01-10", "ph_taxpayer_class": "Micro"}, update_modified=False)
+    frappe.clear_document_cache("Company", name)
+    setup_philippine_company(name)
+    c = _customer("QA Walk-in Customer", ph_vat_status="Non-VAT")
+    item = _item("QA Snack Pack", "VATable", "Products")
+    d = today()
+    made = [_sales(name, c, [(item, 20, 45)], d, f"QACS-{d}-1"), _sales(name, c, [(item, 12, 45)], d, f"QACS-{d}-2")]
+    return {"company_created": name, "sales_invoices": made}
+
+
+SCENARIOS = {
+    "vat_quarter": scenario_vat_quarter,
+    "non_vat_company": scenario_non_vat_company,
+}
