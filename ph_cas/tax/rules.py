@@ -1,6 +1,6 @@
 """B11: the tax rules table, its resolver and the sign-off check.
 
-Rules are data (PH Tax Rule). A rule is `draft` until the CPA's sign-off file
+Rules are data (PH Tax Rule). A rule is `draft` until the accountant's sign-off file
 names it. Production sites refuse to apply a draft rule; test and development
 sites apply drafts so the engine can be built and tested before sign-off.
 """
@@ -86,7 +86,7 @@ def resolve(kind: str, date, atc: str | None = None, allow_draft: bool | None = 
         allow_draft = not is_production_site()
     if rule.status != "confirmed" and not allow_draft:
         raise PHDraftRuleError(
-            _("Rule {0} ({1}) has not been confirmed by the CPA. It cannot be applied on a production site.").format(rule.rule_id, rule.title)
+            _("Rule {0} ({1}) has not been confirmed by your accountant. It cannot be applied on a production site.").format(rule.rule_id, rule.title)
         )
     return rule
 

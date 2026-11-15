@@ -163,6 +163,7 @@ def _ensure_demo_company(code: str, hint: str) -> str:
             "ph_branch_code": "00000",
             "ph_vat_status": "VAT",
             "ph_registered_name": name.upper(),
+            "ph_incorporation_date": "2021-03-01",
         }
     )
     co.flags.ignore_permissions = True

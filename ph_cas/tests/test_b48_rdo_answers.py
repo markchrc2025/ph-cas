@@ -108,3 +108,31 @@ class TestB48RdoAnswers(IntegrationTestCase):
         t = out["files"]["TRANSMITTAL.txt"].decode()
         self.assertIn("USB label:", t)
         self.assertIn("CSV (comma-separated text)", t)
+
+
+class TestIncorporationDate(IntegrationTestCase):
+    """Owner, 15 Nov 2026: a non-individual's date of incorporation is required once the TIN is set."""
+
+    def test_required_for_non_individual_with_tin_only(self):
+        frappe.set_user("Administrator")
+        c = frappe.get_doc("Company", TEST_COMPANY)
+        keep = (c.tax_id, c.get("ph_taxpayer_type"), c.get("ph_incorporation_date"))
+        try:
+            c.ph_taxpayer_type = "Non-individual"
+            c.ph_incorporation_date = None
+            c.tax_id = "123-456-789"
+            with self.assertRaisesRegex(frappe.ValidationError, "incorporation"):
+                c.save()
+            c.reload()
+            c.ph_taxpayer_type, c.ph_incorporation_date, c.tax_id = "Non-individual", None, ""
+            c.save()  # no TIN yet (setup wizard): accepted
+            c.reload()
+            c.ph_taxpayer_type, c.ph_incorporation_date, c.tax_id = "Individual", None, "123-456-789"
+            c.ph_last_name, c.ph_first_name = c.get("ph_last_name") or "Santos", c.get("ph_first_name") or "Maria"
+            c.save()  # an individual has no incorporation date: accepted
+            c.reload()
+            c.ph_taxpayer_type, c.ph_incorporation_date, c.tax_id = "Non-individual", "2020-02-03", "123-456-789"
+            c.save()
+        finally:
+            frappe.db.set_value("Company", TEST_COMPANY, {"tax_id": keep[0], "ph_taxpayer_type": keep[1], "ph_incorporation_date": keep[2]}, update_modified=False)
+            frappe.clear_document_cache("Company", TEST_COMPANY)

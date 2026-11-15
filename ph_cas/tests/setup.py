@@ -14,6 +14,7 @@ def before_tests():
         from ph_cas.setup.chart import setup_philippine_company
 
         setup_philippine_company(TEST_COMPANY)
+        _incorporated(TEST_COMPANY)
         frappe.db.commit()
         return
     from frappe.desk.page.setup_wizard.setup_wizard import setup_complete
@@ -41,3 +42,12 @@ def before_tests():
 
     setup_philippine_company(TEST_COMPANY)
     frappe.db.commit()
+    _incorporated(TEST_COMPANY)
+    frappe.db.commit()
+
+
+def _incorporated(company: str):
+    """The test company is a non-individual: since 15 Nov 2026 a saved company
+    with a TIN needs its date of incorporation (ph_cas.setup.master_data)."""
+    if not frappe.db.get_value("Company", company, "ph_incorporation_date"):
+        frappe.db.set_value("Company", company, "ph_incorporation_date", "2020-01-15", update_modified=False)
