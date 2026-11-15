@@ -105,3 +105,33 @@ class TestB33Demo(IntegrationTestCase):
         # a recorded subscription ends the pilot logic
         set_tier("Team", subscription_until=add_days(today(), 300), pilot_until=add_days(today(), -31))
         self.assertFalse(daily_pilot_check()["pilot"])
+
+
+class TestDemoSeedCompany(IntegrationTestCase):
+    def test_the_seed_gives_a_company_with_a_tin_its_date_of_incorporation_first(self):
+        """A restart re-runs the seed on a company that already has its TIN; since #54 the
+        Company refuses to save without a date of incorporation, so the seed sets it first."""
+        from unittest.mock import patch
+
+        from ph_cas import demo
+
+        frappe.set_user("Administrator")
+        company = frappe.get_all("Company", pluck="name")[0]
+        before = frappe.db.get_value("Company", company, ["tax_id", "ph_incorporation_date"], as_dict=True)
+        seen = {}
+
+        class Stop(Exception):
+            pass
+
+        def fake_setup(name):
+            seen["date"] = frappe.db.get_value("Company", name, "ph_incorporation_date")
+            raise Stop
+
+        try:
+            frappe.db.set_value("Company", company, {"tax_id": "000-111-222", "ph_incorporation_date": None}, update_modified=False)
+            with patch("ph_cas.setup.chart.setup_philippine_company", fake_setup):
+                with self.assertRaises(Stop):
+                    demo.seed()
+            self.assertTrue(seen["date"])
+        finally:
+            frappe.db.set_value("Company", company, {"tax_id": before.tax_id, "ph_incorporation_date": before.ph_incorporation_date}, update_modified=False)
