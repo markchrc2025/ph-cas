@@ -130,7 +130,7 @@ def ensure_module_onboarding():
     mo.title = "Get to know Sentire Ledger"
     mo.module = MODULE
     mo.set("steps", [{"step": s["name"], "is_optional": 0} for s in STEPS])
-    mo.set("allow_roles", [{"role": r} for r in ("System Manager", "Accounts Manager", "Accounts User", "PH Accounting Manager") if frappe.db.exists("Role", r)])
+    mo.set("allow_roles", [{"role": r} for r in ("System Manager", "Accounts Manager", "Accounts User", "Accounting Manager") if frappe.db.exists("Role", r)])
     mo.flags.ignore_permissions = True
     if mo.is_new():
         mo.insert()

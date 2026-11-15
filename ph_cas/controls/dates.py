@@ -2,12 +2,12 @@
 
 - Sales documents and receipts carry the day they are posted (D5). Journal
   Entries and Purchase Invoices may be back-dated into an open period only by
-  a PH Accounting Manager who gives a reason. Nothing is future-dated.
+  a Accounting Manager who gives a reason. Nothing is future-dated.
 - Drafts of posted voucher types cannot be printed or turned into PDFs.
-- Accounting Periods are created and closed by PH Accounting Manager only, and
+- Accounting Periods are created and closed by Accounting Manager only, and
   a closed period closes every posted voucher type with no exempted role.
 - Perpetual inventory stays off (D7); stock documents cannot be back-dated and
-  Stock Reconciliation is limited to PH Accounting Manager.
+  Stock Reconciliation is limited to Accounting Manager.
 """
 
 import frappe
@@ -16,7 +16,7 @@ from frappe.utils import getdate, nowdate
 
 from ph_cas.controls.locks import POSTED_VOUCHER_TYPES, PHLockError, locks_active
 
-MANAGER_ROLE = "PH Accounting Manager"
+MANAGER_ROLE = "Accounting Manager"
 
 # Posted on the day, no exceptions (D5).
 SAME_DAY_DOCTYPES = frozenset(
@@ -184,6 +184,10 @@ def setup():
     """Called from setup_all. Idempotent."""
     from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
 
+    if frappe.db.exists("Role", "PH Accounting Manager"):  # the role's earlier name (patch v0)
+        from ph_cas.patches.v0.rename_accounting_manager_role import execute
+
+        execute()
     if not frappe.db.exists("Role", MANAGER_ROLE):
         frappe.get_doc({"doctype": "Role", "role_name": MANAGER_ROLE, "desk_access": 1}).insert(
             ignore_permissions=True
@@ -200,7 +204,7 @@ def setup():
                     "depends_on": "eval:doc.posting_date && doc.posting_date != frappe.datetime.get_today()",
                     "allow_on_submit": 0,
                     "no_copy": 1,
-                    "description": "Required when the posting date is earlier than today. Only a PH Accounting Manager may do this.",
+                    "description": "Required when the posting date is earlier than today. Only a Accounting Manager may do this.",
                 }
             ]
     if fields:

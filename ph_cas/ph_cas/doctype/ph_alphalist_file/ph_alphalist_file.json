@@ -17,5 +17,5 @@
 ], "links": [], "modified": "2026-11-09 12:00:00.000000", "modified_by": "Administrator", "module": "PH CAS", "name": "PH Alphalist File", "owner": "Administrator", "permissions": [
  {"create": 1, "read": 1, "write": 1, "report": 1, "export": 1, "role": "Accounts Manager"},
  {"create": 1, "read": 1, "write": 1, "report": 1, "role": "Accounts User"},
- {"create": 1, "read": 1, "write": 1, "delete": 1, "report": 1, "export": 1, "role": "PH Accounting Manager"}
+ {"create": 1, "read": 1, "write": 1, "delete": 1, "report": 1, "export": 1, "role": "Accounting Manager"}
 ], "sort_field": "modified", "sort_order": "DESC", "states": [], "track_changes": 1}

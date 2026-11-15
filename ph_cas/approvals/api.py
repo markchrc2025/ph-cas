@@ -34,7 +34,7 @@ def pending() -> list[dict]:
 
 @frappe.whitelist()
 def from_template(template: str, document_type: str, company: str | None = None, group: str | None = None) -> str:
-    frappe.only_for(("Accounts Manager", "PH Accounting Manager", "System Manager"))
+    frappe.only_for(("Accounts Manager", "Accounting Manager", "System Manager"))
     return chains.from_template(template, document_type, company or None, group or None).name
 
 

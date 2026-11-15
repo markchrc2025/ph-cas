@@ -4,6 +4,6 @@
  {"fieldname": "movable", "fieldtype": "Check", "label": "Movable (set each year by proclamation)", "default": "0"}
 ], "links": [], "modified": "2026-11-09 06:00:00.000000", "modified_by": "Administrator", "module": "PH CAS", "name": "PH Holiday", "owner": "Administrator", "permissions": [
  {"create": 1, "read": 1, "write": 1, "delete": 1, "report": 1, "role": "System Manager"},
- {"create": 1, "read": 1, "write": 1, "delete": 1, "report": 1, "role": "PH Accounting Manager"},
+ {"create": 1, "read": 1, "write": 1, "delete": 1, "report": 1, "role": "Accounting Manager"},
  {"read": 1, "report": 1, "role": "Accounts Manager"}, {"read": 1, "role": "Accounts User"}
 ], "sort_field": "holiday_date", "sort_order": "ASC", "states": []}
