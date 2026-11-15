@@ -240,6 +240,7 @@
       "key": "frm1702q:txtTelNum",
       "item": "10",
       "kind": "comb",
+      "drop": " -()+.",
       "rows": [
         {
           "page": 1,
