@@ -11,7 +11,9 @@ frappe.ui.form.on("PH Tax Return", {
 			frm.add_custom_button(__("Refresh from books"), () => call(frm, "refresh_from_books", null, (r) => {
 				frappe.show_alert({ message: __("{0} figures taken from the books", [r.figures]), indicator: "green" });
 			}));
-			frm.add_custom_button(__("Export for eBIRForms"), () => call(frm, "export_for_ebirforms", null, (url) => window.open(url)));
+			if ((frm.doc.__onload || {}).ebir_export) {
+				frm.add_custom_button(__("Export for eBIRForms"), () => call(frm, "export_for_ebirforms", null, (url) => window.open(url)));
+			}
 		}
 		if (["1601-EQ", "1604-E"].includes(frm.doc.form)) {
 			frm.add_custom_button(frm.doc.form === "1601-EQ" ? __("Generate QAP (.dat)") : __("Generate alphalist (.dat)"), () =>

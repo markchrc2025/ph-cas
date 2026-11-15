@@ -118,3 +118,14 @@ class TestF0TaxReturn(IntegrationTestCase):
             self.assertTrue(take_preview_slot("limit.test", now=1000.0))
         self.assertFalse(take_preview_slot("limit.test", now=1000.0))
         self.assertTrue(take_preview_slot("limit.test", now=1100.0))
+
+    def test_only_export_forms_offer_an_ebirforms_file(self):
+        doc = frappe.get_doc({"doctype": "PH Tax Return", "company": self.company, "form": "1601-C", "period_key": "2026-01"})
+        doc.insert()
+        doc.run_method("onload")
+        self.assertFalse(doc.get_onload().get("ebir_export"))
+        with self.assertRaises(frappe.ValidationError) as e:
+            doc.export_for_ebirforms()
+        self.assertIn("no eBIRForms import file", str(e.exception))
+        self.assertFalse(frappe.get_all("File", {"attached_to_doctype": "PH Tax Return", "attached_to_name": doc.name, "attached_to_field": "export_file"}))
+

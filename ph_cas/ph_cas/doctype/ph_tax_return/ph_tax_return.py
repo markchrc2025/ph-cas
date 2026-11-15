@@ -46,6 +46,11 @@ class PHTaxReturn(Document):
     def _spec(self):
         return spec(self.form)
 
+    def onload(self):
+        # only the forms the BIR's eBIRForms package can open get an export file; the rest are
+        # printed on the BIR form and keyed into eBIRForms or eFPS from that print
+        self.set_onload("ebir_export", bool(self.form) and self._spec().output == "export")
+
     def _company(self) -> dict:
         if self.docstatus == 1 and self.filed_snapshot:
             snap = self.filed_snapshot if isinstance(self.filed_snapshot, dict) else json.loads(self.filed_snapshot)
@@ -269,6 +274,8 @@ class PHTaxReturn(Document):
     def export_for_ebirforms(self):
         if self.docstatus != 0:
             frappe.throw(_("This return is filed. Download its eBIRForms file from the attachments."))
+        if self._spec().output != "export":
+            frappe.throw(_("The {0} has no eBIRForms import file. Use Preview to print it on the BIR's form, then key the same figures into eBIRForms or eFPS.").format(self.form))
         url = self._write_export()
         self.db_set({"export_file": self.export_file, "export_file_name": self.export_file_name})
         return url
