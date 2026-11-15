@@ -45,6 +45,11 @@ class TestB34Onboarding(IntegrationTestCase):
         self.assertEqual(frappe.db.count("Onboarding Step", {"intro_video_url": ["is", "set"]}), 0)
         self.assertEqual(frappe.db.get_value("PH Tutorial Video Step", {"step": "Create Customer"}, "parent"), "V09")
 
+    def test_the_first_return_step_opens_bir_returns(self):
+        step = frappe.get_doc("Onboarding Step", "PH Run 2550Q")
+        self.assertEqual(step.path, "/app/ph-tax-return/new")
+        self.assertEqual(step.action_label, "New BIR return")
+
     def test_setup_is_idempotent(self):
         onboarding.setup()
         onboarding.setup()

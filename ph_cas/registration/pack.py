@@ -8,6 +8,8 @@ RMC 5-2021). Everything comes from the site itself:
 - the Annex B answers with remarks, read from docs/CONFORMANCE.md: only items
   marked built or verified are answered YES; everything else goes in a gaps list;
 - the joint sworn statement prefilled with the provider (the firm) and the client;
+- the client's notice to its RDO that the provider keeps its records as a third-party
+  custodian (RR 9-2009 Sec. 6.3.1; RDO answer 3 in docs/DECISIONS.md);
 - the conformance report for the pinned versions.
 """
 
@@ -113,6 +115,50 @@ def joint_sworn_statement(company: str) -> str:
     ]) + "\r\n"
 
 
+def custody_notice(company: str) -> str:
+    """The client tells its RDO, before its records go to the provider, who keeps them and where
+    (RR 9-2009 Sec. 6.3.1). Records and backups stay in the Philippines (Secs. 6.2.1 to 6.2.3)."""
+    c = frappe.get_cached_doc("Company", company)
+    f = company_facts(company)
+    s = _settings()
+    provider = s.get("provider_name") or "[PROVIDER]"
+    where = (s.get("records_location") or "[DATA CENTRE AND BACKUP SITE IN THE PHILIPPINES, set in PH CAS Settings]").replace("\n", ", ")
+    return "\r\n".join([
+        "NOTICE OF THIRD-PARTY CUSTODY OF BOOKS OF ACCOUNTS AND RECORDS",
+        "(Revenue Regulations No. 9-2009, Section 6.3.1)",
+        "",
+        "Date: ____________________",
+        "",
+        "The Revenue District Officer",
+        f"Revenue District Office No. {c.get('ph_rdo') or '___'}",
+        "",
+        "Sir or Madam:",
+        "",
+        f"{f['name']}, TIN {f['tin']}-{f['branch']}, of {f['address'] or '[registered address]'}, gives notice that beginning ____________________ its books of accounts, invoices and the records that support them are kept in electronic form by a third party:",
+        "",
+        f"Custodian: {provider}, TIN {s.get('provider_tin') or '[TIN]'}",
+        f"Custodian's address: {(s.get('provider_address') or '[address]').replace(chr(10), ', ')}",
+        f"System: {software_name()} version {platform_version()}, a computerized accounting system hosted by the custodian, one site and one database for this taxpayer",
+        f"Where the records and backups are kept: {where}",
+        "",
+        "The records and their backups are kept in the Philippines for ten (10) years. The taxpayer can view and print them at any time, and will produce them, in print or electronic form, at its registered address or wherever the BIR directs.",
+        "",
+        "The taxpayer remains responsible for its books and records. The custodian keeps them on the taxpayer's behalf under their service agreement; when the agreement ends, the custodian delivers a complete copy to the taxpayer and the taxpayer will inform this office.",
+        "",
+        "Respectfully,",
+        "",
+        "______________________________",
+        "[Name and position of the taxpayer's authorized signatory]",
+        f"{f['name']}",
+        "",
+        "Conforme:",
+        "",
+        "______________________________",
+        f"{s.get('provider_signatory') or '[Provider signatory]'}, {s.get('provider_signatory_position') or '[position]'}",
+        f"{provider}, custodian",
+    ]) + "\r\n"
+
+
 def conformance_report() -> str:
     try:
         erp = frappe.get_attr("erpnext.__version__")
@@ -183,6 +229,7 @@ def build(company: str) -> dict:
     answers, gaps = annex_b_answers(company)
     files["02_Annex_B_Answers.txt"] = answers.encode("utf-8")
     files["03_Joint_Sworn_Statement.txt"] = joint_sworn_statement(company).encode("utf-8")
+    files["03a_Notice_of_Third_Party_Custody.txt"] = custody_notice(company).encode("utf-8")
     files["04_Conformance_Report.txt"] = conformance_report().encode("utf-8")
     specimens = {
         "05_Sample_Sales_Invoice.html": _render("Sales Invoice", _latest("Sales Invoice", {"company": company, "is_return": 0, "is_debit_note": 0}), "PH Sales Invoice"),
