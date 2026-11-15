@@ -4,6 +4,8 @@
 #      PH_PRODUCTION (0 = demo site that applies draft rules; 1 = production), PH_DEMO (1 = seed demo data once).
 #      CLIENT_DOMAIN (default SITE_NAME): client sites are <name>.$CLIENT_DOMAIN, created with `ledger-site new <name>`.
 #      BACKUP_REMOTE (optional rclone remote such as s3:ledger-backups) for the off-site copy of every site's backup.
+#      PH_STAGING (1 = the staging QA site, docs/STAGING.md): QA data seeded once and restored at every
+#      start, QA admin (STAGING_ADMIN_PASSWORD), and the QA connector on QA_MCP_PORT (QA_MCP_SECRET).
 set -euo pipefail
 trap 'echo "entrypoint failed at line $LINENO: $BASH_COMMAND" >&2' ERR
 SITE="${SITE_NAME:?SITE_NAME is required}"
@@ -12,6 +14,11 @@ DBROOT="${DB_ROOT_PASSWORD:?DB_ROOT_PASSWORD is required}"
 ADMIN="${ADMIN_PASSWORD:?ADMIN_PASSWORD is required}"
 BENCH=/home/frappe/bench
 CLIENT_DOMAIN="${CLIENT_DOMAIN:-$SITE}"
+STAGING="${PH_STAGING:-0}"
+if [ "$STAGING" = 1 ]; then
+  [ "${PH_PRODUCTION:-0}" = 1 ] && { echo "PH_STAGING=1 with PH_PRODUCTION=1: refusing to start"; exit 1; }
+  [ "${PH_DEMO:-0}" = 1 ] && { echo "PH_STAGING=1 with PH_DEMO=1: choose one"; exit 1; }
+fi
 
 echo "== MariaDB"
 if [ ! -d /var/lib/mysql/mysql ]; then
@@ -70,8 +77,17 @@ if [ ! -d "$BENCH/sites/$SITE" ]; then
     su frappe -c "cd $BENCH && bench --site '$SITE' execute ph_cas.demo.seed" || echo "demo seed failed (continuing)"
     ledger-site snapshot-demo "$SITE" || echo "golden snapshot failed (continuing)"
   fi
+  if [ "$STAGING" = 1 ]; then
+    echo "== staging: QA data"
+    su frappe -c "cd $BENCH && bench --site '$SITE' set-config ph_staging_site 1"
+    su frappe -c "cd $BENCH && bench --site '$SITE' execute ph_cas.qa.api.seed"
+    ledger-site snapshot-demo "$SITE"
+  fi
   touch "$MARK"; chown frappe:frappe "$MARK"
   rm -f /run/ph_cas_installing
+elif [ "$STAGING" = 1 ] && [ -f "$BENCH/sites/$SITE/private/golden-database.sql.gz" ]; then
+  echo "== staging: restore the QA data (anything added since the last start is gone)"
+  ledger-site reset-staging "$SITE"
 else
   su frappe -c "cd $BENCH && bench --site '$SITE' migrate"
   if [ "${PH_DEMO:-0}" = 1 ]; then
@@ -107,6 +123,13 @@ su frappe -c "cd $BENCH && node apps/frappe/socketio.js" &
 nginx -g "daemon off;" &
 su frappe -c "cd $BENCH && bench worker --queue short,default,long" &
 su frappe -c "cd $BENCH && bench schedule" &
+if [ "$STAGING" = 1 ]; then
+  # The QA connector (ph_cas/qa/mcp_server.py). It checks PH_STAGING, the site config and the secret
+  # itself and exits if any is wrong; the site keeps serving either way.
+  # su keeps the environment (QA_MCP_SECRET, STAGING_ADMIN_PASSWORD), so no secret is on a command line.
+  # If it stops, it sleeps instead of exiting, so `wait -n` below does not take the site down with it.
+  ( su frappe -c "cd $BENCH && SITE_NAME='$SITE' ./env/bin/python -m ph_cas.qa.mcp_server" || { echo "QA connector stopped"; sleep infinity; } ) &
+fi
 if [ "${PH_DEMO:-0}" = 1 ] && [ "${DEMO_RESET:-1}" = 1 ]; then
   # Nightly reset of the open demo at DEMO_RESET_UTC_HOUR (default 18 UTC = 02:00 Manila).
   ( while true; do

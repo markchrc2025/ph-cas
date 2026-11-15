@@ -2,6 +2,13 @@
 
 One entry per bundle, newest first. Counts are the test totals on main after the merge.
 
+## B54 Staging QA site and its connector (16 Nov 2026)
+- PR: (filled in at merge)
+- Built: the owner's request, after the Payroll pattern. PH_STAGING=1 makes the container a staging site (docs/STAGING.md): on first start the site is seeded by ph_cas.qa.api.seed (demo VAT company, every module on, the QA admin qa.admin@sentire.solutions with STAGING_ADMIN_PASSWORD) and kept as the QA snapshot; every later start restores it (`ledger-site reset-staging`). The entrypoint refuses PH_STAGING with PH_PRODUCTION or PH_DEMO. ph_cas/qa/mcp_server.py is an MCP server (streamable HTTP, JSON responses, standard library plus requests) on QA_MCP_PORT, reached at /mcp/<QA_MCP_SECRET>; it signs in as the QA admin and calls the site's own API (12 tools: staging_status, list, get, create, update, submit, cancel, call_method, run_report, get_print, seed_scenario, api_request), refuses sign-in and password endpoints, allows 120 calls a minute and logs one JSON line per call. It refuses to start unless PH_STAGING=1, the secret has 32 characters or more and the site config says ph_staging_site. Scenarios: vat_quarter and non_vat_company.
+- Tests: +6 (test_b54_staging). The connector was also run against the bench: every tool answered, an invoice got its BIR serial on submit, the cancel was refused by the Annex B lock, and both scenarios posted.
+- Assumed: staging keeps no volumes, so a redeploy rebuilds it from nothing.
+- Left out: nothing in scope.
+
 ## B53 Notice of third-party custody; the first-return step opens BIR Returns (16 Nov 2026)
 - PR: (filled in at merge)
 - Built: LDG-98: the registration pack gains 03a_Notice_of_Third_Party_Custody.txt, the client's notice to its RDO that the provider keeps its books and records in electronic form (RR 9-2009 Sec. 6.3.1; RDO answer 3): taxpayer and RDO from the Company, custodian, address and signatory from PH CAS Settings, and a new PH CAS Settings field "Where the records and backups are kept" for the data centre and backup site in the Philippines (left as a visible blank until it is set). Ten-year retention, production to the BIR on request, and the hand-back when the service ends. The Sentire Ledger guide's step "Run the 2550Q figures" becomes "Compute your first BIR return" and opens a new BIR Return (PH Tax Return) instead of Tax Return Figures, as tutorial V04 shows; Home's "Compute a return" opens BIR Returns too.
