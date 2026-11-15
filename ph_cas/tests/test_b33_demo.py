@@ -135,3 +135,14 @@ class TestDemoSeedCompany(IntegrationTestCase):
             self.assertTrue(seen["date"])
         finally:
             frappe.db.set_value("Company", company, {"tax_id": before.tax_id, "ph_incorporation_date": before.ph_incorporation_date}, update_modified=False)
+
+
+class TestDemoSeedInvoice(IntegrationTestCase):
+    def test_the_demo_invoice_carries_a_manual_invoice_number(self):
+        """A fresh site's demo seed submits an invoice; since the RDO answer 2 every invoice needs
+        a manual number at submit, so the seed must give one (the staging seed failed without it)."""
+        import inspect
+
+        from ph_cas import demo
+
+        self.assertIn('"ph_manual_invoice_no": "DEMO-0001"', inspect.getsource(demo.seed))

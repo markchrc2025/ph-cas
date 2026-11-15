@@ -80,8 +80,10 @@ if [ ! -d "$BENCH/sites/$SITE" ]; then
   if [ "$STAGING" = 1 ]; then
     echo "== staging: QA data"
     su frappe -c "cd $BENCH && bench --site '$SITE' set-config ph_staging_site 1"
-    su frappe -c "cd $BENCH && bench --site '$SITE' execute ph_cas.qa.api.seed"
-    ledger-site snapshot-demo "$SITE"
+    # Not fatal: a failed seed must not put the container in a restart loop (each restart rebuilds the
+    # site from nothing). The traceback stays in the log and the site comes up for a look.
+    su frappe -c "cd $BENCH && bench --site '$SITE' execute ph_cas.qa.api.seed" || echo "QA seed failed (continuing; the traceback is above)"
+    ledger-site snapshot-demo "$SITE" || echo "QA snapshot failed (continuing)"
   fi
   touch "$MARK"; chown frappe:frappe "$MARK"
   rm -f /run/ph_cas_installing

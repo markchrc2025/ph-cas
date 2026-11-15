@@ -44,7 +44,7 @@ def seed():
     if not frappe.db.exists("Supplier", "Reyes & Associates CPAs"):
         frappe.get_doc({"doctype": "Supplier", "supplier_name": "Reyes & Associates CPAs", "supplier_type": "Company", "supplier_group": "Services", "ph_tin": "000-333-444", "ph_vat_status": "VAT", "ph_payee_type": "Non-individual", "ph_registered_name": "REYES & ASSOCIATES CPAS", "ph_ewt_category": "professional"}).insert(ignore_permissions=True)
     if not frappe.db.exists("Sales Invoice", {"customer": "Metro Retail Stores Inc", "docstatus": 1}):
-        si = frappe.get_doc({"doctype": "Sales Invoice", "company": company, "customer": "Metro Retail Stores Inc", "posting_date": today(), "due_date": today(), "debit_to": f"Debtors - {abbr}", "items": [
+        si = frappe.get_doc({"doctype": "Sales Invoice", "company": company, "customer": "Metro Retail Stores Inc", "posting_date": today(), "due_date": today(), "debit_to": f"Debtors - {abbr}", "ph_manual_invoice_no": "DEMO-0001", "items": [
             {"item_code": item("Consulting services", "VATable"), "qty": 1, "rate": 25000, "income_account": f"Sales - {abbr}", "cost_center": f"Main - {abbr}"},
             {"item_code": item("Training manual (exempt)", "VAT-exempt"), "qty": 10, "rate": 250, "income_account": f"Sales - {abbr}", "cost_center": f"Main - {abbr}"}]}).insert()
         si.submit()
