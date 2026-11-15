@@ -43,6 +43,10 @@
 .sl-steps li.done .sl-step-title { color: var(--sl-muted); text-decoration: line-through; }
 .sl-check { width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid var(--sl-line); display: inline-flex; align-items: center; justify-content: center; color: #fff; flex: none; }
 .sl-steps li.done .sl-check { background: var(--sl-mint); border-color: var(--sl-mint); color: var(--sl-navy); }
+.sl-step-watch { margin-left: auto; display: inline-flex; align-items: center; gap: 4px; padding: 2px 10px; border-radius: 999px; background: var(--sl-mint, #e6f4ee); color: var(--sl-navy); font-size: 0.8rem; cursor: pointer; white-space: nowrap; }
+.sl-step-watch span { opacity: 0.7; }
+.sl-step-watch:hover { text-decoration: none; filter: brightness(0.96); }
+.sl-step-watch + .sl-step-go { margin-left: 8px; }
 .sl-step-go { margin-left: auto; color: var(--sl-navy); font-size: 0.85rem; white-space: nowrap; }
 
 .sl-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
@@ -201,3 +205,12 @@ body:has(.dock:is(:hover, .sl-dock-peek)) .es-tooltip { display: none !important
 .sl-approvals-card { margin-bottom: 16px; }
 .sl-approval-steps tr.sl-current td { background: var(--bg-light-yellow, #fff8e1); }
 .sl-approval-steps td { vertical-align: top; }
+
+/* Tutorial videos (ph_cas.tutorials): the player in the Help dialog and on the Tutorial Video form */
+.ph-tutorial-player {
+	display: block;
+	width: 100%;
+	aspect-ratio: 16 / 9;
+	background: #000;
+	border-radius: var(--border-radius-md, 8px);
+}

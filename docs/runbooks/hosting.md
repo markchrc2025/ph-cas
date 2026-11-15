@@ -21,6 +21,8 @@
 | `SMTP_HOST`, `SMTP_PORT` (587), `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM`, `SMTP_FROM_NAME`, `SMTP_TLS` (1), `SMTP_SSL` (0) | Outgoing email account; needed for two-factor sign-in mails, password resets and notifications. `SEED_USER` and `SEED_PASSWORD` are accepted as aliases of the user and password. |
 | `ADMIN_EMAIL` | Mailbox of the Administrator user (where its two-factor mails go) |
 | `PH_2FA` | Demo sites only: 0 turns two-factor sign-in off until email works; ignored when `PH_PRODUCTION` is 1 |
+| `PH_VIDEOS_S3_ENDPOINT`, `PH_VIDEOS_S3_REGION`, `PH_VIDEOS_S3_BUCKET`, `PH_VIDEOS_S3_ACCESS_KEY_ID`, `PH_VIDEOS_S3_SECRET_ACCESS_KEY` | The private bucket that holds the tutorial videos (B51). Written by Dokploy's create_storage (prefix `PH_VIDEOS_S3_`) for the site that uploads, or grant_storage with a read-only key for any other deployment. Without them the cards and Help menus simply offer no videos. |
+| `PH_VIDEOS_S3_PUBLIC_ENDPOINT` | Optional: the bucket's address as browsers reach it (https://s3.sentire.solutions) when the endpoint above is an internal one. Playback links are signed for this address. |
 | `PRODUCT_NAME`, `PROVIDER_NAME`, `SUPPORT_EMAIL` | Branding (B38): the product name goes into PH CAS Settings, System Settings, Website Settings, the Email Account name (so mail arrives from "Sentire Ledger <noreply@...>"), the About dialog and the desk boot; the provider name goes into the email and website footers; the support address becomes a help-menu item. Default `ADMIN_EMAIL` for support. |
 
 Persist `/var/lib/mysql` and `/home/frappe/bench/sites` as volumes; without them every redeploy reinstalls the site.

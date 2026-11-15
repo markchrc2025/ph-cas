@@ -2,6 +2,13 @@
 
 One entry per bundle, newest first. Counts are the test totals on main after the merge.
 
+## B51 Tutorial videos play inside Sentire Ledger, from our own server (15 Nov 2026)
+- PR: (filled in at merge)
+- Built: the owner's ruling: the tutorials are not uploaded to YouTube; they are kept on our own server and played in the system. ph_cas.tutorials: PH Tutorial Video (V01 to V38, seeded from tutorials/data/tutorials.json on install and migrate: title, length, the onboarding steps whose card plays it, the forms that offer it) with its child PH Tutorial Video Step. The files live once, in a private bucket (tutorials/<code>/video.mp4, captions.vtt, poster.jpg), configured by the PH_VIDEOS_S3_* environment variables; a small signature-version-4 client (no boto3) signs playback links for six hours and the upload requests. Upload: System Manager, Upload videos on the list or Upload files on a record; the browser sends each video in 8 MB pieces through the site to an S3 multipart upload, captions are converted from SRT to WebVTT, thumbnails to a JPEG at most 1280 wide; nothing is kept on the site. The captions are served by the site so the player stays same-origin. Player: the onboarding widget's step shows our thumbnail and a native video player (patched from public/js/tutorials.js); Home's checklist has a Watch button; forms get "Watch: <title>" menu items; the record shows the player. Every ERPNext intro_video_url is cleared on migrate, so no card loads YouTube. Daily job and Check the server keep each site's records in step with the bucket.
+- Tests: +8 (test_b51_tutorials: the AWS signature test vectors, path-style and internal endpoints, the catalogue, file names and captions, upload in pieces then signed playback, a missing piece, upload permission); test_b34 checks that no card keeps a YouTube link.
+- Assumed: one shared bucket for every client site (owner's choice); uploads through the site (owner's choice).
+- Left out: transcoding. The exports are H.264 with the index at the front, so they stream as they are.
+
 ## Role renamed: Accounting Manager (15 Nov 2026)
 - PR: (filled in at merge)
 - Built: the owner's ruling: the role "PH Accounting Manager" is now "Accounting Manager" (not "Approver"; only "PH" is dropped). A pre-model-sync patch (ph_cas.patches.v0.rename_accounting_manager_role) renames the role in place on existing sites, so every user who holds it and every permission row that names it follow; setup runs the same step if the old name is still there. Code, DocType and report permissions, the home page and the docs use the new name.

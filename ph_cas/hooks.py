@@ -11,14 +11,15 @@ after_migrate = "ph_cas.setup.install.after_migrate"
 
 before_tests = "ph_cas.tests.setup.before_tests"
 
-doctype_js = {"Company": "public/js/company.js", "Sales Invoice": "public/js/sales_invoice.js"}
+doctype_js = {"Company": "public/js/company.js", "Sales Invoice": "public/js/sales_invoice.js", "PH Tutorial Video": "public/js/tutorial_video.js"}
+doctype_list_js = {"PH Tutorial Video": "public/js/tutorial_video_list.js"}
 
 # B38 branding: the product, never the framework, is what users see (ph_cas.branding)
 app_logo_url = "/assets/ph_cas/images/logo.svg"
-app_include_js = ["/assets/ph_cas/js/branding.js", "/assets/ph_cas/js/approvals.js"]
+app_include_js = ["/assets/ph_cas/js/branding.js", "/assets/ph_cas/js/approvals.js", "/assets/ph_cas/js/tutorials.js"]
 app_include_css = ["/assets/ph_cas/css/sentire.css"]
 boot_session = "ph_cas.branding.boot_session"
-extend_bootinfo = "ph_cas.branding.extend_bootinfo"
+extend_bootinfo = ["ph_cas.branding.extend_bootinfo", "ph_cas.tutorials.api.extend_bootinfo"]
 update_website_context = "ph_cas.branding.website_context"
 website_context = {
     "favicon": "/assets/ph_cas/images/favicon.ico",
@@ -115,7 +116,7 @@ on_login = "ph_cas.audit.events.on_login"
 on_logout = "ph_cas.audit.events.on_logout"
 
 scheduler_events = {
-    "daily": ["ph_cas.audit.events.daily_chain_check", "ph_cas.ops.backup.scheduled_daily_backup", "ph_cas.hosting.demo_access.daily_pilot_check"],
+    "daily": ["ph_cas.audit.events.daily_chain_check", "ph_cas.ops.backup.scheduled_daily_backup", "ph_cas.hosting.demo_access.daily_pilot_check", "ph_cas.tutorials.api.daily_refresh"],
     "hourly": ["ph_cas.ops.monitor.alert_if_needed", "ph_cas.hosting.demo_access.expire_demo_users"],
 }
 

@@ -1,0 +1,443 @@
+{
+ "_comment": "Sentire Ledger tutorial videos, V01 to V38. Seeded into PH Tutorial Video on install and migrate. The files live in the private video bucket under tutorials/<code>/ (video.mp4, captions.vtt, poster.jpg); upload them from the Tutorial Videos list. steps: the onboarding steps whose card plays the video. help_for: the forms that offer it under the Help button.",
+ "videos": [
+  {
+   "code": "V01",
+   "title": "Set up your Philippine company",
+   "length": "2:00",
+   "summary": "COR details on the Company, then one click adds the PH accounts, account mapping and BIR Series",
+   "steps": [
+    "PH Set Up Company"
+   ],
+   "help_for": [
+    "Company"
+   ]
+  },
+  {
+   "code": "V02",
+   "title": "Your tax rules, dated and confirmed",
+   "length": "2:00",
+   "summary": "Every rate is a dated rule; drafts until your accountant confirms; how rules fill invoices and bills",
+   "steps": [
+    "PH Confirm Tax Rules",
+    "Review Taxes"
+   ],
+   "help_for": [
+    "PH Tax Rule"
+   ]
+  },
+  {
+   "code": "V03",
+   "title": "Your first BIR invoice",
+   "length": "2:00",
+   "summary": "Serial from the BIR Series on submit, BIR header, original and duplicate, corrections by credit or debit note",
+   "steps": [
+    "PH First BIR Invoice",
+    "Create Sales Invoice"
+   ],
+   "help_for": [
+    "Sales Invoice"
+   ]
+  },
+  {
+   "code": "V04",
+   "title": "Compute and file a BIR return",
+   "length": "2:30",
+   "summary": "BIR Returns: figures from the books, what still needs you, DRAFT preview, eBIRForms export, filing with the confirmation",
+   "steps": [
+    "PH Run 2550Q"
+   ],
+   "help_for": [
+    "PH Tax Return"
+   ]
+  },
+  {
+   "code": "V05",
+   "title": "Export the books",
+   "length": "1:30",
+   "summary": "The seven books with BIR header and tie-outs; the year-end pack",
+   "steps": [
+    "PH Export Books"
+   ],
+   "help_for": []
+  },
+  {
+   "code": "V06",
+   "title": "Build the registration pack",
+   "length": "1:30",
+   "summary": "Provider and signatory details, then one download for the RDO",
+   "steps": [
+    "PH Registration Pack"
+   ],
+   "help_for": [
+    "PH CAS Settings"
+   ]
+  },
+  {
+   "code": "V07",
+   "title": "Your chart of accounts",
+   "length": "1:30",
+   "summary": "The PH accounts the setup adds (Output VAT, Input VAT by kind, EWT payable, CWT receivable) and the account mapping",
+   "steps": [
+    "Chart of Accounts"
+   ],
+   "help_for": [
+    "Account"
+   ]
+  },
+  {
+   "code": "V08",
+   "title": "Trace every posting",
+   "length": "1:30",
+   "summary": "General Ledger, the BIR Audit Trail and the event log nobody can rewrite",
+   "steps": [
+    "View General Ledger"
+   ],
+   "help_for": []
+  },
+  {
+   "code": "V09",
+   "title": "Add a customer",
+   "length": "1:15",
+   "summary": "TIN, registered name, address, top withholding agent and what it changes",
+   "steps": [
+    "Create Customer"
+   ],
+   "help_for": [
+    "Customer"
+   ]
+  },
+  {
+   "code": "V10",
+   "title": "Add a supplier",
+   "length": "1:30",
+   "summary": "TIN, payee type, VAT status and withholding category, the basis of every 2307",
+   "steps": [
+    "Create Supplier"
+   ],
+   "help_for": [
+    "Supplier"
+   ]
+  },
+  {
+   "code": "V11",
+   "title": "Add an item",
+   "length": "1:15",
+   "summary": "VAT class (VATable, zero-rated, exempt), capital goods, stocked or not",
+   "steps": [
+    "Create Selling Item",
+    "Create Buying Item",
+    "Create Item",
+    "Create Raw Materials"
+   ],
+   "help_for": [
+    "Item"
+   ]
+  },
+  {
+   "code": "V12",
+   "title": "Get paid",
+   "length": "1:45",
+   "summary": "Payment Entry against the invoice, tax withheld by the customer, the 2307 you receive",
+   "steps": [
+    "Create Payment Entry"
+   ],
+   "help_for": [
+    "Payment Entry"
+   ]
+  },
+  {
+   "code": "V13",
+   "title": "Enter a supplier's bill",
+   "length": "1:30",
+   "summary": "Purchase Invoice: Input VAT and EWT worked out from the supplier profile",
+   "steps": [
+    "Create Accounting Purchase Invoice",
+    "Create Purchase Invoice"
+   ],
+   "help_for": [
+    "Purchase Invoice"
+   ]
+  },
+  {
+   "code": "V14",
+   "title": "Pay your supplier and issue the 2307",
+   "length": "2:00",
+   "summary": "Payment net of EWT, the 2307 per quarter, where the 0619-E and 1601-EQ figures come from",
+   "steps": [
+    "Pay Supplier"
+   ],
+   "help_for": [
+    "Payment Entry",
+    "PH 2307 Issued"
+   ]
+  },
+  {
+   "code": "V15",
+   "title": "Post a journal entry",
+   "length": "1:30",
+   "summary": "Accruals and corrections; the posting-date lock and who may back-date",
+   "steps": [
+    "Create Journal Entry"
+   ],
+   "help_for": [
+    "Journal Entry"
+   ]
+  },
+  {
+   "code": "V16",
+   "title": "Check your profit",
+   "length": "1:30",
+   "summary": "P&L for any period and the book-to-tax reconciliation behind the income tax returns",
+   "steps": [
+    "View Profit and Loss"
+   ],
+   "help_for": []
+  },
+  {
+   "code": "V17",
+   "title": "Know what you own and owe",
+   "length": "1:00",
+   "summary": "Balance Sheet on any date",
+   "steps": [
+    "View Balance Sheet"
+   ],
+   "help_for": []
+  },
+  {
+   "code": "V18",
+   "title": "Confirm a sales order",
+   "length": "1:15",
+   "summary": "Order to delivery to invoice from one document",
+   "steps": [
+    "Create Sales Order"
+   ],
+   "help_for": [
+    "Sales Order"
+   ]
+  },
+  {
+   "code": "V19",
+   "title": "Record a supplier's quote",
+   "length": "1:00",
+   "summary": "Compare suppliers before ordering",
+   "steps": [
+    "Create Supplier Quotation"
+   ],
+   "help_for": [
+    "Supplier Quotation"
+   ]
+  },
+  {
+   "code": "V20",
+   "title": "Place a purchase order",
+   "length": "1:15",
+   "summary": "Order, receive and bill from one document; approval above an amount",
+   "steps": [
+    "Create Purchase Order"
+   ],
+   "help_for": [
+    "Purchase Order"
+   ]
+  },
+  {
+   "code": "V21",
+   "title": "Track your orders",
+   "length": "1:00",
+   "summary": "What was ordered, received and billed",
+   "steps": [
+    "View Purchase Order Analysis"
+   ],
+   "help_for": []
+  },
+  {
+   "code": "V22",
+   "title": "Your warehouses",
+   "length": "1:00",
+   "summary": "Where stock is kept; one per branch or store",
+   "steps": [
+    "Setup Warehouse"
+   ],
+   "help_for": [
+    "Warehouse"
+   ]
+  },
+  {
+   "code": "V23",
+   "title": "Enter the stock you have today",
+   "length": "1:15",
+   "summary": "Opening quantities and values in one Stock Reconciliation",
+   "steps": [
+    "Create Opening Stock"
+   ],
+   "help_for": [
+    "Stock Reconciliation"
+   ]
+  },
+  {
+   "code": "V24",
+   "title": "Receive goods",
+   "length": "1:00",
+   "summary": "Stock goes up; the bill comes from the receipt",
+   "steps": [
+    "Create Purchase Receipt"
+   ],
+   "help_for": [
+    "Purchase Receipt"
+   ]
+  },
+  {
+   "code": "V25",
+   "title": "Ship to a customer",
+   "length": "1:00",
+   "summary": "Stock goes down; the invoice comes from the delivery",
+   "steps": [
+    "Create Delivery Note"
+   ],
+   "help_for": [
+    "Delivery Note"
+   ]
+  },
+  {
+   "code": "V26",
+   "title": "Move stock",
+   "length": "1:00",
+   "summary": "Transfers between store, shop floor and branches",
+   "steps": [
+    "Move Stock"
+   ],
+   "help_for": [
+    "Stock Entry"
+   ]
+  },
+  {
+   "code": "V27",
+   "title": "Check your stock levels",
+   "length": "1:00",
+   "summary": "Stock Balance and the Inventory Book",
+   "steps": [
+    "View Stock Balance Report"
+   ],
+   "help_for": []
+  },
+  {
+   "code": "V28",
+   "title": "Plan a work order",
+   "length": "1:15",
+   "summary": "How many to make; materials from the BOM",
+   "steps": [
+    "Create Work Order"
+   ],
+   "help_for": [
+    "Work Order"
+   ]
+  },
+  {
+   "code": "V29",
+   "title": "Break a project into tasks",
+   "length": "1:00",
+   "summary": "Who does what, by when",
+   "steps": [
+    "Create Tasks"
+   ],
+   "help_for": [
+    "Task"
+   ]
+  },
+  {
+   "code": "V30",
+   "title": "Log time",
+   "length": "1:00",
+   "summary": "Timesheets for billing or costing",
+   "steps": [
+    "Create Timesheet"
+   ],
+   "help_for": [
+    "Timesheet"
+   ]
+  },
+  {
+   "code": "V31",
+   "title": "Track progress and costs",
+   "length": "1:00",
+   "summary": "Project Summary report",
+   "steps": [
+    "View Project Summary"
+   ],
+   "help_for": []
+  },
+  {
+   "code": "V32",
+   "title": "Plan maintenance visits",
+   "length": "1:00",
+   "summary": "Service visits scheduled for the whole contract",
+   "steps": [
+    "Create Maintenance Schedule"
+   ],
+   "help_for": [
+    "Maintenance Schedule"
+   ]
+  },
+  {
+   "code": "V33",
+   "title": "Correct a filed return",
+   "length": "1:30",
+   "summary": "Filed returns are read-only; Request change, the manager approves, the amendment opens",
+   "steps": [],
+   "help_for": [
+    "PH Tax Return"
+   ]
+  },
+  {
+   "code": "V34",
+   "title": "Approval chains",
+   "length": "2:30",
+   "summary": "Steps, recipients, order, conditions; Request approval, Approve, Reject; the home card",
+   "steps": [],
+   "help_for": [
+    "PH Approval Chain"
+   ]
+  },
+  {
+   "code": "V35",
+   "title": "File your withholding tax returns",
+   "length": "1:30",
+   "summary": "0619-E monthly, 1601-EQ quarterly with its QAP, on the BIR's own forms",
+   "steps": [],
+   "help_for": [
+    "PH Tax Return"
+   ]
+  },
+  {
+   "code": "V36",
+   "title": "File your income tax return",
+   "length": "1:30",
+   "summary": "1702Q and 1702-RT from the books, on the BIR's own forms",
+   "steps": [],
+   "help_for": [
+    "PH Tax Return"
+   ]
+  },
+  {
+   "code": "V37",
+   "title": "Prepare your SLSP and BIR data files",
+   "length": "1:30",
+   "summary": "SLSP per month, QAP and SAWT files, kept under Alphalist Files",
+   "steps": [],
+   "help_for": [
+    "PH Tax Return",
+    "PH Alphalist File"
+   ]
+  },
+  {
+   "code": "V38",
+   "title": "File your percentage tax return",
+   "length": "1:15",
+   "summary": "2551Q for a non-VAT taxpayer, on the BIR's own form",
+   "steps": [],
+   "help_for": [
+    "PH Tax Return"
+   ]
+  }
+ ]
+}

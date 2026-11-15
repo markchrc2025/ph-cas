@@ -6,7 +6,7 @@ import frappe
 from frappe.tests import IntegrationTestCase
 
 from ph_cas.setup import onboarding
-from ph_cas.setup.onboarding import ONBOARDING, STEPS, WORKSPACE, apply_videos, video_overrides
+from ph_cas.setup.onboarding import ONBOARDING, STEPS, WORKSPACE, apply_videos
 
 
 class TestB34Onboarding(IntegrationTestCase):
@@ -38,31 +38,12 @@ class TestB34Onboarding(IntegrationTestCase):
         for s in ws.shortcuts:
             self.assertTrue(frappe.db.exists(s.type, s.link_to), s.link_to)
 
-    def test_video_overrides_cover_every_erpnext_video_step_and_apply_only_when_set(self):
-        rows = video_overrides()
-        self.assertEqual(len(rows), 30)
-        names = [r["step"] for r in rows]
-        self.assertIn("Create Customer", names)
+    def test_no_card_plays_youtube_and_our_videos_are_mapped(self):
+        frappe.db.set_value("Onboarding Step", "Create Customer", "intro_video_url", "https://www.youtube.com/watch?v=ctgyKAvyhJs", update_modified=False)
         out = apply_videos()
-        self.assertEqual(out["applied"], [])  # all placeholders today
-        self.assertTrue(len(out["kept_erpnext"]) >= 25)
-        # an override replaces the video, an id becomes a full URL
-        row = next(r for r in rows if r["step"] == "Create Customer")
-        before = frappe.db.get_value("Onboarding Step", "Create Customer", "intro_video_url")
-        try:
-            row["sentire_video"] = "dQw4w9WgXcQ"
-            frappe.flags._b34_rows = rows
-            orig = onboarding.video_overrides
-            onboarding.video_overrides = lambda: rows
-            out = apply_videos()
-            self.assertIn("Create Customer", out["applied"])
-            self.assertEqual(
-                frappe.db.get_value("Onboarding Step", "Create Customer", "intro_video_url"),
-                "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-            )
-        finally:
-            onboarding.video_overrides = orig
-            frappe.db.set_value("Onboarding Step", "Create Customer", "intro_video_url", before, update_modified=False)
+        self.assertIn("Create Customer", out["cleared"])
+        self.assertEqual(frappe.db.count("Onboarding Step", {"intro_video_url": ["is", "set"]}), 0)
+        self.assertEqual(frappe.db.get_value("PH Tutorial Video Step", {"step": "Create Customer"}, "parent"), "V09")
 
     def test_setup_is_idempotent(self):
         onboarding.setup()

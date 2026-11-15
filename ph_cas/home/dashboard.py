@@ -156,6 +156,9 @@ def _onboarding() -> dict | None:
     if frappe.db.get_default("ph_home_hide_onboarding", frappe.session.user):
         return None
     doc = frappe.get_doc("Module Onboarding", ONBOARDING)
+    from ph_cas.tutorials.api import step_map, uploaded
+
+    videos, on_server = step_map(), uploaded()
     steps = []
     for row in doc.steps:
         s = frappe.db.get_value(
@@ -179,6 +182,8 @@ def _onboarding() -> dict | None:
                 "action_label": s.action_label,
                 "route": route,
                 "done": bool(s.is_complete or s.is_skipped),
+                "video": videos.get(s.name) if videos.get(s.name) in on_server else None,
+                "video_length": on_server.get(videos.get(s.name)),
             }
         )
     if steps and all(s["done"] for s in steps):

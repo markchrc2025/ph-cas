@@ -136,6 +136,7 @@ class SentireHome {
 				(s) => `<li class="${s.done ? "done" : ""}">
 					<span class="sl-check">${s.done ? frappe.utils.icon("check", "sm") : ""}</span>
 					<span class="sl-step-title">${e(s.title)}</span>
+					${s.video ? `<a class="sl-step-watch" data-video="${e(s.video)}" title="${__("Watch the tutorial")}">${frappe.utils.icon("play", "xs")} ${__("Watch")}${s.video_length ? ` <span>${e(s.video_length)}</span>` : ""}</a>` : ""}
 					${s.done || !s.route ? "" : `<a class="sl-step-go" href="${s.route}">${e(s.action_label || __("Open"))} &rarr;</a>`}
 				</li>`
 			)
@@ -144,6 +145,10 @@ class SentireHome {
 			<div class="sl-card-head"><span>${e(ob.title)} <small>${ob.done} ${__("of")} ${ob.total} ${__("done")}</small></span>
 			<button class="btn btn-xs btn-default sl-dismiss">${__("Dismiss")}</button></div>
 			<ol class="sl-steps">${steps}</ol></div>`);
+		$o.find(".sl-step-watch").on("click", (ev) => {
+			ev.preventDefault();
+			ph_cas.tutorials.open_dialog(ev.currentTarget.dataset.video);
+		});
 		$o.find(".sl-dismiss").on("click", () =>
 			frappe.xcall("ph_cas.home.dashboard.hide_onboarding").then(() => $o.empty())
 		);
