@@ -1,6 +1,6 @@
 # Runbook: upgrades and releases
 
-Owner's method, 15 Nov 2026 (docs/DECISIONS.md, "Release method"), checked against RMO 9-2021 Sec. V.8 and V.9. Every release is recorded in `ph_cas/setup/data/releases.json` with its class; `ph_cas.ops.releases.check_log` and the tests refuse a log that breaks the rules below.
+Owner's method, 15 Nov 2026 (docs/DECISIONS.md, "Release method"), checked against RMO 9-2021 Sec. V.8 and V.9. Every release is recorded in `ph_cas/setup/data/releases.json` with its class (empty until the owner declares the product done; the first entry will be 1.0.0, class major); `ph_cas.ops.releases.check_log` and the tests refuse a log that breaks the rules below.
 
 ## The two kinds
 | | Major | Minor |

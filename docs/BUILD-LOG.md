@@ -4,7 +4,7 @@ One entry per bundle, newest first. Counts are the test totals on main after the
 
 ## B49 Release method: major versions and the quarterly notice (15 Nov 2026)
 - PR: (filled in at merge)
-- Built: the owner's release method (LDG-99) in docs/DECISIONS.md and docs/runbooks/upgrades.md; the release log ph_cas/setup/data/releases.json with its rules, starting at 1.0.0, the first release for registration (ph_cas.__version__, printed on invoices and books, goes from 0.1.0 to 1.0.0); ph_cas.ops.releases: the log check (classes, increasing versions and dates, a major release starts the next major number, a minor one stays within it) and the combined quarterly notice of minor enhancements per client (RMO 9-2021 V.9), from Company > PH CAS. One container per major version; the runbook says how a client moves after filing.
+- Built: the owner's release method (LDG-99) in docs/DECISIONS.md and docs/runbooks/upgrades.md; the release log ph_cas/setup/data/releases.json with its rules, left empty (the owner: no versioning until the product is done; the first entry will be 1.0.0, and ph_cas.__version__ stays 0.1.0 until then); ph_cas.ops.releases: the log check (classes, increasing versions and dates, a major release starts the next major number, a minor one stays within it) and the combined quarterly notice of minor enhancements per client (RMO 9-2021 V.9), from Company > PH CAS. One container per major version; the runbook says how a client moves after filing.
 - Tests: +5 (test_b49_releases).
 - Assumed: the notice goes out in the first two weeks after the quarter (firm policy; the RMO sets no deadline); a quarter without a minor release needs no notice.
 - Left out: the second container appears only with version 2.

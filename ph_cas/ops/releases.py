@@ -65,10 +65,10 @@ def quarter_bounds(year: int, quarter: int):
     return first, frappe.utils.add_days(last, -1)
 
 
-def minor_releases_in(year: int, quarter: int, items: list[dict] | None = None) -> list[dict]:
-    """The minor releases of the running major version dated within the quarter."""
+def minor_releases_in(year: int, quarter: int, items: list[dict] | None = None, running: str | None = None) -> list[dict]:
+    """The minor releases of the running major version (ph_cas.__version__ unless given) dated within the quarter."""
     start, end = quarter_bounds(year, quarter)
-    running = major(ph_cas.__version__)
+    running = major(running or ph_cas.__version__)
     return [r for r in (items if items is not None else releases())
             if r["class"] == "minor" and major(r["version"]) == running and start <= getdate(r["date"]) <= end]
 
@@ -79,12 +79,12 @@ def version_before(day, items: list[dict] | None = None) -> str:
     return older[-1]["version"] if older else ""
 
 
-def quarterly_notice(company: str, year: int, quarter: int, items: list[dict] | None = None) -> str | None:
+def quarterly_notice(company: str, year: int, quarter: int, items: list[dict] | None = None, running: str | None = None) -> str | None:
     """The combined written notice of minor enhancements for one client and quarter,
     or None when the quarter had no minor release (nothing to notify)."""
     from ph_cas.audit.header import software_name
 
-    rel = minor_releases_in(year, quarter, items)
+    rel = minor_releases_in(year, quarter, items, running)
     if not rel:
         return None
     c = frappe.get_cached_doc("Company", company)

@@ -18,8 +18,10 @@ LOG = [
 class TestB49Releases(IntegrationTestCase):
     def test_the_shipped_log_is_valid_and_names_the_running_version(self):
         self.assertEqual(check_log(), [])
-        self.assertEqual(releases()[-1]["version"], ph_cas.__version__)
-        self.assertEqual(releases()[0]["class"], "major")
+        shipped = releases()
+        if shipped:  # empty until the owner declares the product done (then 1.0.0, major)
+            self.assertEqual(shipped[-1]["version"], ph_cas.__version__)
+            self.assertEqual(shipped[0]["class"], "major")
 
     def test_the_log_check_enforces_the_major_version_rule(self):
         self.assertEqual(check_log(LOG), [])
@@ -33,10 +35,10 @@ class TestB49Releases(IntegrationTestCase):
     def test_quarters(self):
         self.assertEqual([str(d) for d in quarter_bounds(2027, 1)], ["2027-01-01", "2027-03-31"])
         self.assertEqual([str(d) for d in quarter_bounds(2026, 4)], ["2026-10-01", "2026-12-31"])
-        self.assertEqual([r["version"] for r in minor_releases_in(2027, 1, LOG)], ["1.0.1", "1.1.0"])
+        self.assertEqual([r["version"] for r in minor_releases_in(2027, 1, LOG, "1.1.1")], ["1.0.1", "1.1.0"])
 
     def test_quarterly_notice_lists_the_quarter_minor_releases(self):
-        text = quarterly_notice(TEST_COMPANY, 2027, 1, LOG)
+        text = quarterly_notice(TEST_COMPANY, 2027, 1, LOG, "1.1.1")
         self.assertIn("Section V.9 of RMO No. 9-2021", text)
         self.assertIn("from version 1.0.0 to version 1.1.0", text)
         self.assertIn("  - The customer field is a searchable dropdown.", text)
@@ -45,7 +47,7 @@ class TestB49Releases(IntegrationTestCase):
         self.assertTrue(text.endswith("\r\n"))
 
     def test_a_quarter_without_minor_releases_needs_no_notice(self):
-        self.assertIsNone(quarterly_notice(TEST_COMPANY, 2026, 4, LOG))
+        self.assertIsNone(quarterly_notice(TEST_COMPANY, 2026, 4, LOG, "1.1.1"))
         with self.assertRaises(frappe.ValidationError):
             from ph_cas.ops.releases import download_quarterly_notice
 
