@@ -1,0 +1,13 @@
+{
+ "_rules": "Owner's method, 15 Nov 2026 (docs/DECISIONS.md). major: a new major version (the first number), and the only kind of release that may add or remove a module, change a function with financial effect, or change the database framework (RMO 9-2021 V.8); the client chooses to move and files an update of registration with its RDO before using it. minor: bug fixes and small field changes (for example manual entry to a searchable dropdown) within the same major version; listed in one combined written notice per client per quarter (RMO 9-2021 V.9). Enterprise clients follow the same rules.",
+ "releases": [
+  {
+   "version": "1.0.0",
+   "date": "2026-11-15",
+   "class": "major",
+   "platform": "ERPNext 16, Frappe Framework 16",
+   "summary": "First release for registration: the version each client's CAS registration names.",
+   "items": []
+  }
+ ]
+}

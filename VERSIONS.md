@@ -2,6 +2,7 @@
 
 | Component | Pin | Recorded |
 |---|---|---|
+| Sentire Ledger (ph_cas) | 1.0.0 | 15 Nov 2026 (first release for registration; releases in ph_cas/setup/data/releases.json) |
 | Frappe | v16.55.2 | 6 Nov 2026 (latest v16 tag that day) |
 | ERPNext | v16.54.0 | 6 Nov 2026 (latest v16 tag that day) |
 | Python | 3.14 (uv) | Frappe v16 requires >=3.14,<3.15 |

@@ -24,6 +24,16 @@ frappe.ui.form.on("Company", {
             frm.add_custom_button(__("Registration pack (zip)"), () => {
                 window.open(`/api/method/ph_cas.registration.pack.download_pack?company=${encodeURIComponent(frm.doc.name)}`);
             }, __("PH CAS"));
+            frm.add_custom_button(__("Quarterly notice of minor enhancements"), () => {
+                const now = new Date();
+                const q = Math.floor(now.getMonth() / 3) || 4;
+                frappe.prompt([
+                    { fieldname: "year", fieldtype: "Int", label: __("Year"), default: q === 4 && now.getMonth() < 3 ? now.getFullYear() - 1 : now.getFullYear(), reqd: 1 },
+                    { fieldname: "quarter", fieldtype: "Select", label: __("Quarter"), options: "1\n2\n3\n4", default: String(q), reqd: 1 },
+                ], (v) => {
+                    window.open(`/api/method/ph_cas.ops.releases.download_quarterly_notice?company=${encodeURIComponent(frm.doc.name)}&year=${v.year}&quarter=${v.quarter}`);
+                }, __("Notice of minor enhancements (RMO 9-2021 V.9)"));
+            }, __("PH CAS"));
             frm.add_custom_button(__("Year-end e-books (zip)"), () => {
                 frappe.prompt({ fieldname: "year", fieldtype: "Int", label: __("Year"), default: new Date().getFullYear() - 1, reqd: 1 }, (v) => {
                     window.open(`/api/method/ph_cas.books.yearend.download_pack?company=${encodeURIComponent(frm.doc.name)}&year=${v.year}`);
