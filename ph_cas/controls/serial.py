@@ -93,7 +93,7 @@ def assign_serial(doc, method=None):
 def _notify(series, remaining):
     recipients = [
         u["parent"]
-        for u in frappe.get_all("Has Role", filters={"role": "PH Accounting Manager", "parenttype": "User"}, fields=["parent"])
+        for u in frappe.get_all("Has Role", filters={"role": "Accounting Manager", "parenttype": "User"}, fields=["parent"])
         if frappe.db.get_value("User", u["parent"], "enabled")
     ]
     if recipients:

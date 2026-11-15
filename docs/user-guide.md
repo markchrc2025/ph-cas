@@ -5,7 +5,7 @@
 - **Bills.** A Purchase Invoice computes input VAT and the withholding from the supplier's category. If you must not withhold, tick the flag and give the reason. Advances to suppliers withhold at payment.
 - **Period-end.** PH Compliance Calendar shows what is due. Compute each return's figures (PH Tax Return Figures) and generate the alphalist files (PH Alphalist File); run each file through the BIR Validation module on a Windows PC and record the result; copy the figures into eBIRForms; tick "filed" with the confirmation reference. Issue the 2307s to suppliers from the quarter's bills.
 - **Books.** Print or export any book from Reports (PH General Journal and the others); every print carries the BIR header. At year-end, download the e-books pack from the Company form.
-- **Closed periods.** Ask the PH Accounting Manager to create an Accounting Period after the quarter is filed; nothing can then be posted into it.
+- **Closed periods.** Ask the Accounting Manager to create an Accounting Period after the quarter is filed; nothing can then be posted into it.
 
 ## Getting started: the Sentire Ledger workspace (B34)
 

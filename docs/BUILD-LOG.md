@@ -2,8 +2,15 @@
 
 One entry per bundle, newest first. Counts are the test totals on main after the merge.
 
-## 2307 prints only on the BIR form (15 Nov 2026)
+## Role renamed: Accounting Manager (15 Nov 2026)
 - PR: (filled in at merge)
+- Built: the owner's ruling: the role "PH Accounting Manager" is now "Accounting Manager" (not "Approver"; only "PH" is dropped). A pre-model-sync patch (ph_cas.patches.v0.rename_accounting_manager_role) renames the role in place on existing sites, so every user who holds it and every permission row that names it follow; setup runs the same step if the old name is still there. Code, DocType and report permissions, the home page and the docs use the new name.
+- Tests: +2 (test_role_rename).
+- Assumed: nothing new.
+- Left out: the build log keeps the old name in entries written before the rename.
+
+## 2307 prints only on the BIR form (15 Nov 2026)
+- PR: #52
 - Built: the owner found tutorial V14 showing the B26 HTML look-alike of the 2307 instead of the BIR's own form. The look-alike (print format PH BIR 2307) is now disabled and no longer the default print format of PH 2307 Issued; migrate disables it on sites that have it. The certificate prints only on the BIR's January 2018 ENCS blank, filled the way every BIR form is filled (ph_cas.forms.f2307 on the F0 engine, the method of the MCRC Accounting Portal): from the Print on BIR form button, the toolbar Print and Ctrl+P alike. The registration pack's specimen is now 08_Sample_2307.pdf on the BIR blank.
 - Tests: test_b26_2307 checks that the certificate prints on the BIR blank and that the look-alike is disabled (replaces the look-alike's face test).
 - Assumed: nothing new.

@@ -171,10 +171,10 @@ Every bundle below is written to be pasted under the preamble. "Annex B" means t
 - **Goal:** documents carry the day they are posted, drafts cannot be printed as if they were invoices, closed periods stay closed, and stock cannot rewrite history.
 - **Read first:** D5, D6, D7 in `docs/DECISIONS.md`; the review's note on stock re-valuation deleting and recreating GL rows (accounts/utils.py).
 - **Build:**
-  - Posting date rule: on submit, `posting_date` must equal today (site time zone Asia/Manila) for Sales Invoice, credit and debit notes and receipts; `set_posting_time` is refused. Journal Entries may be back-dated inside an open Accounting Period only by the role `PH Accounting Manager`, with the reason captured in a mandatory field.
+  - Posting date rule: on submit, `posting_date` must equal today (site time zone Asia/Manila) for Sales Invoice, credit and debit notes and receipts; `set_posting_time` is refused. Journal Entries may be back-dated inside an open Accounting Period only by the role `Accounting Manager`, with the reason captured in a mandatory field.
   - Drafts: print formats of accounting documents render a full-page "DRAFT, NOT AN INVOICE" watermark when `docstatus = 0`; PDF and print endpoints refuse to print a draft Sales Invoice at all (the watermark covers the other DocTypes).
-  - Accounting Period: creation and closing limited to `PH Accounting Manager`; a closed period refuses any posting, cancellation or amendment dated inside it, for every GL-writing DocType.
-  - Inventory per D7: `Enable Perpetual Inventory` off on new companies and refused on; Stock Entry, Delivery Note and Purchase Receipt refuse a posting date earlier than today; Stock Reconciliation is limited to `PH Accounting Manager` and refuses back-dating; Repost Item Valuation already refused in B02.
+  - Accounting Period: creation and closing limited to `Accounting Manager`; a closed period refuses any posting, cancellation or amendment dated inside it, for every GL-writing DocType.
+  - Inventory per D7: `Enable Perpetual Inventory` off on new companies and refused on; Stock Entry, Delivery Note and Purchase Receipt refuse a posting date earlier than today; Stock Reconciliation is limited to `Accounting Manager` and refuses back-dating; Repost Item Valuation already refused in B02.
 - **Tests:** a Sales Invoice dated yesterday fails on submit; a Journal Entry dated inside a closed period fails; a draft Sales Invoice PDF request fails; a Stock Entry dated last week fails; perpetual inventory cannot be enabled.
 - **Done when:** tests pass; Annex B items on posting dates and period control ticked "built".
 - **Out of scope:** the printed layout (B20).

@@ -27,7 +27,7 @@ from ph_cas.forms.export import ExportRefusal, manila_date, write_lined, write_t
 from ph_cas.forms.money import text as money_text
 from ph_cas.forms.registry import BUILT, spec
 
-MANAGER_ROLES = ("Accounts Manager", "PH Accounting Manager", "System Manager")
+MANAGER_ROLES = ("Accounts Manager", "Accounting Manager", "System Manager")
 PREVIEWS_PER_MINUTE = 40
 TOO_MANY_PREVIEWS = "Too many previews; wait a moment."
 SEALED = "This return has been filed and is sealed: a filed return is never changed. Ask a manager to open an amendment."

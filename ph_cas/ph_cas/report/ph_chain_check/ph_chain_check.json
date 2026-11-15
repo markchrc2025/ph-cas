@@ -20,6 +20,6 @@
  "report_type": "Script Report",
  "roles": [
   {"role": "System Manager"},
-  {"role": "PH Accounting Manager"}
+  {"role": "Accounting Manager"}
  ]
 }
