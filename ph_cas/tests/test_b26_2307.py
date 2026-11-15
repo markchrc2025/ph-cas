@@ -41,16 +41,26 @@ class TestB26_2307(IntegrationTestCase):
         month_idx = (frappe.utils.getdate(today()).month - self.qs.month) + 1
         self.assertEqual(flt(line.get(f"month_{month_idx}")), 15000)
 
-    def test_print_renders_the_form_face(self):
+    def test_prints_only_on_the_bir_blank(self):
+        """The certificate prints on the BIR's own 2307 (F0 engine), never on the B26 look-alike."""
+        import io
+
+        from pypdf import PdfReader
+
+        from ph_cas.ph_cas.doctype.ph_2307_issued.ph_2307_issued import print_bir_form
+
         make_purchase_invoice(self.sup, [(ensure_service_item(), 1, 10000, {})], submit=True)
         generate_quarter(TEST_COMPANY, str(self.qs))
         doc = frappe.get_doc("PH 2307 Issued", {"supplier": self.sup, "docstatus": 0})
         doc.submit()
-        pf = frappe.get_doc("Print Format", "PH BIR 2307")
-        html = frappe.render_template(pf.html, {"doc": doc})
-        for needle in ["Certificate of Creditable Tax Withheld at Source", "Part I", "Payee Information", "Part II", "Payor Information", "Part III", "WI100", "Santos, Maria, Cruz", "CONFORME", "Money Payments Subject to Withholding of Business Tax", "Data Privacy Act"]:
-            self.assertIn(needle, html, needle)
-        self.assertEqual(html.count('class="bx"'), 8 + 8 + 14 + 4 + 14 + 4 + 8 * 4)
+        self.assertEqual(frappe.db.get_value("Print Format", "PH BIR 2307", "disabled"), 1)
+        self.assertNotEqual(frappe.get_meta("PH 2307 Issued").default_print_format, "PH BIR 2307")
+        url = print_bir_form(doc.name)
+        pdf = frappe.get_doc("File", {"file_url": url}).get_content()
+        text = PdfReader(io.BytesIO(pdf)).pages[0].extract_text()
+        for needle in ["Certificate of Creditable Tax", "2307 01/18ENCS", "WI100", "SANTOS, MARIA, CRUZ"]:
+            self.assertIn(needle, text, needle)
+        self.assertNotIn("DRAFT", text)
 
     def test_reissue_only_after_cancel(self):
         make_purchase_invoice(self.sup, [(ensure_service_item(), 1, 10000, {})], submit=True)
