@@ -147,6 +147,9 @@ class TestG1EndToEnd(IntegrationTestCase):
         # SLSP files and the tie-out
         out = doc.generate_slsp()
         self.assertEqual(len(out["files"]), 9)  # S, P and I for each month of the quarter (RDO answer 11)
+        self.assertFalse([f for f in out["files"] if "does not exist" in f], out["files"])
+        if not frappe.db.exists("Purchase Invoice", {"company": TEST_COMPANY, "docstatus": 1, "ph_is_import": 1}):
+            self.assertTrue(all("no importations" in f for f in out["files"] if f.startswith("I ")), out["files"])
         doc.reload()
         if doc.alphalist_file:
             self.assertTrue(frappe.db.exists("PH Alphalist File", doc.alphalist_file))
