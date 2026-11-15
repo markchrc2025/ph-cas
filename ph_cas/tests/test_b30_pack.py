@@ -52,3 +52,27 @@ class TestB30Pack(IntegrationTestCase):
         before = print_status("Sales Invoice", si.name)["prints"]
         build(TEST_COMPANY)
         self.assertEqual(print_status("Sales Invoice", si.name)["prints"], before)
+
+
+class TestCustodyNotice(IntegrationTestCase):
+    """LDG-98: the client's notice to its RDO that the provider keeps its records (RR 9-2009 Sec. 6.3.1)."""
+
+    def test_the_pack_carries_the_notice_with_custodian_and_place(self):
+        from ph_cas.registration.pack import custody_notice
+
+        frappe.set_user("Administrator")
+        s = frappe.get_single("PH CAS Settings")
+        before = s.get("records_location")
+        try:
+            notice = custody_notice(TEST_COMPANY)
+            self.assertIn("RR 9-2009".replace("RR", "Revenue Regulations No."), notice)
+            self.assertIn("Section 6.3.1", notice)
+            self.assertIn("[DATA CENTRE AND BACKUP SITE IN THE PHILIPPINES", notice)  # not set yet: a visible blank
+            self.assertIn("ten (10) years", notice)
+            frappe.db.set_single_value("PH CAS Settings", "records_location", "Data centre, Makati City\nBackups: Cebu City")
+            frappe.clear_document_cache("PH CAS Settings", "PH CAS Settings")
+            notice = custody_notice(TEST_COMPANY)
+            self.assertIn("Where the records and backups are kept: Data centre, Makati City, Backups: Cebu City", notice)
+            self.assertIn("03a_Notice_of_Third_Party_Custody.txt", build(TEST_COMPANY)["files"])
+        finally:
+            frappe.db.set_single_value("PH CAS Settings", "records_location", before)

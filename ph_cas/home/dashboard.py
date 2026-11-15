@@ -37,7 +37,7 @@ CREATE_ACTIONS = [
     {"label": "Record a payment", "route": "/app/payment-entry/new"},
     {"label": "Journal entry", "route": "/app/journal-entry/new"},
     {"label": "Issue a 2307", "route": "/app/ph-2307-issued/new"},
-    {"label": "Compute a return", "route": "/app/ph-tax-return-figures/new"},
+    {"label": "Compute a return", "route": "/app/ph-tax-return/new"},
 ]
 
 

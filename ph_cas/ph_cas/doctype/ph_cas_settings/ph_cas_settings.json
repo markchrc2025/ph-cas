@@ -20,6 +20,7 @@
   "provider_signatory",
   "provider_signatory_position",
   "provider_signatory_tin",
+  "records_location",
   "subscription_section",
   "subscription_tier",
   "subscription_until",
@@ -114,6 +115,12 @@
    "label": "Signatory's TIN"
   },
   {
+   "fieldname": "records_location",
+   "fieldtype": "Small Text",
+   "label": "Where the records and backups are kept",
+   "description": "The data centre (and backup site) in the Philippines that holds the client's records, printed on the notice of third-party custody (RR 9-2009 Sec. 6.3.1)."
+  },
+  {
    "fieldname": "last_backup_on",
    "fieldtype": "Datetime",
    "label": "Last backup",
@@ -189,7 +196,7 @@
  "index_web_pages_for_search": 0,
  "issingle": 1,
  "links": [],
- "modified": "2026-11-09 00:10:00.000000",
+ "modified": "2026-11-16 02:00:00.000000",
  "modified_by": "Administrator",
  "module": "PH CAS",
  "name": "PH CAS Settings",

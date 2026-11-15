@@ -56,11 +56,11 @@ STEPS = [
     },
     {
         "name": "PH Run 2550Q",
-        "title": "Run the 2550Q figures",
+        "title": "Compute your first BIR return",
         "action": "Go to Page",
-        "path": "/app/ph-tax-return-figures/new",
-        "action_label": "New Tax Return Figures",
-        "description": "Pick the return (2550Q, 2551Q, 0619-E, 1601-EQ and the income tax forms), the company and the period. The figures are computed from your books, item by item of the form, ready to be keyed into eBIRForms.",
+        "path": "/app/ph-tax-return/new",
+        "action_label": "New BIR return",
+        "description": "Open BIR Returns and pick the form (2550Q, 2551Q, 0619-E, 1601-EQ and the income tax returns), the company and the period. Refresh from books fills the figures from your ledger, Preview prints them on the BIR's own form, and filing keeps the BIR confirmation with the return.",
         "validate_action": 0,
     },
     {
