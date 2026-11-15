@@ -28,6 +28,15 @@ STEPS = [
         "validate_action": 0,
     },
     {
+        "name": "PH Choose Modules",
+        "title": "Choose what you use",
+        "action": "Go to Page",
+        "path": "/app/ph-modules",
+        "action_label": "Open Modules",
+        "description": "Pick your industry and Sentire Ledger switches on the modules it usually needs: stock for a shop, projects for a contractor, manufacturing for a maker. Accounts, BIR and the Home page are always on. Switch any module on or off later; nothing is deleted.",
+        "validate_action": 0,
+    },
+    {
         "name": "PH Confirm Tax Rules",
         "title": "Confirm your tax rules",
         "action": "Go to Page",

@@ -44,6 +44,7 @@ One container serves many sites. The primary site is `SITE_NAME` (the demo on MC
 ```
 ledger-site new acme --tier Team                 # https://acme.ledger.sentire.solutions, production flags on
 ledger-site new acme --tier Business --pilot 14  # paid pilot: demo mode, pilot_until set, deleted at day 30 if not subscribed
+ledger-site new acme --tier Team --industry "Retail and trading"  # also switches on that industry's modules (B52)
 ledger-site set-tier acme Business --until 2027-11-10 --max-users 20
 ledger-site usage acme
 ledger-site list

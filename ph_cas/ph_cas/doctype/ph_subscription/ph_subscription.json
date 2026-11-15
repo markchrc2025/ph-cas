@@ -42,6 +42,7 @@
   "usage_section",
   "usage_json",
   "usage_on",
+  "modules_on",
   "offboarding_section",
   "notice_received_on",
   "service_ends_on",
@@ -236,6 +237,13 @@
    "read_only": 1
   },
   {
+   "fieldname": "modules_on",
+   "fieldtype": "Small Text",
+   "label": "Modules on",
+   "read_only": 1,
+   "description": "From the last usage report (ledger-site usage): the optional modules this client has switched on. Accounts and BIR are always on."
+  },
+  {
    "fieldname": "offboarding_section",
    "fieldtype": "Section Break",
    "label": "Offboarding (docs/runbooks/offboarding.md)"
@@ -316,7 +324,7 @@
  ],
  "links": [],
  "creation": "2026-11-10 00:00:00.000000",
- "modified": "2026-11-10 00:00:00.000000",
+ "modified": "2026-11-16 01:00:00.000000",
  "modified_by": "Administrator",
  "owner": "Administrator",
  "idx": 0,

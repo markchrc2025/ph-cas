@@ -107,7 +107,14 @@ def usage() -> dict:
         "invoices_this_month": frappe.db.count(
             "Sales Invoice", {"docstatus": 1, "posting_date": [">=", start], "is_return": 0}
         ),
+        "modules_on": _modules_on(),
     }
+
+
+def _modules_on() -> list[str]:
+    from ph_cas.modules.api import modules_on
+
+    return modules_on()
 
 
 def _refuse(what: str, limit: int, tier: str):
