@@ -227,6 +227,11 @@ def build_importations(company, start, end):
     return _fname(company, "I", end), importations_file(o, rows, end), len(rows)
 
 
+def has_importations(company, start, end) -> bool:
+    """Whether the month has any importation bill; with none there is no importations file to write."""
+    return bool(frappe.db.exists("Purchase Invoice", {"company": company, "docstatus": 1, "ph_is_import": 1, "posting_date": ("between", [start, end])}))
+
+
 def months(start, end) -> list[tuple]:
     """(first day, last day) of each month from start to end: the summary list is
     one file per month, three per quarterly submission (RDO answer 11)."""

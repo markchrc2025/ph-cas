@@ -400,11 +400,14 @@ class PHTaxReturn(Document):
             frappe.throw(_("The SLSP goes with the 2550Q."))
         from ph_cas.dat.relief import generate
 
-        from ph_cas.dat.relief import months
+        from ph_cas.dat.relief import has_importations, months
 
         made = []
         for first, last in months(self.period_start, self.period_end):  # one file per month (RDO answer 11)
             for kind in ("S", "P", "I"):
+                if kind == "I" and not has_importations(self.company, str(first), str(last)):
+                    made.append(_("I {0}: no importations this month, so no file").format(f"{first:%m/%Y}"))
+                    continue
                 try:
                     made.append(generate(self.company, kind, str(first), str(last)))
                 except Exception as e:
