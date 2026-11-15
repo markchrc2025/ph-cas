@@ -7,7 +7,7 @@ from frappe.commands import get_site, pass_context
 @click.argument("path")
 @pass_context
 def sign_off(context, path):
-    """Flip the rules listed in a CPA sign-off file to confirmed."""
+    """Flip the rules listed in an accountant's sign-off file to confirmed."""
     site = get_site(context)
     frappe.init(site=site)
     frappe.connect()

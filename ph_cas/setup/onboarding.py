@@ -35,7 +35,7 @@ STEPS = [
         "action": "Go to Page",
         "path": "/app/ph-tax-rule",
         "action_label": "Open Tax Rules",
-        "description": "Every rate the system applies (VAT, withholding, percentage tax, income tax brackets) is a dated rule here. Rules start as drafts; your CPA confirms them and the confirmed set is what a production site applies. Review the ones that match your registration.",
+        "description": "Every rate the system applies (VAT, withholding, percentage tax, income tax brackets) is a dated rule here. Rules start as drafts; your accountant confirms them and the confirmed set is what a production site applies. Review the ones that match your registration.",
         "validate_action": 0,
     },
     {

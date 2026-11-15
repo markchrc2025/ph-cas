@@ -396,7 +396,7 @@
   "legal_basis": "RR 24-2025; RMO 46-2025; RMC 79-2026",
   "return_form": "1601-EQ",
   "catalogue_ref": "C Expanded withholding",
-  "notes": "Codes WI/WC 840 to 860 exist from 27 Oct 2025; the exact code depends on the goods (CPA)."
+  "notes": "Codes WI/WC 840 to 860 exist from 27 Oct 2025; the exact code depends on the goods (accountant)."
  },
  {
   "rule_id": "EWT-TIMING",

@@ -44,7 +44,8 @@ def company_fields():
         {"fieldname": "ph_civil_status", "fieldtype": "Select", "label": "Civil status", "options": "\nSingle\nMarried\nLegally Separated\nWidow/er", "insert_after": "ph_birthdate", "depends_on": "eval:doc.ph_taxpayer_type=='Individual'"},
         {"fieldname": "ph_individual_type", "fieldtype": "Select", "label": "Individual taxpayer type (1701 forms)", "options": "\nSingle Proprietorship\nProfessional", "insert_after": "ph_civil_status", "depends_on": "eval:doc.ph_taxpayer_type=='Individual'"},
         {"fieldname": "ph_citizenship", "fieldtype": "Data", "label": "Citizenship", "default": "Filipino", "insert_after": "ph_civil_status", "depends_on": "eval:doc.ph_taxpayer_type=='Individual'"},
-        {"fieldname": "ph_incorporation_date", "fieldtype": "Date", "label": "Date of incorporation or organization", "insert_after": "ph_citizenship", "depends_on": "eval:doc.ph_taxpayer_type!='Individual'"},
+        {"fieldname": "ph_incorporation_date", "fieldtype": "Date", "label": "Date of incorporation or organization", "insert_after": "ph_citizenship", "depends_on": "eval:doc.ph_taxpayer_type!='Individual'",
+         "mandatory_depends_on": "eval:doc.ph_taxpayer_type!='Individual' && doc.tax_id", "description": "Required for a non-individual once the TIN is entered: the 1702-RT and 1702Q print it."},
         {"fieldname": "ph_taxpayer_col", "fieldtype": "Column Break", "insert_after": "ph_incorporation_date"},
         {"fieldname": "ph_registered_address", "fieldtype": "Small Text", "label": "Registered address (per COR)", "insert_after": "ph_taxpayer_col"},
         {"fieldname": "ph_zip", "fieldtype": "Data", "label": "ZIP code", "length": 4, "insert_after": "ph_registered_address"},
@@ -160,6 +161,11 @@ def validate_company(doc, method=None):
         doc.ph_branch_code = "00000"
     if not doc.get("ph_registered_name"):
         doc.ph_registered_name = doc.company_name
+    # The 1702-RT and 1702Q print the date of incorporation or organization of a
+    # non-individual (owner, 15 Nov 2026). Required only once the TIN is set, so
+    # the setup wizard's first save of the company still goes through.
+    if doc.get("tax_id") and (doc.get("ph_taxpayer_type") or "Non-individual") != "Individual" and not doc.get("ph_incorporation_date"):
+        frappe.throw(_("Enter the date of incorporation or organization: a non-individual's income tax returns (1702-RT, 1702Q) print it."), title=_("Date of incorporation"))
 
 
 def validate_party(doc, method=None):

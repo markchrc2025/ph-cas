@@ -1,4 +1,4 @@
-"""B10: the Philippine accounts a micro taxpayer's CPA expects, and the
+"""B10: the Philippine accounts a micro taxpayer's accountant expects, and the
 mapping table the tax engine posts through.
 
 The accounts are added under ERPNext's Standard chart (so an existing company

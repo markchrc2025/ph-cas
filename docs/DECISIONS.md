@@ -38,7 +38,7 @@ No letter to the RDO: the owner answered the questions directly. Numbers follow 
 | 8a | 2550Q SAWT form code | 2550Q. | ph_cas.dat.sawt (unchanged). |
 | 8b | Branch code in DAT files | The correct and complete 5-digit code, leading zeroes kept. | ph_cas.setup.master_data.dat_branch; every alphalist file name and record. |
 | 8c | ATCs after module 7.4 | The BIR patched module 7.4: WV080 to WV110 (July 2025, after RMO 13-2025 and 27-2025) and WI/WC 840 to 860 (tax advisory of 18 Nov 2025). Clients run the patched module. DI900 and EI900 for Schedule 2 stay an assumption. | ph_cas.dat.qap.unknown_atcs is empty. |
-| 8d | WI/WC 820, 830, 156 | The rates in the tax rules (CPA sign-off). | Tax rules. |
+| 8d | WI/WC 820, 830, 156 | The rates in the tax rules (accountant's sign-off). | Tax rules. |
 | 9 | Collection receipts | A per-company switch, covered by an ATP. Clients may still use other supplementary receipts. Without an ATP the receipt prints THIS DOCUMENT IS NOT VALID FOR CLAIM OF INPUT TAX. | Company: Collection Receipt ATP number and date; the print shows the ATP or the phrase. |
 | 10 | Point of sale | Parked for later. | POS row above stays out of release 1. |
 | 11 | SLSP files | One file per month: three files per quarterly submission. | ph_cas.dat.relief.months; PH Tax Return generate_slsp and the 2550Q tie-out. |
