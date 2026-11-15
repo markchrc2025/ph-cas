@@ -1,0 +1,139 @@
+{
+ "actions": [],
+ "creation": "2026-11-16 01:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "issingle": 1,
+ "field_order": [
+  "intro",
+  "industry",
+  "modules_section",
+  "module_selling",
+  "module_buying",
+  "module_stock",
+  "module_manufacturing",
+  "module_projects",
+  "column_break_modules",
+  "module_assets",
+  "module_quality",
+  "module_crm",
+  "module_support",
+  "configured"
+ ],
+ "fields": [
+  {
+   "fieldname": "intro",
+   "fieldtype": "HTML",
+   "options": "<p class=\"text-muted\">Switch off what this business does not use. A module that is off disappears from the menus, the sidebars, the search bar and the guides; its records and permissions stay, so switching it back on restores everything. Accounts, BIR and the Home page are always on.</p>"
+  },
+  {
+   "fieldname": "industry",
+   "fieldtype": "Select",
+   "label": "Industry",
+   "options": "\nServices\nRetail and trading\nRestaurant and food\nManufacturing\nConstruction and projects\nProfessional practice\nOther",
+   "description": "Picks a starting set of modules. You can change any switch afterwards."
+  },
+  {
+   "fieldname": "modules_section",
+   "fieldtype": "Section Break",
+   "label": "Modules"
+  },
+  {
+   "fieldname": "module_selling",
+   "fieldtype": "Check",
+   "label": "Selling",
+   "default": "1",
+   "description": "Quotations, sales orders and the Selling workspace. Customers and sales invoices are always on."
+  },
+  {
+   "fieldname": "module_buying",
+   "fieldtype": "Check",
+   "label": "Buying",
+   "default": "1",
+   "description": "Purchase orders, supplier quotations and the Buying workspace. Suppliers and supplier bills are always on."
+  },
+  {
+   "fieldname": "module_stock",
+   "fieldtype": "Check",
+   "label": "Stock",
+   "default": "1",
+   "description": "Warehouse movements: receipts, deliveries, stock entries, counts, serial and batch numbers. Items, price lists and warehouses are always on."
+  },
+  {
+   "fieldname": "module_manufacturing",
+   "fieldtype": "Check",
+   "label": "Manufacturing",
+   "default": "1",
+   "description": "Bills of materials, work orders, production planning and subcontracting."
+  },
+  {
+   "fieldname": "module_projects",
+   "fieldtype": "Check",
+   "label": "Projects",
+   "default": "1",
+   "description": "Projects, tasks and timesheets."
+  },
+  {
+   "fieldname": "column_break_modules",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "module_assets",
+   "fieldtype": "Check",
+   "label": "Assets",
+   "default": "1",
+   "description": "Fixed assets, depreciation schedules, asset movements and maintenance."
+  },
+  {
+   "fieldname": "module_quality",
+   "fieldtype": "Check",
+   "label": "Quality",
+   "default": "1",
+   "description": "Quality goals, procedures, inspections and non-conformance."
+  },
+  {
+   "fieldname": "module_crm",
+   "fieldtype": "Check",
+   "label": "CRM",
+   "default": "1",
+   "description": "Leads, opportunities, prospects, campaigns, appointments and contracts."
+  },
+  {
+   "fieldname": "module_support",
+   "fieldtype": "Check",
+   "label": "Support",
+   "default": "1",
+   "description": "Customer issues, service levels, warranty claims and maintenance visits."
+  },
+  {
+   "fieldname": "configured",
+   "fieldtype": "Check",
+   "label": "Configured",
+   "hidden": 1,
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-11-16 01:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "PH CAS",
+ "name": "PH Modules",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "read": 1,
+   "role": "System Manager",
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Accounting Manager"
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

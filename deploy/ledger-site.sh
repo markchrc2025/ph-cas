@@ -2,10 +2,12 @@
 # ledger-site: manage client sites inside the Sentire Ledger container (run as root from the
 # Dokploy terminal: `ledger-site <command>`). Each client is one Frappe site, its own database.
 #
-#   ledger-site new <name> --tier Solo|Team|Business|Enterprise [--pilot DAYS] [--demo]
+#   ledger-site new <name> --tier Solo|Team|Business|Enterprise [--pilot DAYS] [--demo] [--industry "Retail and trading"]
 #       creates <name>.$CLIENT_DOMAIN (or a full hostname if <name> contains a dot), production
 #       flags on (pilot and demo sites stay in demo mode), backup key generated, tier limits set.
 #       Prints the Administrator password once. Store it in the client record, nowhere else.
+#       --industry switches on that industry's starting modules (ph_cas/modules/data/presets.json);
+#       a demo starts with Selling and Buying.
 #   ledger-site set-tier <site> <tier> [--until YYYY-MM-DD] [--max-users N] [--max-branches N] [--max-companies N] [--invoices N]
 #   ledger-site usage <site>          what the site uses against its limits
 #   ledger-site list                  every site with tier, paid-until and pilot-until
@@ -31,12 +33,13 @@ cmd="${1:-}"; shift || true
 case "$cmd" in
   new)
     NAME="${1:?site name}"; shift
-    TIER="Team"; PILOT=""; DEMO=0
+    TIER="Team"; PILOT=""; DEMO=0; INDUSTRY=""
     while [ $# -gt 0 ]; do
       case "$1" in
         --tier) TIER="$2"; shift 2 ;;
         --pilot) PILOT="$2"; shift 2 ;;
         --demo) DEMO=1; shift ;;
+        --industry) INDUSTRY="$2"; shift 2 ;;
         *) echo "unknown option $1"; exit 2 ;;
       esac
     done
@@ -54,6 +57,7 @@ case "$cmd" in
     UNTIL=""; [ -n "$PILOT" ] && UNTIL=$(date -u -d "+$PILOT days" +%F)
     as_frappe "bench --site '$SITE' execute ph_cas.hosting.tiers.set_tier --kwargs \"{'tier': '$TIER', 'pilot_until': '$UNTIL'}\"" >/dev/null
     [ "$DEMO" = 1 ] && as_frappe "bench --site '$SITE' execute ph_cas.demo.seed" >/dev/null
+    [ -n "$INDUSTRY" ] && as_frappe "bench --site '$SITE' execute ph_cas.modules.api.apply_preset --kwargs \"{'industry': '$INDUSTRY'}\"" >/dev/null
     as_frappe "bench --site '$SITE' execute ph_cas.deploy_config.apply_shared" >/dev/null || true
     touch "$BENCH/sites/$SITE/.ph_cas_installed"; chown frappe:frappe "$BENCH/sites/$SITE/.ph_cas_installed"
     echo "== $SITE ready"

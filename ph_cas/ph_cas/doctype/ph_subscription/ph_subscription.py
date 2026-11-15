@@ -28,6 +28,7 @@ class PHSubscription(Document):
         if self.tier == "Enterprise" and self.hosting != "Dedicated pair (Enterprise)":
             self.hosting = "Dedicated pair (Enterprise)"
         self.set_tier_command = self.command()
+        self.modules_on = modules_from_usage(self.usage_json)
 
     def command(self) -> str:
         parts = [f"ledger-site set-tier {self.site} {self.tier}"]
@@ -48,3 +49,17 @@ def due_subscriptions() -> list[str]:
         for s in frappe.get_all("PH Subscription", filters={"status": "Active"}, fields=["name", "paid_until"])
         if s.paid_until and getdate(s.paid_until) < getdate(today())
     ]
+
+
+def modules_from_usage(usage_json: str | None) -> str | None:
+    """The modules list of a usage report (ledger-site usage), as one readable line (LDG-85)."""
+    import json
+
+    try:
+        mods = json.loads(usage_json or "{}").get("modules_on")
+    except (ValueError, AttributeError):
+        return None
+    if not isinstance(mods, list):
+        return None
+    return ", ".join(m.capitalize() if m != "crm" else "CRM" for m in mods) or "None (Accounts and BIR only)"
+

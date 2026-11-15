@@ -1,0 +1,251 @@
+{
+ "_comment": "M5.2 module toggles (LDG-83). Accounts, BIR and the Sentire Ledger home are always on and are not listed. A module that is off hides: its workspaces and sidebars (dock), its doctypes and reports (frappe_modules, plus extra_*, minus keep_*), from the sidebars, the search bar and the routes; its onboarding guides. Data and roles are not touched.",
+ "modules": [
+  {
+   "key": "selling",
+   "label": "Selling",
+   "description": "Quotations, sales orders and the Selling workspace. Customers and sales invoices are always on.",
+   "frappe_modules": [
+    "Selling"
+   ],
+   "sidebars": [
+    "Selling"
+   ],
+   "workspaces": [
+    "Selling"
+   ],
+   "onboarding": [
+    "Selling Onboarding"
+   ],
+   "org_steps": [
+    "Complete Selling Onboarding"
+   ],
+   "keep_doctypes": [
+    "Customer",
+    "Industry Type",
+    "Selling Settings"
+   ],
+   "keep_reports": [
+    "Sales Analytics",
+    "Customer Credit Balance",
+    "Customers Without Any Sales Transactions",
+    "Inactive Customers",
+    "Item-wise Sales History",
+    "Address And Contacts",
+    "Territory-wise Sales",
+    "Customer Acquisition and Loyalty"
+   ]
+  },
+  {
+   "key": "buying",
+   "label": "Buying",
+   "description": "Purchase orders, supplier quotations and the Buying workspace. Suppliers and supplier bills are always on.",
+   "frappe_modules": [
+    "Buying"
+   ],
+   "sidebars": [
+    "Buying"
+   ],
+   "workspaces": [
+    "Buying"
+   ],
+   "onboarding": [
+    "Buying Onboarding"
+   ],
+   "org_steps": [
+    "Complete Buying Onboarding"
+   ],
+   "keep_doctypes": [
+    "Supplier",
+    "Buying Settings"
+   ],
+   "keep_reports": [
+    "Purchase Analytics",
+    "Item-wise Purchase History"
+   ]
+  },
+  {
+   "key": "stock",
+   "label": "Stock",
+   "description": "Warehouse movements: receipts, deliveries, stock entries, counts, serial and batch numbers. Items, price lists and warehouses are always on.",
+   "frappe_modules": [
+    "Stock"
+   ],
+   "sidebars": [
+    "Stock"
+   ],
+   "workspaces": [
+    "Stock"
+   ],
+   "onboarding": [
+    "Stock Onboarding"
+   ],
+   "org_steps": [
+    "Complete Stock Onboarding"
+   ],
+   "keep_doctypes": [
+    "Item",
+    "Item Price",
+    "Price List",
+    "Item Attribute",
+    "Item Variant Settings",
+    "UOM Category",
+    "Warehouse",
+    "Warehouse Type",
+    "Manufacturer",
+    "Item Manufacturer",
+    "Item Alternative",
+    "Customs Tariff Number",
+    "Stock Settings",
+    "Bin",
+    "Quality Inspection",
+    "Quality Inspection Parameter",
+    "Quality Inspection Parameter Group",
+    "Quality Inspection Template"
+   ],
+   "keep_reports": [
+    "Item Prices",
+    "Item-wise Price List Rate",
+    "Item Variant Details",
+    "Item Price Stock"
+   ]
+  },
+  {
+   "key": "manufacturing",
+   "label": "Manufacturing",
+   "description": "Bills of materials, work orders, production planning and subcontracting.",
+   "frappe_modules": [
+    "Manufacturing",
+    "Subcontracting"
+   ],
+   "sidebars": [
+    "Manufacturing"
+   ],
+   "workspaces": [
+    "Manufacturing"
+   ],
+   "onboarding": [
+    "Manufacturing Onboarding"
+   ],
+   "org_steps": [
+    "Complete Manufacturing Onboarding"
+   ],
+   "extra_reports": [
+    "Subcontract Order Summary",
+    "Subcontracted Raw Materials To Be Transferred",
+    "Subcontracted Item To Be Received"
+   ],
+   "keep_doctypes": [],
+   "keep_reports": []
+  },
+  {
+   "key": "projects",
+   "label": "Projects",
+   "description": "Projects, tasks and timesheets.",
+   "frappe_modules": [
+    "Projects"
+   ],
+   "sidebars": [
+    "Projects"
+   ],
+   "workspaces": [
+    "Projects"
+   ],
+   "onboarding": [
+    "Projects Onboarding"
+   ],
+   "org_steps": [
+    "Complete Projects Onboarding"
+   ],
+   "keep_doctypes": [],
+   "keep_reports": []
+  },
+  {
+   "key": "assets",
+   "label": "Assets",
+   "description": "Fixed assets, depreciation schedules, asset movements and maintenance.",
+   "frappe_modules": [
+    "Assets"
+   ],
+   "sidebars": [
+    "Assets"
+   ],
+   "workspaces": [
+    "Assets"
+   ],
+   "onboarding": [
+    "Asset Onboarding"
+   ],
+   "org_steps": [
+    "Complete Asset Onboarding"
+   ],
+   "keep_doctypes": [],
+   "keep_reports": []
+  },
+  {
+   "key": "quality",
+   "label": "Quality",
+   "description": "Quality goals, procedures, inspections and non-conformance.",
+   "frappe_modules": [
+    "Quality Management"
+   ],
+   "sidebars": [
+    "Quality"
+   ],
+   "workspaces": [
+    "Quality"
+   ],
+   "onboarding": [
+    "Quality Onboarding"
+   ],
+   "org_steps": [
+    "Complete Quality Onboarding"
+   ],
+   "extra_doctypes": [
+    "Quality Inspection",
+    "Quality Inspection Parameter",
+    "Quality Inspection Parameter Group",
+    "Quality Inspection Template"
+   ],
+   "keep_doctypes": [],
+   "keep_reports": []
+  },
+  {
+   "key": "crm",
+   "label": "CRM",
+   "description": "Leads, opportunities, prospects, campaigns, appointments and contracts.",
+   "frappe_modules": [
+    "CRM"
+   ],
+   "sidebars": [
+    "CRM"
+   ],
+   "workspaces": [
+    "CRM"
+   ],
+   "onboarding": [],
+   "org_steps": [],
+   "keep_doctypes": [],
+   "keep_reports": []
+  },
+  {
+   "key": "support",
+   "label": "Support",
+   "description": "Customer issues, service levels, warranty claims and maintenance visits.",
+   "frappe_modules": [
+    "Support",
+    "Maintenance"
+   ],
+   "sidebars": [
+    "Support"
+   ],
+   "workspaces": [
+    "Support"
+   ],
+   "onboarding": [],
+   "org_steps": [],
+   "keep_doctypes": [],
+   "keep_reports": []
+  }
+ ]
+}

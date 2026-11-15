@@ -1,0 +1,66 @@
+{
+ "_comment": "Industry presets (LDG-84): the modules each industry starts with. Accounts, BIR and the home are always on. A new industry is a new row.",
+ "industries": [
+  {
+   "industry": "Services",
+   "modules": [
+    "selling",
+    "buying"
+   ]
+  },
+  {
+   "industry": "Retail and trading",
+   "modules": [
+    "selling",
+    "buying",
+    "stock"
+   ]
+  },
+  {
+   "industry": "Restaurant and food",
+   "modules": [
+    "selling",
+    "buying",
+    "stock"
+   ]
+  },
+  {
+   "industry": "Manufacturing",
+   "modules": [
+    "selling",
+    "buying",
+    "stock",
+    "manufacturing",
+    "quality"
+   ]
+  },
+  {
+   "industry": "Construction and projects",
+   "modules": [
+    "selling",
+    "buying",
+    "stock",
+    "projects",
+    "assets"
+   ]
+  },
+  {
+   "industry": "Professional practice",
+   "modules": [
+    "selling",
+    "projects"
+   ]
+  },
+  {
+   "industry": "Other",
+   "modules": [
+    "selling",
+    "buying"
+   ]
+  }
+ ],
+ "demo": [
+  "selling",
+  "buying"
+ ]
+}

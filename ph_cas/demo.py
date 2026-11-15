@@ -22,6 +22,9 @@ def seed():
         frappe.db.set_value("Company", company, "ph_incorporation_date", "2021-03-15", update_modified=False)
         frappe.clear_document_cache("Company", company)
     setup_philippine_company(company)
+    from ph_cas.modules.api import apply_demo_set
+
+    apply_demo_set()  # the open demo starts with Accounts, Selling, Buying and BIR (LDG-85)
     frappe.db.set_value("Company", company, {"tax_id": "000-111-222", "ph_branch_code": "00000", "ph_rdo": "045", "ph_vat_status": "VAT", "ph_registered_name": "Tala Trading Corporation", "ph_business_style": "Tala Trading", "ph_accn": "ACCN-DEMO-000001", "ph_accn_date": today(), "ph_taxpayer_class": "Micro", "ph_operations_start_year": 2021}, update_modified=False)
     frappe.clear_document_cache("Company", company)
     s = frappe.get_single("PH CAS Settings")
