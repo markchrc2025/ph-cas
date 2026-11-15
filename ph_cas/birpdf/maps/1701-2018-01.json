@@ -366,6 +366,7 @@
       "key": "frm1701:txtPg1I15TelNum",
       "item": "15",
       "kind": "comb",
+      "drop": " -()+.",
       "rows": [
         {
           "page": 1,
@@ -1200,6 +1201,7 @@
       "key": "frm1701:txtPg2I6TelNum",
       "item": "6",
       "kind": "comb",
+      "drop": " -()+.",
       "rows": [
         {
           "page": 2,

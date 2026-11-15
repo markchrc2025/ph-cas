@@ -283,6 +283,7 @@
       "key": "frm2550qv2024:taxpayerContactNumber",
       "item": "11",
       "kind": "comb",
+      "drop": " -()+.",
       "rows": [
         {
           "page": 1,

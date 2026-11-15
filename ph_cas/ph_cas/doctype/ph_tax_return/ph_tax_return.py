@@ -361,8 +361,10 @@ class PHTaxReturn(Document):
         src = data.get("_source") or {}
         books = src.get("books") or {}
         labels = {ln["key"]: ln["label"] for ln in (src.get("lines") or []) if ln.get("key")}
-        for key, label in (getattr(mod, "LABELS", []) or []):
-            labels.setdefault(key, f"{key[1:].upper()} {label}")
+        for entry in (getattr(mod, "LABELS", []) or []):
+            # (key, label) on the VAT return; (key, item, label[, books key]) on the income-tax returns
+            key = entry[0]
+            labels.setdefault(key, f"{key[1:].upper()} {entry[1]}" if len(entry) == 2 else f"{entry[1]} {entry[2]}")
         return {
             "built": mod is not None,
             "labels": labels,

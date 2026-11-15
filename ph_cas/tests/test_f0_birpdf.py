@@ -167,6 +167,20 @@ class TestF0BirPdf(unittest.TestCase):
         self.assertTrue(squeezed, "a long name prints whole on one line")
         self.assertLessEqual(squeezed[0].size, m["size"])
 
+    def test_a_spaced_contact_number_prints_digits_only(self):
+        # the contact boxes on every form take the digits; spaces, dashes and brackets drop
+        for key, ver in MAPPED.items():
+            m = load_map(key, ver)
+            for f in m["fields"]:
+                k = f["key"].lower()
+                if f.get("kind") == "comb" and ("contact" in k or "telnum" in k or k.endswith(":telno")):
+                    self.assertEqual(f.get("drop"), " -()+.", f["key"])
+        m = load_map("1702RT", "2018-01")
+        base = dict(fixture_rows("1702RT-sample.xml"))
+        base["frm1702RT:txtPg1Pt1I11Contact"] = "02 8123 4567"
+        ops = layout_return(m, list(base.items()), metrics())
+        self.assertTrue(ops)
+
     def test_whole_peso_forms_refuse_centavos(self):
         m = load_map("1701Q", "2018-01")
         base = dict(fixture_rows("1701Q-sample.xml"))

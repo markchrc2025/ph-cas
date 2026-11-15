@@ -323,6 +323,7 @@
       "key": "frm1701A:txtTelNum",
       "item": "15",
       "kind": "comb",
+      "drop": " -()+.",
       "rows": [
         {
           "page": 1,
@@ -1572,6 +1573,7 @@
       "key": "frm1701A:txtSpouseTelNum",
       "item": "71",
       "kind": "comb",
+      "drop": " -()+.",
       "rows": [
         {
           "page": 2,

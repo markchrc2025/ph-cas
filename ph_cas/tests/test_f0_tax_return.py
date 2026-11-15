@@ -129,3 +129,17 @@ class TestF0TaxReturn(IntegrationTestCase):
         self.assertIn("no eBIRForms import file", str(e.exception))
         self.assertFalse(frappe.get_all("File", {"attached_to_doctype": "PH Tax Return", "attached_to_name": doc.name, "attached_to_field": "export_file"}))
 
+    def test_the_inputs_editor_reads_every_engines_labels(self):
+        from ph_cas.forms import engine
+        from ph_cas.forms.registry import BUILT, spec
+
+        for code in sorted(BUILT):
+            mod = engine.module(spec(code))
+            for entry in getattr(mod, "LABELS", []) or []:
+                self.assertGreaterEqual(len(entry), 2, f"{code} {entry}")
+        doc = frappe.get_doc({"doctype": "PH Tax Return", "company": self.company, "form": "1702-RT", "period_key": "2025"})
+        doc.name = "1702-RT-label-test"
+        out = doc.form_spec()
+        self.assertTrue(out["built"])
+        self.assertEqual(out["labels"]["i27"], "27 Sales/Revenues/Receipts/Fees")
+
