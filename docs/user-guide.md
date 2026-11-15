@@ -17,6 +17,10 @@ The sign-in page, the icon in the left rail, the browser tab, the help menu and 
 
 Tutorial videos: each step of the standard guides (Make your first sale, Order from your suppliers, and so on) can carry a Sentire Ledger video. The list of steps and their video ids is `ph_cas/setup/data/onboarding_videos.json`; a null entry keeps ERPNext's own video until ours is recorded.
 
+## Loose-leaf books (B50)
+
+For a client that keeps loose-leaf books instead of registering the CAS. On the Company, fill in "Loose-leaf books permit to use no." and its date. Then Company > PH CAS > Loose-leaf books (Excel / PDF): choose the period (usually the calendar or fiscal year) and the format. The download holds the six books (Sales, Purchase, Cash Receipt, Disbursement, General Journal, General Ledger) and PAGES.txt with each book's page count. Print every page as it is (legal size, landscape), bind each book, and use the page counts in the sworn statement. The Excel and PDF files have the same pages; the Excel file keeps real numbers so it can be checked with formulas.
+
 ## Approval chains (B45)
 
 Settings > Approval Chains. Nothing is on by default: switch the module on in Settings (Modules > Approval chains) and enable a chain per document type (Sales Invoice, Purchase Order, Journal Entry, any posted document), for one company or all. A chain is any number of steps; each step names its recipients (a role, a named user, a group, or a field of the document such as the cost center's owner, looked up in Approval Lookup), its receiving order (sequential, any one, or everyone), whether it approves or is only notified, whether the requestor may decide it, an optional condition that skips the step (two steps with opposite conditions branch by amount), and a private note the recipients see. Templates ("Manager approves above an amount", "Supervisor, then manager by amount band", "Everyone in a group") give a disabled chain to finish.

@@ -18,6 +18,10 @@ Status: recommended (Claude's recommendation, not yet confirmed) or confirmed (t
 | D11 | E-invoicing route | After the EIS spec spike | open |
 | Later | Payroll | In or out of the product | open |
 
+## Loose-leaf books (15 Nov 2026)
+
+A client that keeps loose-leaf books with the product (Form 1900 permit instead of a CAS registration) prints the six books from Company > PH CAS > Loose-leaf books, in Excel or PDF. The owner's instruction: the books follow the JuanTax export format supplied on 15 Nov 2026, the structure BIR has accepted before, so that either file is acceptable to BIR. The client submits the bound books within 15 days after the year ends (through ORUS, RMC 4-2026) with the sworn statement of volumes and pages; PAGES.txt in the download gives the page counts. The flaws of the JuanTax files listed in BUILD-LOG B50 are corrected, not copied.
+
 ## RDO questions answered by the owner (14 Nov 2026)
 
 No letter to the RDO: the owner answered the questions directly. Numbers follow the action items (section 3), plus 11.
