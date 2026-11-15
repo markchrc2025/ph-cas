@@ -2,6 +2,13 @@
 
 One entry per bundle, newest first. Counts are the test totals on main after the merge.
 
+## B49 Release method: major versions and the quarterly notice (15 Nov 2026)
+- PR: (filled in at merge)
+- Built: the owner's release method (LDG-99) in docs/DECISIONS.md and docs/runbooks/upgrades.md; the release log ph_cas/setup/data/releases.json with its rules, left empty (the owner: no versioning until the product is done; the first entry will be 1.0.0, and ph_cas.__version__ stays 0.1.0 until then); ph_cas.ops.releases: the log check (classes, increasing versions and dates, a major release starts the next major number, a minor one stays within it) and the combined quarterly notice of minor enhancements per client (RMO 9-2021 V.9), from Company > PH CAS. One container per major version; the runbook says how a client moves after filing.
+- Tests: +5 (test_b49_releases).
+- Assumed: the notice goes out in the first two weeks after the quarter (firm policy; the RMO sets no deadline); a quarter without a minor release needs no notice.
+- Left out: the second container appears only with version 2.
+
 ## B48 The owner's answers to the RDO questions (15 Nov 2026)
 - PR: (filled in at merge)
 - Built: every answer recorded in docs/DECISIONS.md ("RDO questions answered by the owner"). 1: Company flags for e-commerce and for the EIS, with a warning when a non-micro e-commerce company is not on the EIS. 2: Sales Invoice "Manual invoice number", typed by the user, required at submit and unique per company and document type unless the company is on the EIS; the invoice prints it as the number with the BIR serial below as the system control number. 5: the year-end pack adds FILE-LAYOUT.txt (each field's name, type, width and decimals, as RR 16-2006 asks) and the transmittal lists each file's type and the USB label (RMO 9-2021). 7: ten years everywhere (already the backup and offboarding figure; runbook updated). 8b: alphalist DAT files carry the full 5-digit branch code with its leading zeroes, in records and file names. 8c: the unknown-ATC report is empty, since the BIR patched module 7.4 with WV080 to WV110 and WI/WC 840 to 860. 9: Company "Collection Receipt ATP number" and date; with an ATP the receipt prints it, without one it prints THIS DOCUMENT IS NOT VALID FOR CLAIM OF INPUT TAX. 11: the SLSP is one file per month, three per quarter, and the 2550Q tie-out adds the three months.
