@@ -19,7 +19,7 @@ ACCOUNT_FIELDS = [
 ]
 
 COMPANY_FIELDS = [
-    {"fieldname": "ph_it_section", "fieldtype": "Section Break", "label": "Income tax options", "insert_after": "ph_accn_date"},
+    {"fieldname": "ph_it_section", "fieldtype": "Section Break", "label": "Income tax options", "insert_after": "ph_looseleaf_permit_date"},
     {"fieldname": "ph_income_tax_option", "fieldtype": "Select", "label": "Income tax", "options": "Corporate\nGraduated (individual)\n8% option (individual)", "default": "Corporate", "insert_after": "ph_it_section"},
     {"fieldname": "ph_deduction_method", "fieldtype": "Select", "label": "Deductions", "options": "Itemized\nOSD (40%)", "default": "Itemized", "insert_after": "ph_income_tax_option"},
     {"fieldname": "ph_mixed_income", "fieldtype": "Check", "label": "Mixed-income earner (8% without the 250,000 reduction)", "insert_after": "ph_deduction_method"},

@@ -24,6 +24,17 @@ frappe.ui.form.on("Company", {
             frm.add_custom_button(__("Registration pack (zip)"), () => {
                 window.open(`/api/method/ph_cas.registration.pack.download_pack?company=${encodeURIComponent(frm.doc.name)}`);
             }, __("PH CAS"));
+            frm.add_custom_button(__("Loose-leaf books (Excel / PDF)"), () => {
+                const y = new Date().getFullYear();
+                frappe.prompt([
+                    { fieldname: "from_date", fieldtype: "Date", label: __("From"), default: `${y}-01-01`, reqd: 1 },
+                    { fieldname: "to_date", fieldtype: "Date", label: __("To"), default: frappe.datetime.get_today(), reqd: 1 },
+                    { fieldname: "fmt", fieldtype: "Select", label: __("Format"), options: "pdf\nxlsx", default: "pdf", reqd: 1,
+                      description: __("Six books, the header and page numbers on every page, and PAGES.txt with the page count of each book for the sworn statement.") },
+                ], (v) => {
+                    window.open(`/api/method/ph_cas.books.looseleaf.download?company=${encodeURIComponent(frm.doc.name)}&from_date=${v.from_date}&to_date=${v.to_date}&fmt=${v.fmt}`);
+                }, __("Loose-leaf books of accounts"));
+            }, __("PH CAS"));
             frm.add_custom_button(__("Quarterly notice of minor enhancements"), () => {
                 const now = new Date();
                 const q = Math.floor(now.getMonth() / 3) || 4;

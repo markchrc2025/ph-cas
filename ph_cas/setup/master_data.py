@@ -31,8 +31,12 @@ def company_fields():
         {"fieldname": "ph_cas_section", "fieldtype": "Section Break", "label": "CAS registration", "insert_after": "ph_top_withholding_agent"},
         {"fieldname": "ph_accn", "fieldtype": "Data", "label": "ACCN", "insert_after": "ph_cas_section"},
         {"fieldname": "ph_accn_date", "fieldtype": "Date", "label": "Date issued", "insert_after": "ph_accn"},
+        {"fieldname": "ph_looseleaf_col", "fieldtype": "Column Break", "insert_after": "ph_accn_date"},
+        {"fieldname": "ph_looseleaf_permit_no", "fieldtype": "Data", "label": "Loose-leaf books permit to use no.", "insert_after": "ph_looseleaf_col",
+         "description": "Printed as PERMIT TO USE NO. on every page of the loose-leaf books; when blank, the ACCN is printed."},
+        {"fieldname": "ph_looseleaf_permit_date", "fieldtype": "Date", "label": "Loose-leaf permit date issued", "insert_after": "ph_looseleaf_permit_no"},
         # F0: what a BIR return prints about the taxpayer (ph_cas.forms.needs asks for what is blank)
-        {"fieldname": "ph_taxpayer_section", "fieldtype": "Section Break", "label": "Taxpayer details (BIR returns)", "insert_after": "ph_accn_date", "collapsible": 1},
+        {"fieldname": "ph_taxpayer_section", "fieldtype": "Section Break", "label": "Taxpayer details (BIR returns)", "insert_after": "ph_looseleaf_permit_date", "collapsible": 1},
         {"fieldname": "ph_last_name", "fieldtype": "Data", "label": "Last name", "insert_after": "ph_taxpayer_section", "depends_on": "eval:doc.ph_taxpayer_type=='Individual'"},
         {"fieldname": "ph_first_name", "fieldtype": "Data", "label": "First name", "insert_after": "ph_last_name", "depends_on": "eval:doc.ph_taxpayer_type=='Individual'"},
         {"fieldname": "ph_middle_name", "fieldtype": "Data", "label": "Middle name", "insert_after": "ph_first_name", "depends_on": "eval:doc.ph_taxpayer_type=='Individual'"},
