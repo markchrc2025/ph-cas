@@ -141,6 +141,18 @@ def _render(doctype, name, fmt) -> str | None:
         frappe.flags.ph_in_print_preview = False
 
 
+def _bir_2307(name) -> bytes | None:
+    """The issued certificate on the BIR's own 2307 blank, as Print on BIR form gives it."""
+    if not name:
+        return None
+    from ph_cas.forms import f2307
+    from ph_cas.forms.engine import taxpayer_block
+
+    cert = frappe.get_doc("PH 2307 Issued", name)
+    c = taxpayer_block(frappe.get_cached_doc("Company", cert.company))
+    return f2307.certificate_pdf(cert, c, {}, (cert.period_from.month - 1) // 3 + 1, cert.period_from.year)
+
+
 def _latest(doctype, filters):
     rows = frappe.get_all(doctype, filters={"docstatus": 1, **filters}, fields=["name"], order_by="creation desc", limit=1)
     return rows[0].name if rows else None
@@ -176,10 +188,10 @@ def build(company: str) -> dict:
         "05_Sample_Sales_Invoice.html": _render("Sales Invoice", _latest("Sales Invoice", {"company": company, "is_return": 0, "is_debit_note": 0}), "PH Sales Invoice"),
         "06_Sample_Credit_Note.html": _render("Sales Invoice", _latest("Sales Invoice", {"company": company, "is_return": 1}), "PH Sales Invoice"),
         "07_Sample_Collection_Receipt.html": _render("Payment Entry", _latest("Payment Entry", {"company": company, "payment_type": "Receive"}), "PH Collection Receipt"),
-        "08_Sample_2307.html": _render("PH 2307 Issued", _latest("PH 2307 Issued", {"company": company}), "PH BIR 2307"),
+        "08_Sample_2307.pdf": _bir_2307(_latest("PH 2307 Issued", {"company": company})),
     }
     missing = [k for k, v in specimens.items() if not v]
-    files.update({k: v.encode("utf-8") for k, v in specimens.items() if v})
+    files.update({k: v if isinstance(v, bytes) else v.encode("utf-8") for k, v in specimens.items() if v})
     f = {"company": company, "from_date": get_first_day(nowdate()), "to_date": get_last_day(nowdate())}
     for i, (title, module) in enumerate(BOOK_REPORTS, 9):
         files[f"{i:02d}_Book_{title.replace(' ', '_')}.html"] = _report_html(title, module, f).encode("utf-8")
