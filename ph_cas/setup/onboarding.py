@@ -1,9 +1,8 @@
 """B34: Sentire Ledger onboarding.
 
-1. Video overrides. `setup/data/onboarding_videos.json` lists every ERPNext onboarding step
-   that carries a video. A `sentire_video` value (YouTube id or URL) replaces ERPNext's
-   `intro_video_url`; null keeps ERPNext's until our recording exists. Applied on install and
-   migrate, so swapping a video is a data change.
+1. Videos. No card plays YouTube: ERPNext's intro videos are cleared and the cards play our own
+   tutorials from the Sentire server (ph_cas.tutorials). Which step plays which video is data
+   (tutorials/data/tutorials.json, seeded into PH Tutorial Video on install and migrate).
 2. The "Get to know Sentire Ledger" module onboarding: six steps a Philippine business walks
    that ERPNext has no concept of. Created as records (not fixtures) so they survive ERPNext
    upgrades and can be edited here in one place.
@@ -11,7 +10,6 @@
 """
 
 import json
-import os
 
 import frappe
 
@@ -77,30 +75,16 @@ STEPS = [
 ]
 
 
-def _data_path():
-    return os.path.join(os.path.dirname(__file__), "data", "onboarding_videos.json")
-
-
-def video_overrides() -> list[dict]:
-    with open(_data_path(), encoding="utf-8") as f:
-        return json.load(f)["steps"]
-
-
 def apply_videos() -> dict:
-    applied, kept = [], []
-    for row in video_overrides():
-        if not frappe.db.exists("Onboarding Step", row["step"]):
-            continue
-        if row.get("sentire_video"):
-            url = row["sentire_video"]
-            if "/" not in url:
-                url = f"https://www.youtube.com/watch?v={url}"
-            if frappe.db.get_value("Onboarding Step", row["step"], "intro_video_url") != url:
-                frappe.db.set_value("Onboarding Step", row["step"], "intro_video_url", url, update_modified=False)
-            applied.append(row["step"])
-        else:
-            kept.append(row["step"])
-    return {"applied": applied, "kept_erpnext": kept}
+    """No onboarding card plays YouTube: every intro_video_url is cleared, and the cards play our
+    own tutorial videos from the Sentire server instead (ph_cas.tutorials, public/js/tutorials.js).
+    Which step plays which video is the PH Tutorial Video records' `steps`."""
+    from ph_cas.tutorials.api import seed
+
+    cleared = frappe.get_all("Onboarding Step", filters={"intro_video_url": ["is", "set"]}, pluck="name")
+    for name in cleared:
+        frappe.db.set_value("Onboarding Step", name, "intro_video_url", None, update_modified=False)
+    return {"cleared": cleared, "tutorials": seed()}
 
 
 def ensure_steps():
