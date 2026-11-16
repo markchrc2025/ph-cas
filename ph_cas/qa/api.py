@@ -228,7 +228,111 @@ def scenario_non_vat_company(company):
     return {"company_created": name, "sales_invoices": made}
 
 
+# ---- income tax: a year of history up to the last full quarter (QA pass 3) ------------------------
+def _journal(company, posting_date, debit_account, credit_account, amount, remark):
+    done = frappe.db.get_value("Journal Entry", {"company": company, "user_remark": remark, "docstatus": 1}, "name")
+    if done:
+        return done
+    a = _abbr(company)
+    je = frappe.get_doc({
+        "doctype": "Journal Entry", "company": company, "posting_date": posting_date, "voucher_type": "Journal Entry", "user_remark": remark,
+        "accounts": [
+            {"account": debit_account, "debit_in_account_currency": amount, "cost_center": f"Main - {a}"},
+            {"account": credit_account, "credit_in_account_currency": amount, "cost_center": f"Main - {a}"},
+        ],
+    })
+    je.insert(ignore_permissions=True)
+    je.submit()
+    return je.name
+
+
+def _account(company, name, parent_kind, tax_class=""):
+    """An expense account under the company's Indirect Expenses group, with its income tax class."""
+    a = _abbr(company)
+    full = f"{name} - {a}"
+    if not frappe.db.exists("Account", full):
+        parent = frappe.db.get_value("Account", {"company": company, "is_group": 1, "account_name": parent_kind}, "name")
+        frappe.get_doc({"doctype": "Account", "company": company, "account_name": name, "parent_account": parent, "root_type": "Expense", "report_type": "Profit and Loss"}).insert(ignore_permissions=True)
+    if tax_class:
+        frappe.db.set_value("Account", full, "ph_tax_class", tax_class, update_modified=False)
+    return full
+
+
+def _received_2307(company, customer, qs, qe, base, withheld):
+    if frappe.db.exists("PH 2307 Received", {"company": company, "customer": customer, "period_from": qs, "docstatus": 1}):
+        return
+    frappe.get_doc({"doctype": "PH 2307 Received", "company": company, "customer": customer, "period_from": qs, "period_to": qe,
+                    "lines": [{"atc": "WC160", "kind": "Income tax", "month_1": base, "tax_withheld": withheld}]}).insert(ignore_permissions=True).submit()
+
+
+def _months_before_this_quarter():
+    from ph_cas.tax.returns import quarter_bounds
+
+    qs, _qe = quarter_bounds(today())
+    year = getdate(today()).year
+    return [m for m in range(1, 13) if getdate(f"{year}-{m:02d}-01") < getdate(qs)], year
+
+
+def scenario_income_year(company):
+    """Every month of the year before the current quarter, for the 1702Q, 1702-RT and 1701Q figures:
+    VATable sales of 250,000, cost of sales 150,000, office expenses 50,000 and representation
+    5,000 a month, and a 3,000 income tax 2307 from the customer each quarter. MCIT applies
+    (operations began in 2020)."""
+    from frappe.utils import get_last_day
+
+    a = _abbr(company)
+    frappe.db.set_value("Company", company, {"ph_income_tax_option": "Corporate", "ph_deduction_method": "Itemized", "ph_primary_business": "Services", "ph_operations_start_year": 2020, "ph_corp_small": 0}, update_modified=False)
+    frappe.clear_document_cache("Company", company)
+    c = _customer("QA Retail Corp.", ph_tin="000-901-001", ph_branch_code="00000", ph_vat_status="VAT", ph_top_withholding_agent=1, ph_registered_name="QA RETAIL CORP.", ph_address_line1="1 QA Street, Pasig City", ph_zip="1605")
+    item = _item("QA Service", "VATable")
+    cogs = frappe.db.get_value("Account", {"company": company, "account_type": "Cost of Goods Sold", "is_group": 0}, "name")
+    office = f"Administrative Expenses - {a}"
+    ear = _account(company, "Representation and Entertainment", "Indirect Expenses", "Entertainment, amusement and recreation")
+    cash = f"Cash - {a}"
+    months, year = _months_before_this_quarter()
+    made = {"sales_invoices": [], "journal_entries": [], "months": len(months)}
+    with _history():
+        for m in months:
+            d = getdate(f"{year}-{m:02d}-10")
+            made["sales_invoices"].append(_sales(company, c, [(item, 1, 250000)], d, f"QA-IT-{m:02d}"))
+            made["journal_entries"].append(_journal(company, d, cogs, cash, 150000, f"QA-IT cost of sales {m:02d}"))
+            made["journal_entries"].append(_journal(company, d, office, cash, 50000, f"QA-IT office expenses {m:02d}"))
+            made["journal_entries"].append(_journal(company, d, ear, cash, 5000, f"QA-IT representation {m:02d}"))
+            if m % 3 == 0:
+                _received_2307(company, c, getdate(f"{year}-{m - 2:02d}-01"), get_last_day(d), 150000, 3000)
+    return made
+
+
+def scenario_individual_year(company=None):
+    """A sole proprietor (individual, non-VAT, graduated rates with OSD) with sales of 100,000 a
+    month for every month of the year before the current quarter, for the 1701Q."""
+    from ph_cas.setup.chart import setup_philippine_company
+
+    name = "QA Sole Proprietor"
+    if not frappe.db.exists("Company", name):
+        frappe.get_doc({"doctype": "Company", "company_name": name, "abbr": "QASP", "default_currency": "PHP", "country": "Philippines", "chart_of_accounts": "Standard"}).insert(ignore_permissions=True)
+    frappe.db.set_value("Company", name, {
+        "tax_id": "000-904-001", "ph_branch_code": "00000", "ph_rdo": "045", "ph_vat_status": "Non-VAT", "ph_taxpayer_type": "Individual",
+        "ph_individual_type": "Single Proprietorship", "ph_last_name": "Santos", "ph_first_name": "Maria", "ph_middle_name": "Lopez",
+        "ph_birthdate": "1985-03-14", "ph_civil_status": "Single", "ph_registered_name": "MARIA LOPEZ SANTOS", "ph_business_style": "SANTOS BAKESHOP",
+        "ph_registered_address": "5 Mabini Street\nBarangay 2, San Juan City", "ph_zip": "1500", "ph_taxpayer_class": "Micro",
+        "ph_income_tax_option": "Graduated (individual)", "ph_deduction_method": "OSD (40%)",
+    }, update_modified=False)
+    frappe.clear_document_cache("Company", name)
+    setup_philippine_company(name)
+    c = _customer("QA Walk-in Customer", ph_vat_status="Non-VAT")
+    item = _item("QA Bread Tray", "VATable", "Products")
+    months, year = _months_before_this_quarter()
+    made = []
+    with _history():
+        for m in months:
+            made.append(_sales(name, c, [(item, 1, 100000)], getdate(f"{year}-{m:02d}-12"), f"QASP-{m:02d}"))
+    return {"company_created": name, "sales_invoices": made}
+
+
 SCENARIOS = {
     "vat_quarter": scenario_vat_quarter,
     "non_vat_company": scenario_non_vat_company,
+    "income_year": scenario_income_year,
+    "individual_year": lambda company=None: scenario_individual_year(),
 }

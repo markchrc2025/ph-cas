@@ -2,8 +2,15 @@
 
 One entry per bundle, newest first. Counts are the test totals on main after the merge.
 
+## B63 Staging scenarios for income tax QA (QA pass 3) (16 Nov 2026)
+- PR: #73
+- Built: two staging scenarios for the income tax returns. income_year: every month of the year before the current quarter on the QA company, with VATable sales of 250,000, cost of sales 150,000, office expenses 50,000 and representation 5,000 a month (journal entries; a Representation and Entertainment account with its EAR tax class), a 3,000 income tax 2307 from the customer each quarter, and MCIT in force (operations from 2020). individual_year: QA Sole Proprietor, an individual on graduated rates with OSD, sales of 100,000 a month over the same months. Both add nothing twice. The QA connector lists them.
+- Tests: +1 (test_b63_qa_income: the 1702Q and 1701Q figures worked out by hand); B54 lists the new scenarios.
+- Assumed: nothing new.
+- Left out: nothing in scope.
+
 ## B62 Alphalist files verified against the BIR's own module 7.4 (LDG-48, LDG-51) (16 Nov 2026)
-- PR: (filled in at merge)
+- PR: #72
 - Built: installed the BIR Alphalist Data Entry and Validation module 7.4 under Wine, typed an invented withholding agent and payees into its Data Entry module, and kept the files it generated as golden files (ph_cas/tests/golden/alphalist/: QAP July and September 2026, 1604-E 2026, SAWT for the 2550Q, MAP for the 1600-VT); all pass its Validation module. The writers now match them byte for byte. What the module showed and the writers now do:
   - Branch code: 4 digits. The validator rejects the 5-digit code B48 wrote on every line ("Invalid Length in Branch of Withholding Agent", "Invalid length of Payees Branch Code"), so dat_branch drops the leading zero and refuses a code that does not start with 0. This supersedes owner answer 8b (DECISIONS.md).
   - QAP: one file per month of the quarter, each with that month's rows, as the module writes it; no file for a month without payees (the validator rejects a header with no detail). Schedule 2 lines only when there are exempt payees. The PH Tax Return's "Generate QAP" writes up to three PH Alphalist Files and links the last.
@@ -82,7 +89,7 @@ One entry per bundle, newest first. Counts are the test totals on main after the
 - Left out: nothing in scope.
 
 ## B57 Cash books net each account within a voucher (16 Nov 2026)
-- PR: (filled in at merge)
+- PR: #72
 - Built: found on staging with a POS cash sale: the Cash Receipts Book showed the receivable raised and settled inside the same invoice as both an other debit and a credit (Debtors 1,620.00 each way). The cash books now net each account within the voucher (books.common.net_by_account), so a cash sale reads cash 1,620.00 against sales 1,500.00 and output VAT 120.00, and a collection reads cash and withheld tax against the receivable.
 - Tests: +1 (test_b55_qa_fixes).
 - Assumed: nothing new.
@@ -96,7 +103,7 @@ One entry per bundle, newest first. Counts are the test totals on main after the
 - Left out: nothing in scope.
 
 ## B55 Fixes from the first staging QA pass (16 Nov 2026)
-- PR: (filled in at merge)
+- PR: #72
 - Built: the first QA pass on Ledger Staging through the QA connector (sales, credit note, collection with CWT, bills with EWT, 2550Q, 2551Q, 0619-E, 1601-EQ, books, locks, approvals, modules, tutorials). Fixed what it found. LDG-107: the print page and the PDF download are GET requests and Frappe commits only POST, so print records and print events were rolled back, while the desk's on-screen preview (a POST) counted as the first print; a print now asks for the commit, and the screen preview records nothing and is marked PREVIEW ON SCREEN with what the next print will carry. LDG-108: the seller address on invoices and the BIR header comes from Company > Registered address (per COR) with the ZIP code, then a linked Address. LDG-109: 1601-EQ items 20 and 21 are item 14 of the filed 0619-E of each month, with a warning when none was filed or it differs from the books (both the BIR Returns engine and the dashboard figures). LDG-110: a customer payment allocated in full but received net of the tax withheld books the withheld tax. LDG-111: the cash books show the other account debited or credited with the cash, so each receipt and disbursement balances on its face; the General Journal and General Ledger name the document (Sales Invoice, Credit Note, Debit Note, Collection Receipt). LDG-114: a computed return past its due date and not filed is "OVERDUE, computed, not filed" and stays on the Home due list; the compliance calendar starts at the first posting in the system, so earlier periods are not listed as overdue; the due list and the BIR links on Home open BIR Returns. LDG-113: "ACCN (not yet issued)" in place of a blank line; the posted-field refusal on an issued invoice points to credit and debit notes; staging shows "(staging)" after the product name; an upload on staging says plainly that staging only plays videos. The QA connector's get_print now goes through the print page, like the Print button, with preview: true for the on-screen preview.
 - Tests: +8 (test_b55_qa_fixes).
 - Assumed: the on-screen preview is not a print; only a render that can reach paper or leave the system is.
@@ -110,7 +117,7 @@ One entry per bundle, newest first. Counts are the test totals on main after the
 - Left out: nothing in scope.
 
 ## B53 Notice of third-party custody; the first-return step opens BIR Returns (16 Nov 2026)
-- PR: (filled in at merge)
+- PR: #72
 - Built: LDG-98: the registration pack gains 03a_Notice_of_Third_Party_Custody.txt, the client's notice to its RDO that the provider keeps its books and records in electronic form (RR 9-2009 Sec. 6.3.1; RDO answer 3): taxpayer and RDO from the Company, custodian, address and signatory from PH CAS Settings, and a new PH CAS Settings field "Where the records and backups are kept" for the data centre and backup site in the Philippines (left as a visible blank until it is set). Ten-year retention, production to the BIR on request, and the hand-back when the service ends. The Sentire Ledger guide's step "Run the 2550Q figures" becomes "Compute your first BIR return" and opens a new BIR Return (PH Tax Return) instead of Tax Return Figures, as tutorial V04 shows; Home's "Compute a return" opens BIR Returns too.
 - Tests: +2 (test_b30_pack custody notice, test_b34 first-return step).
 - Assumed: the place of custody is filled in once the Philippine hosting is decided (LDG-54).
@@ -124,7 +131,7 @@ One entry per bundle, newest first. Counts are the test totals on main after the
 - Left out: the full-text search page (Search for "x" in every document type) still lists records of hidden doctypes.
 
 ## B51 Tutorial videos play inside Sentire Ledger, from our own server (15 Nov 2026)
-- PR: (filled in at merge)
+- PR: #72
 - Built: the owner's ruling: the tutorials are not uploaded to YouTube; they are kept on our own server and played in the system. ph_cas.tutorials: PH Tutorial Video (V01 to V38, seeded from tutorials/data/tutorials.json on install and migrate: title, length, the onboarding steps whose card plays it, the forms that offer it) with its child PH Tutorial Video Step. The files live once, in a private bucket (tutorials/<code>/video.mp4, captions.vtt, poster.jpg), configured by the PH_VIDEOS_S3_* environment variables; a small signature-version-4 client (no boto3) signs playback links for six hours and the upload requests. Upload: System Manager, Upload videos on the list or Upload files on a record; the browser sends each video in 8 MB pieces through the site to an S3 multipart upload, captions are converted from SRT to WebVTT, thumbnails to a JPEG at most 1280 wide; nothing is kept on the site. The captions are served by the site so the player stays same-origin. Player: the onboarding widget's step shows our thumbnail and a native video player (patched from public/js/tutorials.js); Home's checklist has a Watch button; forms get "Watch: <title>" menu items; the record shows the player. Every ERPNext intro_video_url is cleared on migrate, so no card loads YouTube. Daily job and Check the server keep each site's records in step with the bucket.
 - Tests: +8 (test_b51_tutorials: the AWS signature test vectors, path-style and internal endpoints, the catalogue, file names and captions, upload in pieces then signed playback, a missing piece, upload permission); test_b34 checks that no card keeps a YouTube link.
 - Assumed: one shared bucket for every client site (owner's choice); uploads through the site (owner's choice).
@@ -166,7 +173,7 @@ One entry per bundle, newest first. Counts are the test totals on main after the
 - Left out: the second container appears only with version 2.
 
 ## B48 The owner's answers to the RDO questions (15 Nov 2026)
-- PR: (filled in at merge)
+- PR: #72
 - Built: every answer recorded in docs/DECISIONS.md ("RDO questions answered by the owner"). 1: Company flags for e-commerce and for the EIS, with a warning when a non-micro e-commerce company is not on the EIS. 2: Sales Invoice "Manual invoice number", typed by the user, required at submit and unique per company and document type unless the company is on the EIS; the invoice prints it as the number with the BIR serial below as the system control number. 5: the year-end pack adds FILE-LAYOUT.txt (each field's name, type, width and decimals, as RR 16-2006 asks) and the transmittal lists each file's type and the USB label (RMO 9-2021). 7: ten years everywhere (already the backup and offboarding figure; runbook updated). 8b: alphalist DAT files carry the full 5-digit branch code with its leading zeroes, in records and file names. 8c: the unknown-ATC report is empty, since the BIR patched module 7.4 with WV080 to WV110 and WI/WC 840 to 860. 9: Company "Collection Receipt ATP number" and date; with an ATP the receipt prints it, without one it prints THIS DOCUMENT IS NOT VALID FOR CLAIM OF INPUT TAX. 11: the SLSP is one file per month, three per quarter, and the 2550Q tie-out adds the three months.
 - Tests: +7 (test_b48_rdo_answers); SAWT, QAP, master data, e-books and 2550Q tests follow the 5-digit branch, the extra pack file and the monthly SLSP files.
 - Assumed: the manual invoice number applies to credit and debit notes too, unique within each document type. Under the test runner an empty manual number is filled from the serial (tests of the rule switch this off).
@@ -180,7 +187,7 @@ One entry per bundle, newest first. Counts are the test totals on main after the
 - Left out: the validator's e-Submission copy (the same file plus a V stamp line the validator writes; the CAS never writes it).
 
 ## B46 Fixes found while recording the tutorials (LDG-95, LDG-96, LDG-97) (14 Nov 2026)
-- PR: (filled in at merge)
+- PR: #72
 - Built: LDG-95: the PH Sales Invoice, PH Collection Receipt and PH BIR 2307 print formats called frappe.get_attr, which Frappe v16 no longer exposes in safe Jinja, so every print failed. They now call ph_attr, a jinja method that resolves only the seven listed print helpers (ph_cas.invoicing.printing.PRINT_HELPERS). The print tests used to pass the full frappe module into the template, which hid the failure; they now render with the safe globals only, the way the print view does. LDG-96: an issued Sales Invoice, Credit Note or Debit Note (one with a BIR serial) cannot be cancelled by any role, Administrator included (before_cancel refusal naming the serial and the correction document); the form hides Cancel and says how to correct it. LDG-97: a free-text field on a BIR blank can wrap over up to two lines inside its row (map keys lines and rowHeight), used when it prints larger than one shrunk line; the 2307 Part III description fields use it, so a 68-character ATC description prints at 5.9 pt on two lines instead of failing. The setup_philippine_company action also ticks its onboarding step.
 - Tests: +3 (no-cancel for invoice and credit note, print helpers through ph_attr only, 2307 long description wraps inside its row); four tests that cancelled an invoice now cancel a journal entry or use the test unlock.
 - Assumed: D6 (cancel and reissue) stays for journal entries and other vouchers; for invoices the correction is a credit or debit note only, as B21 already said for amendments and as the user guide and tutorials say.
