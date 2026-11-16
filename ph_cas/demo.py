@@ -25,7 +25,7 @@ def seed():
     from ph_cas.modules.api import apply_demo_set
 
     apply_demo_set()  # the open demo starts with Accounts, Selling, Buying and BIR (LDG-85)
-    frappe.db.set_value("Company", company, {"tax_id": "000-111-222", "ph_branch_code": "00000", "ph_rdo": "045", "ph_vat_status": "VAT", "ph_registered_name": "Tala Trading Corporation", "ph_business_style": "Tala Trading", "ph_accn": "ACCN-DEMO-000001", "ph_accn_date": today(), "ph_taxpayer_class": "Micro", "ph_operations_start_year": 2021}, update_modified=False)
+    frappe.db.set_value("Company", company, {"tax_id": "000-111-222", "ph_branch_code": "00000", "ph_rdo": "045", "ph_vat_status": "VAT", "ph_registered_name": "Tala Trading Corporation", "ph_business_style": "Tala Trading", "ph_accn": "ACCN-DEMO-000001", "ph_accn_date": today(), "ph_taxpayer_class": "Micro", "ph_operations_start_year": 2021, "ph_registered_address": "Unit 5, 88 Tala Street\nBarangay San Antonio, Pasig City", "ph_zip": "1605"}, update_modified=False)
     frappe.clear_document_cache("Company", company)
     s = frappe.get_single("PH CAS Settings")
     s.product_name = "Sentire Ledger (demo)"
@@ -42,7 +42,7 @@ def seed():
     if not frappe.db.exists("Customer", "Metro Retail Stores Inc"):
         frappe.get_doc({"doctype": "Customer", "customer_name": "Metro Retail Stores Inc", "customer_type": "Company", "customer_group": "Commercial", "territory": "All Territories", "ph_tin": "000-222-333", "ph_vat_status": "VAT", "ph_top_withholding_agent": 1, "ph_registered_name": "METRO RETAIL STORES INC", "ph_address_line1": "12 Ortigas Ave, Pasig City"}).insert(ignore_permissions=True)
     if not frappe.db.exists("Supplier", "Reyes & Associates CPAs"):
-        frappe.get_doc({"doctype": "Supplier", "supplier_name": "Reyes & Associates CPAs", "supplier_type": "Company", "supplier_group": "Services", "ph_tin": "000-333-444", "ph_vat_status": "VAT", "ph_payee_type": "Non-individual", "ph_registered_name": "REYES & ASSOCIATES CPAS", "ph_ewt_category": "professional"}).insert(ignore_permissions=True)
+        frappe.get_doc({"doctype": "Supplier", "supplier_name": "Reyes & Associates CPAs", "supplier_type": "Company", "supplier_group": "Services", "ph_tin": "000-333-444", "ph_vat_status": "VAT", "ph_payee_type": "Non-individual", "ph_registered_name": "REYES & ASSOCIATES CPAS", "ph_ewt_category": "professional", "ph_address_line1": "8 Ayala Avenue, Makati City", "ph_zip": "1226"}).insert(ignore_permissions=True)
     if not frappe.db.exists("Sales Invoice", {"customer": "Metro Retail Stores Inc", "docstatus": 1}):
         si = frappe.get_doc({"doctype": "Sales Invoice", "company": company, "customer": "Metro Retail Stores Inc", "posting_date": today(), "due_date": today(), "debit_to": f"Debtors - {abbr}", "ph_manual_invoice_no": "DEMO-0001", "items": [
             {"item_code": item("Consulting services", "VATable"), "qty": 1, "rate": 25000, "income_account": f"Sales - {abbr}", "cost_center": f"Main - {abbr}"},

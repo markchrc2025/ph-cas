@@ -84,10 +84,13 @@ def refuse_posted_field_changes(doc, method=None):
     refused = [c for c in changed if c[1] not in ALLOWED_AFTER_SUBMIT]
     if refused:
         where, field = refused[0][0], refused[0][1]
+        if doc.doctype == "Sales Invoice" and doc.get("bir_serial"):
+            # an issued invoice is never cancelled (controls/cancel): corrections are notes
+            remedy = _("issue a credit note for the full amount or the difference, or a debit note for an increase")
+        else:
+            remedy = _("cancel and reissue, or post an adjusting entry")
         frappe.throw(
-            _("{0} {1} has been posted. {2} cannot be changed; cancel and reissue, or post an adjusting entry.").format(
-                doc.doctype, doc.name, f"{where}.{field}"
-            ),
+            _("{0} {1} has been posted. {2} cannot be changed; {3}.").format(doc.doctype, doc.name, f"{where}.{field}", remedy),
             PHLockError,
         )
 

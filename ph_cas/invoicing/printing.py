@@ -1,9 +1,19 @@
 """B20: print counting and the REPRINT rule.
 
 Any server-side render of a submitted Sales Invoice, credit or debit note or
-Collection Receipt (print view, PDF, e-mail attachment) is a print. The first
-is the original issue; every later one carries REPRINT, its number and the
-date of the first print. The count lives in PH Print Record, insert-only.
+Collection Receipt that can reach paper or leave the system (the print page,
+PDF, network printer, e-mail attachment) is a print. The first is the original
+issue; every later one carries REPRINT, its number and the date of the first
+print. The count lives in PH Print Record, insert-only.
+
+The on-screen preview of the desk Print page is not a print: it shows what the
+next print will carry (ORIGINAL or REPRINT No. n) and records nothing, so
+opening the preview does not use up the original.
+
+The print page and the PDF download are GET requests, and Frappe commits only
+POST, PUT, PATCH and DELETE requests. A print therefore asks for the commit
+itself (frappe.local.flags.commit), or its PH Print Record and its event-log
+row would be rolled back and every later copy would come out as the first.
 """
 
 import frappe
@@ -29,6 +39,12 @@ def before_print(doc, method=None, print_settings=None, *args, **kwargs):
     last = _last(doc.doctype, doc.name)
     n = int(last.n or 0) + 1
     first = last.first
+    if is_screen_preview():
+        doc.ph_print_no = n
+        doc.ph_first_printed_on = first or now_datetime()
+        doc.ph_is_reprint = n > 1
+        doc.ph_screen_preview = True
+        return
     frappe.flags.ph_print_record_writer = True
     try:
         rec = frappe.get_doc({"doctype": "PH Print Record", "ref_doctype": doc.doctype, "ref_name": doc.name, "print_no": n, "printed_on": now_datetime(), "printed_by": frappe.session.user, "method": (print_settings or {}).get("method") if isinstance(print_settings, dict) else "print", "copy_type": "original" if n == 1 else "reprint"})
@@ -36,9 +52,21 @@ def before_print(doc, method=None, print_settings=None, *args, **kwargs):
         rec.insert()
     finally:
         frappe.flags.ph_print_record_writer = False
+    frappe.local.flags.commit = True  # GET print page and PDF: keep the record (see the module note)
     doc.ph_print_no = n
     doc.ph_first_printed_on = first or rec.printed_on
     doc.ph_is_reprint = n > 1
+
+
+# The desk Print page renders its on-screen preview through these; the Print
+# button (/printview), PDF download, network printer and e-mail go elsewhere.
+SCREEN_PREVIEW_PATHS = ("/api/method/frappe.www.printview.get_html_and_style", "/printpreview")
+
+
+def is_screen_preview() -> bool:
+    request = getattr(frappe.local, "request", None)
+    path = (getattr(request, "path", None) or "").rstrip("/") if request else ""
+    return bool(path) and any(path == p or path.startswith(p + "/") for p in SCREEN_PREVIEW_PATHS)
 
 
 def _last(doctype: str, name: str):

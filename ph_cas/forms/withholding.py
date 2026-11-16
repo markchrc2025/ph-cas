@@ -193,3 +193,22 @@ def ewt_rows(company: str, start, end) -> dict:
 
 def ewt_total(company: str, start, end) -> Decimal:
     return sum((centavos(v["tax"]) for v in ewt_rows(company, start, end).values()), ZERO)
+
+
+def remitted_0619e(company: str, month_start) -> tuple[Decimal, str | None]:
+    """What was actually remitted for a month: item 14 of the filed 0619-E (the
+    amended one, if it was amended), or nothing when no 0619-E was filed. The
+    1601-EQ credits only remittances made (items 20 and 21), never the month's
+    withholding as the books show it."""
+    import frappe
+
+    name = frappe.db.get_value(
+        "PH Tax Return",
+        {"company": company, "form": "0619-E", "docstatus": 1, "period_start": month_start},
+        "name",
+        order_by="filed_on desc, modified desc",
+    )
+    if not name:
+        return ZERO, None
+    amount = frappe.db.get_value("PH Tax Return Line", {"parent": name, "item": "14"}, "amount") or 0
+    return centavos(dec(amount)), name

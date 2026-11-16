@@ -188,11 +188,21 @@ def payment_before_validate(doc, method=None):
     doc.deductions = [d for d in (doc.get("deductions") or []) if d not in ours]
     total = 0.0
     for ref in doc.get("references") or []:
-        if ref.reference_doctype != "Sales Invoice" or not ref.reference_name:
-            continue
-        if previously.get(ref.reference_name):
+        if ref.reference_doctype == "Sales Invoice" and previously.get(ref.reference_name):
             # undo our earlier allocation of the withheld part before recomputing
             ref.allocated_amount = flt(ref.allocated_amount) - previously[ref.reference_name]
+    # The invoice may also be allocated in full while the cash received is the net
+    # amount (the outstanding invoices were fetched, then the amount received typed).
+    # That gap, when it is the tax withheld, is booked the same way.
+    gap = flt(
+        sum(flt(r.allocated_amount) for r in (doc.get("references") or []))
+        - flt(doc.get("paid_amount"))
+        - sum(flt(d.amount) for d in (doc.get("deductions") or [])),
+        2,
+    )
+    for ref in doc.get("references") or []:
+        if ref.reference_doctype != "Sales Invoice" or not ref.reference_name:
+            continue
         si = frappe.db.get_value(
             "Sales Invoice",
             ref.reference_name,
@@ -203,6 +213,9 @@ def payment_before_validate(doc, method=None):
             continue
         # Only when the customer actually short-pays by the withheld amount
         short = flt(ref.outstanding_amount if ref.get("outstanding_amount") is not None else si.outstanding_amount) - flt(ref.allocated_amount)
+        raise_allocation = True
+        if short <= 0 and 0 < gap <= flt(si.ph_wht_total) + 0.01:
+            short, raise_allocation = gap, False  # allocated in full; the cash is short by the tax
         if short <= 0 or short > flt(si.ph_wht_total) + 0.01:
             continue
         already = frappe.db.sql(
@@ -232,6 +245,9 @@ def payment_before_validate(doc, method=None):
             )
             short -= amount
             total += amount
-            # allocate the withheld part too, so the invoice closes
-            ref.allocated_amount = flt(ref.allocated_amount) + amount
+            if raise_allocation:
+                # allocate the withheld part too, so the invoice closes
+                ref.allocated_amount = flt(ref.allocated_amount) + amount
+            else:
+                gap = flt(gap - amount, 2)
     doc.ph_wht_deducted = flt(total, 2)

@@ -3,7 +3,7 @@ Withheld, Expanded (January 2019 ENCS). Printed on the blank; centavos exact;
 six ATC rows on the paper; the QAP .DAT goes with it.
 
 Data: rows [{atc, base, rate, withheld}] (books, one row per ATC), remittance1 and
-remittance2 (20, 21, books from the 0619-E months), previouslyRemitted (22),
+remittance2 (20, 21, item 14 of the filed 0619-E of each month; nothing when none was filed), previouslyRemitted (22),
 overRemittancePrior (23, books), otherPayments (24), surcharge, interest,
 compromise (27 to 29), overRemittanceChoice (refunded, tcc, carried), amended,
 anyWithheld, category, sheetsAttached, signatory and payment inputs.
@@ -44,7 +44,7 @@ def feed(ctx: Context) -> dict:
         rows.append({"atc": atc, "base": text(base), "rate": text(rate), "withheld": text(tax)})
     m1s, m1e = get_first_day(start), get_last_day(start)
     m2s, m2e = get_first_day(add_months(start, 1)), get_last_day(add_months(start, 1))
-    m1, m2 = wh.ewt_total(company, m1s, m1e), wh.ewt_total(company, m2s, m2e)
+    (m1, m1_return), (m2, m2_return) = wh.remitted_0619e(company, m1s), wh.remitted_0619e(company, m2s)
     prev = frappe.db.get_value("PH Tax Return", {"company": company, "form": "1601-EQ", "docstatus": 1, "period_end": ["<", start]}, ["name", "period_end"], order_by="period_end desc", as_dict=True)
     carry = ZERO
     if prev and ctx.period.quarter_no != 1 and prev.period_end.year == start.year:
@@ -52,14 +52,21 @@ def feed(ctx: Context) -> dict:
         carry = centavos(-dec(i26)) if dec(i26) < 0 else ZERO
     total = sum((centavos(v["tax"]) for v in atc_rows.values()), ZERO)
     warnings = []
+    for label, (ms, me), paid, ret in (("Item 20", (m1s, m1e), m1, m1_return), ("Item 21", (m2s, m2e), m2, m2_return)):
+        withheld = wh.ewt_total(company, ms, me)
+        month = ms.strftime("%B %Y")
+        if not ret and withheld:
+            warnings.append(f"{label}: no filed 0619-E for {month}, so nothing is credited as remitted; the books show {text(withheld)} withheld that month, which this return now carries as still due.")
+        elif ret and paid != withheld:
+            warnings.append(f"{label}: the filed 0619-E for {month} remitted {text(paid)}; the books show {text(withheld)} withheld that month.")
     if len(rows) > ROWS_ON_THE_FORM:
         warnings.append(f"The quarter has {len(rows)} ATCs; the paper has room for {ROWS_ON_THE_FORM}. Combine rows or attach a schedule.")
     pi = f"/app/purchase-invoice?company={company}&docstatus=1&posting_date=%5B%22Between%22%2C%5B%22{start}%22%2C%22{end}%22%5D%5D"
     figures = {"rows": rows, "remittance1": text(m1), "remittance2": text(m2), "overRemittancePrior": text(carry), "anyWithheld": "yes" if total else "no"}
     lines = [
         {"key": "rows", "label": "Taxes withheld by ATC for the quarter", "amount": text(total), "records": len(rows), "filter": pi},
-        {"key": "remittance1", "label": "Item 20, remitted in month 1 (0619-E)", "amount": text(m1), "records": 1, "filter": f"/app/ph-tax-return?form=0619-E&company={company}"},
-        {"key": "remittance2", "label": "Item 21, remitted in month 2 (0619-E)", "amount": text(m2), "records": 1, "filter": f"/app/ph-tax-return?form=0619-E&company={company}"},
+        {"key": "remittance1", "label": "Item 20, remitted in month 1 (filed 0619-E)", "amount": text(m1), "records": 1 if m1_return else 0, "filter": f"/app/ph-tax-return/{m1_return}" if m1_return else f"/app/ph-tax-return?form=0619-E&company={company}"},
+        {"key": "remittance2", "label": "Item 21, remitted in month 2 (filed 0619-E)", "amount": text(m2), "records": 1 if m2_return else 0, "filter": f"/app/ph-tax-return/{m2_return}" if m2_return else f"/app/ph-tax-return?form=0619-E&company={company}"},
         {"key": "overRemittancePrior", "label": "Item 23, over-remittance from the previous quarter of the year", "amount": text(carry), "records": 1 if prev else 0, "filter": f"/app/ph-tax-return/{prev.name}" if prev else ""},
     ]
     return {"figures": figures, "lines": lines, "warnings": warnings}

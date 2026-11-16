@@ -26,7 +26,7 @@ TILES = [
     {"label": "Sales", "route": "/app/sales-invoice", "icon": "receipt-text"},
     {"label": "Purchases", "route": "/app/purchase-invoice", "icon": "shopping-cart"},
     {"label": "Payments", "route": "/app/payment-entry", "icon": "banknote"},
-    {"label": "BIR", "route": "/app/ph-tax-return-figures", "icon": "landmark"},
+    {"label": "BIR", "route": "/app/ph-tax-return", "icon": "landmark"},
     {"label": "Books", "route": "/app/query-report/PH General Ledger Book", "icon": "notebook"},
     {"label": "Reports", "route": "/app/query-report/BIR Audit Trail", "icon": "chart-column"},
 ]
@@ -122,6 +122,16 @@ def _monthly(company: str, months: int = 12) -> list[dict]:
     return out
 
 
+def _return_route(company: str, r: dict) -> str:
+    """The return in BIR Returns (PH Tax Return), or a new one for that form and period."""
+    from urllib.parse import urlencode
+
+    name = frappe.db.get_value("PH Tax Return", {"company": company, "form": r["form"], "period_start": r["period_start"], "docstatus": ("<", 2)}, "name")
+    if name:
+        return f"/app/ph-tax-return/{name}"
+    return "/app/ph-tax-return/new?" + urlencode({"company": company, "form": r["form"], "period_key": r.get("period_label") or ""})
+
+
 def _due_dates(company: str, limit: int = 5) -> list[dict]:
     try:
         from ph_cas.tax.calendar import calendar
@@ -144,7 +154,7 @@ def _due_dates(company: str, limit: int = 5) -> list[dict]:
             "due": str(r["due"]),
             "days": (getdate(r["due"]) - today).days,
             "status": r.get("status"),
-            "route": f"/app/ph-tax-return-figures/{r['figures']}" if r.get("figures") else "/app/ph-tax-return-figures/new",
+            "route": _return_route(company, r),
         }
         for r in rows[:limit]
     ]

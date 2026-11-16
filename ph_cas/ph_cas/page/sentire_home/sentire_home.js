@@ -182,9 +182,9 @@ class SentireHome {
 				__("VAT position"),
 				this.money(f.vat_position),
 				__("output {0}, input {1}", [this.money(f.output_vat), this.money(f.input_vat)]),
-				"/app/ph-tax-return-figures?form=2550Q"
+				"/app/ph-tax-return?form=2550Q"
 			),
-			this.card(__("Withholding to remit"), this.money(f.withholding_to_remit), __("EWT, compensation, final, VAT"), "/app/ph-tax-return-figures"),
+			this.card(__("Withholding to remit"), this.money(f.withholding_to_remit), __("EWT, compensation, final, VAT"), "/app/ph-tax-return"),
 			this.card(
 				__("Drafts waiting"),
 				n(drafts),

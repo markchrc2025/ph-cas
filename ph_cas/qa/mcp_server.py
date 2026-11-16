@@ -18,6 +18,7 @@ Run: /home/frappe/bench/env/bin/python -m ph_cas.qa.mcp_server
 """
 
 import json
+import re
 import os
 import sys
 import threading
@@ -83,8 +84,8 @@ TOOLS = [
     },
     {
         "name": "get_print",
-        "description": "The HTML of a print (e.g. Sales Invoice with print format PH Sales Invoice), to check what a printout says. Prints are recorded as on the real site (REPRINT counting).",
-        "inputSchema": {"type": "object", "required": ["doctype", "name"], "properties": {"doctype": {"type": "string"}, "name": {"type": "string"}, "print_format": {"type": "string"}}},
+        "description": "The HTML of a print (e.g. Sales Invoice with print format PH Sales Invoice), through the same print page as the Print button, so it is recorded as on the real site (REPRINT counting). preview: true renders the desk's on-screen preview instead, which records nothing.",
+        "inputSchema": {"type": "object", "required": ["doctype", "name"], "properties": {"doctype": {"type": "string"}, "name": {"type": "string"}, "print_format": {"type": "string"}, "preview": {"type": "boolean"}}},
     },
     {
         "name": "seed_scenario",
@@ -147,6 +148,14 @@ def _message(r) -> dict:
     return body.get("message", body.get("data", body))
 
 
+def _print_body(page: str) -> str:
+    """The printed content of a /printview page: the body, without styles and scripts."""
+    body = re.search(r"<body[^>]*>(.*)</body>", page, re.S)
+    text = body.group(1) if body else page
+    text = re.sub(r"<(script|style)\b.*?</\1>", "", text, flags=re.S)
+    return text.strip()
+
+
 def _q(name: str) -> str:
     return quote(name, safe="")
 
@@ -189,13 +198,23 @@ def run_tool(site: Site, name: str, a: dict):
             return {"columns": cols, "row_count": len(rows), "rows": rows[:200], "truncated": len(rows) > 200}
         return out
     if name == "get_print":
-        params = {"doc": a["doctype"], "name": a["name"]}
-        if a.get("print_format"):
-            params["print_format"] = a["print_format"]
-        out = _message(site.call("GET", "/api/method/frappe.www.printview.get_html_and_style", params=params))
-        if isinstance(out, dict) and "html" in out:
-            return {"html": out["html"][:60000], "truncated": len(out["html"]) > 60000}
-        return out
+        if a.get("preview"):
+            params = {"doc": a["doctype"], "name": a["name"]}
+            if a.get("print_format"):
+                params["print_format"] = a["print_format"]
+            out = _message(site.call("POST", "/api/method/frappe.www.printview.get_html_and_style", json_body=params))
+            html = out.get("html") if isinstance(out, dict) else None
+            if html is None:
+                return out
+        else:
+            params = {"doctype": a["doctype"], "name": a["name"], "no_letterhead": 0}
+            if a.get("print_format"):
+                params["format"] = a["print_format"]
+            r = site.call("GET", "/printview", params=params)
+            if r.status_code >= 400:
+                return {"status": r.status_code, "text": _print_body(r.text)[:4000]}
+            html = _print_body(r.text)
+        return {"html": html[:60000], "truncated": len(html) > 60000}
     if name == "seed_scenario":
         return _message(site.call("POST", "/api/method/ph_cas.qa.api.seed_scenario", json_body={"scenario": a["scenario"], "company": a.get("company")}))
     if name == "api_request":

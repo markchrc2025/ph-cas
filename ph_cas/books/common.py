@@ -35,6 +35,23 @@ def voucher_serial(voucher_type, voucher_no, cache: dict) -> str:
     return cache[key]
 
 
+def voucher_kind(voucher_type, voucher_no, cache: dict) -> str:
+    """The document's name as issued: a Sales Invoice, Credit Note, Debit Note or
+    Collection Receipt, each with its own serial series, so a serial is read with
+    its kind (Sales Invoice 00000001 and Credit Note 00000001 are different
+    documents)."""
+    key = ("kind", voucher_type, voucher_no)
+    if key not in cache:
+        kind = voucher_type
+        if voucher_type == "Sales Invoice":
+            v = frappe.db.get_value("Sales Invoice", voucher_no, ["is_return", "is_debit_note"], as_dict=True) or {}
+            kind = "Credit Note" if v.get("is_return") else "Debit Note" if v.get("is_debit_note") else "Sales Invoice"
+        elif voucher_type == "Payment Entry" and frappe.db.get_value("Payment Entry", voucher_no, "bir_serial"):
+            kind = "Collection Receipt"
+        cache[key] = kind
+    return cache[key]
+
+
 def party_name(party_type, party, cache: dict) -> str:
     if not party:
         return ""

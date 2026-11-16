@@ -20,6 +20,8 @@ def execute(filters=None):
         {"fieldname": "cash_credit", "label": _("Cash / Bank (Cr)"), "fieldtype": "Currency", "width": 140},
         {"fieldname": "debit_account", "label": _("Account debited"), "fieldtype": "Link", "options": "Account", "width": 220},
         {"fieldname": "debit", "label": _("Debit"), "fieldtype": "Currency", "width": 130},
+        {"fieldname": "other_credit_account", "label": _("Other account credited"), "fieldtype": "Link", "options": "Account", "width": 220},
+        {"fieldname": "other_credit", "label": _("Other credit"), "fieldtype": "Currency", "width": 130},
     ]
     cash = cash_accounts(f.company)
     entries = gl_rows(f.company, f.from_date, f.to_date)
@@ -27,7 +29,7 @@ def execute(filters=None):
     for g in entries:
         by_voucher.setdefault((g.voucher_type, g.voucher_no, g.posting_date), []).append(g)
     cache, pcache, rows = {}, {}, []
-    total_cash, total_debit = 0.0, 0.0
+    total_cash, total_debit, total_other = 0.0, 0.0, 0.0
     for (vt, vn, date), lines in sorted(by_voucher.items(), key=lambda kv: (kv[0][2], kv[0][1])):
         cash_cr = sum(flt(l.credit) for l in lines if l.account in cash)
         if cash_cr <= 0:
@@ -38,10 +40,12 @@ def execute(filters=None):
             chk = frappe.db.get_value("Payment Entry", vn, "reference_no")
             if chk:
                 ref = f"{vn} / {chk}"
-        first = True
-        for l in lines:
-            if l.account in cash or flt(l.debit) <= 0:
-                continue
+        debits = [l for l in lines if l.account not in cash and flt(l.debit) > 0]
+        others = [l for l in lines if l.account not in cash and flt(l.credit) > 0]  # e.g. tax withheld on the payment
+        for i in range(max(len(debits), len(others))):
+            first = i == 0
+            d = debits[i] if i < len(debits) else None
+            o = others[i] if i < len(others) else None
             rows.append({
                 "posting_date": date if first else None,
                 "reference": ref if first else None,
@@ -49,12 +53,13 @@ def execute(filters=None):
                 "tin": party_tin(party_line.party_type, party_line.party, pcache) if (first and party_line) else None,
                 "particulars": (lines[0].remarks or vt).replace("\n", " ")[:120] if first else None,
                 "cash_credit": flt(cash_cr, 2) if first else None,
-                "debit_account": l.account, "debit": flt(l.debit),
+                "debit_account": d.account if d else None, "debit": flt(d.debit) if d else None,
+                "other_credit_account": o.account if o else None, "other_credit": flt(o.credit) if o else None,
             })
-            total_debit += flt(l.debit)
-            first = False
+            total_debit += flt(d.debit) if d else 0
+            total_other += flt(o.credit) if o else 0
         total_cash += cash_cr
-    rows.append({"reference": _("TOTAL"), "cash_credit": flt(total_cash, 2), "debit": flt(total_debit, 2), "is_total_row": 1})
+    rows.append({"reference": _("TOTAL"), "cash_credit": flt(total_cash, 2), "debit": flt(total_debit, 2), "other_credit": flt(total_other, 2), "is_total_row": 1})
     ledger_cash = frappe.db.sql(
         """select coalesce(sum(g.credit), 0) from `tabGL Entry` g join `tabAccount` a on a.name = g.account
            where g.company = %s and g.is_cancelled = 0 and g.posting_date between %s and %s and a.account_type in ('Cash', 'Bank')""",

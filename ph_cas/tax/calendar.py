@@ -81,14 +81,31 @@ def applicable_forms(company: str) -> list[str]:
     return forms
 
 
+def books_start(company: str):
+    """The first day the company's books in this system cover: its earliest posting
+    (opening balances aside). Returns for periods that ended before it were filed
+    outside the system and are not listed as overdue here."""
+    first = frappe.db.sql(
+        """select min(posting_date) from `tabGL Entry`
+           where company = %s and is_cancelled = 0 and ifnull(is_opening, 'No') = 'No'""",
+        company,
+    )[0][0]
+    return getdate(first) if first else getdate(frappe.utils.nowdate())
+
+
 def calendar(company: str, year: int) -> list[dict]:
     rows = []
+    start = books_start(company)
     for form in applicable_forms(company):
         for d in due_dates(form, year):
             label = d["period_label"]
             fig = frappe.db.get_value("PH Tax Return Figures", {"company": company, "form": form, "period_label": label}, ["name", "filed", "computed_on"], as_dict=True)
+            if not fig and getdate(d["period_end"]) < start:
+                continue  # before the books in this system began
             if fig and fig.filed:
                 status = "Filed"
+            elif fig and getdate(frappe.utils.nowdate()) > d["due"]:
+                status = "OVERDUE, computed, not filed"
             elif fig:
                 status = "Computed, not filed"
             elif getdate(frappe.utils.nowdate()) > d["due"]:

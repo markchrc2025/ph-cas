@@ -60,6 +60,16 @@ def company_facts(company: str | None) -> dict:
 
 
 def _company_address(company: str) -> str:
+    """The registered address per the COR (Company > Philippine details), then the
+    company's linked Address record for sites set up before that field existed."""
+    c = frappe.get_cached_doc("Company", company)
+    lines = [ln.strip().rstrip(",") for ln in (c.get("ph_registered_address") or "").splitlines() if ln.strip()]
+    if lines:
+        text = ", ".join(lines)
+        zip_code = (c.get("ph_zip") or "").strip()
+        if zip_code and zip_code not in text:
+            text = f"{text} {zip_code}"
+        return text
     try:
         from frappe.contacts.doctype.address.address import get_default_address
 

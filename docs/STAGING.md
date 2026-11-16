@@ -39,6 +39,8 @@ An MCP server inside the staging container (port 8010). It signs in as the QA ad
 
 Tools: `staging_status`, `list_documents`, `get_document`, `create_document`, `update_document`, `submit_document`, `cancel_document`, `call_method`, `run_report`, `get_print`, `seed_scenario`, `api_request` (any `/api/...` call except sign-in, sign-out and password endpoints).
 
+`get_print` goes through the print page, as the Print button does, so each call is a print (the second one says REPRINT). With `preview: true` it renders the on-screen preview of the desk's Print page, which records nothing.
+
 Safety, the same pattern as the Payroll QA connector:
 
 - The URL is the key: `/mcp/<QA_MCP_SECRET>`. A wrong key or any other path is a 404. The secret is generated in Dokploy and must be at least 32 characters, or the connector does not start.

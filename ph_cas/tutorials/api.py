@@ -159,6 +159,9 @@ def captions(code: str):
 # ---- upload (System Manager) --------------------------------------------------------------------
 def _require_uploader():
     frappe.only_for("System Manager")
+    if frappe.conf.get("ph_staging_site"):
+        # staging holds a read-only key to the shared library (docs/STAGING.md)
+        frappe.throw(_("This is the staging site: it plays the tutorial videos but cannot change them. Upload videos on the live site."))
 
 
 def _clean_code(code: str) -> str:
