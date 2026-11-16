@@ -8,7 +8,13 @@ Open demo
   the request log, so a 24-hour promise survives the reset.
 - Requests are the lead list. They are appended to a CSV outside the database
   (private/files/demo-requests.csv, which the restore does not touch), mailed to the
-  provider, and posted to DEMO_LEADS_WEBHOOK when set (newsletter tool).
+  person who follows them up, and posted to DEMO_LEADS_WEBHOOK when set.
+- Follow-up within 24 hours (LDG-57, B65; a stand-in until the Sentire Helpdesk takes
+  the leads through DEMO_LEADS_WEBHOOK): the lead mail goes to DEMO_LEADS_OWNER (site
+  config demo_leads_owner, else the Administrator's address) with Reply-To set to the
+  lead, so a reply from the inbox reaches them. It carries a signed "Mark as contacted"
+  link. The hourly job reminds the owner once about a lead not marked contacted after
+  20 hours. Follow-up state lives in private/files/demo-followup.csv, outside the database.
 - Limits: one demo per email per 30 days, 5 requests per IP per day.
 
 Pilots
@@ -225,20 +231,126 @@ def _send_access_mail(email: str, full_name: str, link: str, expires):
     )
 
 
+FOLLOW_UP_HOURS = 24
+REMIND_AFTER_HOURS = 20
+FOLLOWUP_FIELDS = ["lead", "email", "requested_on", "contacted_on", "reminded_on"]
+
+
+def lead_owner() -> str | None:
+    """Who follows up a demo signup: DEMO_LEADS_OWNER, else the Administrator's address."""
+    to = frappe.conf.get("demo_leads_owner") or os.environ.get("DEMO_LEADS_OWNER") or frappe.db.get_value("User", "Administrator", "email")
+    if not to or to.endswith("example.com"):
+        return None
+    return to
+
+
+def _lead_key(row: dict) -> str:
+    return f"{row['email']}|{row['requested_on']}"
+
+
+def _sign(key: str) -> str:
+    import hashlib
+    import hmac
+
+    secret = (frappe.local.conf.get("encryption_key") or frappe.local.site or "").encode()
+    return hmac.new(secret, key.encode(), hashlib.sha256).hexdigest()[:32]
+
+
+def contacted_link(row: dict) -> str:
+    from urllib.parse import urlencode
+
+    key = row.get("lead") or _lead_key(row)
+    return f"{frappe.utils.get_url()}/api/method/ph_cas.hosting.demo_access.mark_contacted?" + urlencode({"lead": key, "sig": _sign(key)})
+
+
+def _followup_path() -> str:
+    return frappe.get_site_path("private", "files", "demo-followup.csv")
+
+
+def _read_followup() -> dict[str, dict]:
+    p = _followup_path()
+    if not os.path.exists(p):
+        return {}
+    with open(p, newline="", encoding="utf-8") as f:
+        return {r["lead"]: r for r in csv.DictReader(f)}
+
+
+def _write_followup(rows: dict[str, dict]):
+    p = _followup_path()
+    os.makedirs(os.path.dirname(p), exist_ok=True)
+    tmp = p + ".tmp"
+    with open(tmp, "w", newline="", encoding="utf-8") as f:
+        w = csv.DictWriter(f, fieldnames=FOLLOWUP_FIELDS)
+        w.writeheader()
+        w.writerows(rows.values())
+    os.replace(tmp, p)
+
+
 def _notify_provider(row: dict):
+    """The lead mail to the follow-up owner: reply goes to the lead; one click marks it contacted."""
+    rows = _read_followup()
+    rows[_lead_key(row)] = {"lead": _lead_key(row), "email": row["email"], "requested_on": row["requested_on"], "contacted_on": "", "reminded_on": ""}
+    _write_followup(rows)
     if _muted():
         return
-    to = frappe.db.get_value("User", "Administrator", "email")
-    if not to or to.endswith("example.com"):
+    to = lead_owner()
+    if not to:
         return
+    details = "<br>".join(f"<b>{k}</b>: {frappe.utils.escape_html(str(v))}" for k, v in row.items())
     frappe.sendmail(
         recipients=[to],
-        subject=f"Demo request: {row['full_name']} ({row['email']})",
-        message="<br>".join(f"<b>{k}</b>: {frappe.utils.escape_html(str(v))}" for k, v in row.items()),
+        reply_to=row["email"],
+        subject=f"Demo signup: {row['full_name']} ({row['email']}), follow up within {FOLLOW_UP_HOURS} hours",
+        message=f"""<p>A new demo signup. Reply to this email to write to {frappe.utils.escape_html(row['full_name'])} directly.</p>
+<p>{details}</p>
+<p>After you have contacted them: <a href="{contacted_link(row)}">mark as contacted</a>. Without that, you get one reminder after {REMIND_AFTER_HOURS} hours.</p>""",
         now=True,
-        header=[row.get("request") == "PILOT" and _("Pilot request") or _("Demo request"), "blue"],
+        header=[_("Demo signup"), "blue"],
         with_container=True,
     )
+
+
+@frappe.whitelist(allow_guest=True, methods=["GET"])
+def mark_contacted(lead: str, sig: str):
+    """The "mark as contacted" link in the lead mail (signed, so only that mail's link works)."""
+    import hmac
+
+    if not hmac.compare_digest(_sign(lead or ""), sig or ""):
+        frappe.throw(_("This link is not valid."), frappe.PermissionError)
+    rows = _read_followup()
+    if lead not in rows:
+        frappe.throw(_("This demo signup is not in the follow-up list."))
+    if not rows[lead]["contacted_on"]:
+        rows[lead]["contacted_on"] = str(now_datetime())[:19]
+        _write_followup(rows)
+    frappe.respond_as_web_page(_("Marked as contacted"), _("{0} is marked as contacted on {1}. No reminder will be sent.").format(frappe.utils.escape_html(rows[lead]["email"]), rows[lead]["contacted_on"]), indicator_color="green")
+
+
+def remind_uncontacted_leads() -> int:
+    """scheduler_events.hourly: one reminder to the owner for each signup not marked contacted
+    REMIND_AFTER_HOURS after it came in."""
+    rows = _read_followup()
+    due = [r for r in rows.values() if not r["contacted_on"] and not r["reminded_on"] and get_datetime(r["requested_on"]) <= add_to_date(now_datetime(), hours=-REMIND_AFTER_HOURS)]
+    if not due:
+        return 0
+    to = lead_owner()
+    leads = {_lead_key(r): r for r in _read_log()}
+    for r in due:
+        row = {**(leads.get(r["lead"]) or {"full_name": r["email"]}), "lead": r["lead"], "email": r["email"]}
+        if to and not _muted():
+            frappe.sendmail(
+                recipients=[to],
+                reply_to=r["email"],
+                subject=f"Reminder: demo signup {row.get('full_name')} ({r['email']}) not yet contacted",
+                message=f"""<p>{frappe.utils.escape_html(row.get('full_name') or r['email'])} signed up for the demo on {r['requested_on']} and is not marked as contacted. The {FOLLOW_UP_HOURS}-hour follow-up is due by {str(add_to_date(get_datetime(r['requested_on']), hours=FOLLOW_UP_HOURS))[:16]}.</p>
+<p>Reply to this email to write to them. Then <a href="{contacted_link(row)}">mark as contacted</a>.</p>""",
+                now=True,
+                header=[_("Demo signup reminder"), "orange"],
+                with_container=True,
+            )
+        r["reminded_on"] = str(now_datetime())[:19]
+    _write_followup(rows)
+    return len(due)
 
 
 def _post_webhook(row: dict):

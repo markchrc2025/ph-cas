@@ -2,8 +2,15 @@
 
 One entry per bundle, newest first. Counts are the test totals on main after the merge.
 
-## B64 Income tax returns take the Company's options and the filed quarters' payments (LDG-120, LDG-121, LDG-122) (16 Nov 2026)
+## B65 Demo signups followed up within 24 hours (LDG-57) (16 Nov 2026)
 - PR: (filled in at merge)
+- Built: the owner's answer to LDG-57 is the Sentire Helpdesk with Mark following up; the Helpdesk is not built yet, so this is the stand-in. Each demo signup is mailed to DEMO_LEADS_OWNER (site config demo_leads_owner, else the Administrator's address) with Reply-To set to the lead, a subject that says to follow up within 24 hours, and a signed "mark as contacted" link (ph_cas.hosting.demo_access.mark_contacted, HMAC with the site's encryption key). The hourly job remind_uncontacted_leads sends one reminder for a signup not marked contacted after 20 hours. Follow-up state is private/files/demo-followup.csv, outside the database, so the nightly demo reset keeps it. DEMO_LEADS_WEBHOOK stays for the Helpdesk once it exists.
+- Tests: +2 (test_b65_demo_leads: listed, reminded once, marked contacted by the signed link, a forged link refused; the owner address).
+- Assumed: one reminder is enough; the CSV is the lead list until the Helpdesk.
+- Left out: the Helpdesk integration (LDG-57 follow-up once the Helpdesk is built).
+
+## B64 Income tax returns take the Company's options and the filed quarters' payments (LDG-120, LDG-121, LDG-122) (16 Nov 2026)
+- PR: #74
 - Built: found in QA pass 3 on staging (income_year and individual_year scenarios).
   - LDG-120: the PH Tax Return context (engine.TAXPAYER_FIELDS) left out the Company's income tax options, so in the app every 1701Q, 1701, 1701A, 1702Q and 1702-RT ran on the defaults: no MCIT, 25% even for a small corporation, itemized deductions even under OSD, graduated rates even under the 8% option. The six fields are now in the context (and the filed snapshot). On staging, Tala Trading's 1702Q Q1 showed MCIT 0 where 6,000 was due on the schedule.
   - LDG-121: 1702Q Schedule 4 Items 2 and 3, 1702-RT Items 45 and 46, 1701Q Item 56, 1701 Part VII Item 2 and 1701A Item 58 read the old PH Tax Return Figures, which the PH Tax Return flow never writes, so they were always 0 and overstated the tax payable. They now add the net payable (Item 20 of the 1702Q, Item 28/63 of the 1701Q) of every filed return of each earlier quarter, amendments included; a 1702Q quarter that took MCIT counts under MCIT. A quarter without a filed return gives a warning.
