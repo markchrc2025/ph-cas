@@ -76,6 +76,9 @@ def before_validate(doc, method=None):
     regime = company_regime(doc.company)
     doc.ph_tax_regime = regime
     b = buckets(doc)
+    from ph_cas.tax.line_scope import scope_sales
+
+    scope_sales(doc, regime, line_class)  # output VAT only on its own lines (LDG-112)
     # drop any earlier Output VAT row; it is recomputed below
     doc.taxes = [t for t in (doc.get("taxes") or []) if (t.get("description") or "") != OUTPUT_VAT_DESCRIPTION]
     if regime == "VAT":

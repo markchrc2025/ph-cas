@@ -48,7 +48,8 @@ def feed(ctx: Context) -> dict:
         total += centavos(withheld)
         lines.append({"key": f"sch1.q{q}", "label": f"Schedule 1, quarter {q} from {r.name}", "amount": text(centavos(withheld)), "records": 1, "filter": f"/app/ph-tax-return/{r.name}"})
     warnings = [] if len(rows) == 4 else [f"Only {len(rows)} of the year's four 1601-EQ returns are filed in the Ledger; the missing quarters are typed."]
-    return {"figures": {"sch1": rows}, "lines": lines, "warnings": warnings}
+    top = "yes" if frappe.get_cached_value("Company", company, "ph_top_withholding_agent") else "no"  # Item 8A, from the Company
+    return {"figures": {"sch1": rows, "topAgent": top}, "lines": lines, "warnings": warnings}
 
 
 def _rows(data, key):

@@ -44,7 +44,7 @@ def chain_for(doc):
     rows = [r for r in rows if not r.company or r.company == company]
     rows.sort(key=lambda r: 0 if r.company else 1)
     for r in rows:
-        chain = frappe.get_cached_doc("PH Approval Chain", r.name)
+        chain = frappe.get_doc("PH Approval Chain", r.name)  # not cached: a chain is read fresh each time
         if evaluate(chain.applies_when, doc):
             return chain
     return None

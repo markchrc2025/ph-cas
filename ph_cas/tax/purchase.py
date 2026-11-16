@@ -129,6 +129,9 @@ def before_validate(doc, method=None):
         else:
             exempt += base
     doc.ph_exempt_purchases = flt(exempt, 2)
+    from ph_cas.tax.line_scope import scope_purchase
+
+    scope_purchase(doc, supplier_vat, _line_vat_class, _kind)  # input VAT only on its own lines (LDG-112)
     doc.ph_input_vat_goods = doc.ph_input_vat_services = doc.ph_input_vat_capital = doc.ph_vat_cost = 0
     rules = []
     if supplier_vat and any(bases.values()):

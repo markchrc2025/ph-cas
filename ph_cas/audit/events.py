@@ -82,6 +82,9 @@ def record(event: str, ref_doctype: str | None = None, ref_name: str | None = No
         row.insert()
     finally:
         frappe.flags.ph_event_log_writer = False
+    # Downloads, exports and prints are GET requests, which Frappe rolls back
+    # unless asked to commit: the event must stay (a failed request still rolls back).
+    frappe.local.flags.commit = True
     return row
 
 

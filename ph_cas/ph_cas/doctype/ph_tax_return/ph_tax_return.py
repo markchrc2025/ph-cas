@@ -419,6 +419,19 @@ class PHTaxReturn(Document):
         return {"files": made, "tie_out": tie}
 
     @frappe.whitelist()
+    def generate_sawt(self):
+        """The SAWT (summary alphalist of withholding taxes) that goes with a return
+        claiming credits from the 2307s received: 2550Q (VAT), 2551Q (percentage tax),
+        1701Q, 1702Q, 1701 and 1702-RT (income tax). Written from the PH 2307 Received
+        of the period."""
+        from ph_cas.dat.sawt import KIND_BY_FORM, _code, generate
+
+        if _code(self.form) not in KIND_BY_FORM:
+            frappe.throw(_("The {0} has no SAWT.").format(self.form))
+        self.check_permission("read")
+        return generate(self.company, self.form, str(self.period_start), str(self.period_end))
+
+    @frappe.whitelist()
     def generate_attachment(self):
         """The form's attachment file (the QAP of a 1601-EQ, the annual alphalist of a 1604-E),
         written by the engine as a PH Alphalist File and linked to the return."""

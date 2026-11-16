@@ -27,7 +27,9 @@ class TestB54StagingSite(IntegrationTestCase):
             self.assertFalse(api.is_staging())  # production wins
 
     def test_on_a_staging_site_the_qa_admin_status_and_scenarios_work(self):
-        with patch.dict(frappe.conf, {"ph_staging_site": 1, "ph_cas_production": 0}), patch.dict("os.environ", {"STAGING_ADMIN_PASSWORD": "Qa-test-Password-2026"}):
+        # the staging calls commit (they run in their own requests); here that would leak
+        # the scenario's invoices into the other tests, so the commit is held back
+        with patch.dict(frappe.conf, {"ph_staging_site": 1, "ph_cas_production": 0}), patch.dict("os.environ", {"STAGING_ADMIN_PASSWORD": "Qa-test-Password-2026"}), patch.object(frappe.db, "commit"):
             api.ensure_qa_user()
             roles = frappe.get_roles(api.QA_USER)
             self.assertIn("System Manager", roles)

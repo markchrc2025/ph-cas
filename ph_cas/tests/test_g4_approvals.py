@@ -25,6 +25,7 @@ KEEPER = "approval.keeper@example.com"
 
 def chain(doctype, steps, applies_when="", company=None, title="Test chain"):
     doc = frappe.get_doc({"doctype": "PH Approval Chain", "title": title, "document_type": doctype, "company": company, "enabled": 1, "applies_when": applies_when, "steps": steps})
+    doc.company = company  # blank means every company; a new doc would take the user's default company
     doc.flags.ignore_permissions = True
     return doc.insert()
 

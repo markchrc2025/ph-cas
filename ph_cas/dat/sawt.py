@@ -18,8 +18,13 @@ KIND_BY_FORM = {"2550Q": "VAT", "2551Q": "Percentage tax", "1701Q": "Income tax"
 LAYOUT_STATUS = "sample"
 
 
+def _code(form: str) -> str:
+    """The form as the SAWT writes it: 1702-RT is 1702RT (BIR Returns uses the dash)."""
+    return (form or "").replace("-", "").upper()
+
+
 def rows_for(company: str, form: str, start, end) -> list[dict]:
-    kind = KIND_BY_FORM[form]
+    kind = KIND_BY_FORM[_code(form)]
     data = frappe.db.sql(
         """select d.customer, l.atc, sum(l.base_total) as income, sum(l.tax_withheld) as tax
            from `tabPH 2307 Received Line` l join `tabPH 2307 Received` d on d.name = l.parent
@@ -38,11 +43,11 @@ def rows_for(company: str, form: str, start, end) -> list[dict]:
 
 
 def build(company: str, form: str, start, end) -> tuple[str, bytes, int]:
-    if form not in KIND_BY_FORM:
+    if _code(form) not in KIND_BY_FORM:
         frappe.throw(_("No SAWT for {0}.").format(form))
     a = agent(company)
     rows = rows_for(company, form, start, end)
-    fcode = form.replace("-", "")
+    fcode = _code(form)
     lines = [record(["HSAWT", f"H{fcode}", a["tin"], a["branch"], a["name"] if not a["individual"] else "", a["last"], a["first"], a["middle"], end, a["rdo"]], ["u", "u", "u", "u", "q", "q", "q", "q", "p", "u"])]
     ti = tw = 0.0
     for i, r in enumerate(rows, 1):
@@ -66,6 +71,6 @@ def generate(company: str, form: str, period_start: str, period_end: str) -> str
     name, content, n = build(company, form, period_start, period_end)
     frappe.flags.ph_dat_writer = True
     try:
-        return store(company, f"SAWT-{form}", period_start, period_end, name, content, LAYOUT_STATUS, n)
+        return store(company, f"SAWT-{_code(form)}", period_start, period_end, name, content, LAYOUT_STATUS, n)
     finally:
         frappe.flags.ph_dat_writer = False
