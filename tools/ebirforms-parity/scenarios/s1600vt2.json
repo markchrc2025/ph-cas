@@ -1,0 +1,45 @@
+{
+ "form": "1600-VT",
+ "period": "2026-10",
+ "ebir_form": "BIR-Form1600VTv2018.hta",
+ "data": {
+  "rows": [
+   {
+    "atc": "WV060",
+    "base": "50000.25",
+    "rate": "12.00",
+    "withheld": "6000.00"
+   },
+   {
+    "atc": "WV080",
+    "base": "1234.56",
+    "rate": "12.00",
+    "withheld": "148.15"
+   }
+  ],
+  "previouslyRemitted": "10.00",
+  "otherPayments": "7000.00",
+  "surcharge": "25.00",
+  "interest": "1.10",
+  "compromise": "0",
+  "anyWithheld": "yes",
+  "signatoryName": "JUAN DELA CRUZ",
+  "category": "private"
+ },
+ "map": {
+  "txtPg1P2TaxBase1": "13 base",
+  "txtPg1P2TaxWithheld1": "13 tax",
+  "txtPg1P2TaxBase2": "14 base",
+  "txtPg1P2TaxWithheld2": "14 tax",
+  "txtPg1P2I18TotTaxWithheld": "18",
+  "txtPg1P2I19TaxRemittedInRtrn": "19",
+  "txtPg1P2I20OthrPymntsMade": "20",
+  "txtPg1P2I21TotTaxPymntsMade": "21",
+  "txtPg1P2I22TaxStillDueOverremit": "22",
+  "txtPg1P2I23Surcharge": "23",
+  "txtPg1P2I24Interest": "24",
+  "txtPg1P2I25Compromise": "25",
+  "txtPg1P2I26TotPenalties": "26",
+  "txtPg1P2I27TotAmtStillDueOverremit": "27"
+ }
+}

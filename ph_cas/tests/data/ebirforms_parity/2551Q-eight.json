@@ -1,0 +1,51 @@
+{
+ "form": "2551Q",
+ "period": "2026-Q1",
+ "taxpayer": "individual",
+ "data": {
+  "rows": [
+   {
+    "atc": "PT010",
+    "taxable": "50000.10",
+    "rate": "3"
+   }
+  ],
+  "i15": "100.00",
+  "i20": "5.00",
+  "itRate": "eight",
+  "taxRelief": "no"
+ },
+ "ebirforms": {
+  "txt14": "0.00",
+  "txt15": "0.00",
+  "txt16": "0.00",
+  "txt17": "0.00",
+  "txt18": "0.00",
+  "txt19": "0.00",
+  "txt20": "0.00",
+  "txt21": "0.00",
+  "txt22": "0.00",
+  "txt23": "0.00",
+  "txt24": "0.00",
+  "txtATCAmt1": "0.00",
+  "txtATCRate1": "0.00",
+  "txtATCDue1": "0.00",
+  "txtATCAmt2": "0.00",
+  "txtATCRate2": "0.00",
+  "txtATCDue2": "0.00",
+  "txtATCAmt3": "0.00",
+  "txtATCRate3": "0.00",
+  "txtATCDue3": "0.00",
+  "txtATCAmt4": "0.00",
+  "txtATCRate4": "0.00",
+  "txtATCDue4": "0.00",
+  "txtATCAmt5": "0.00",
+  "txtATCRate5": "0.00",
+  "txtATCDue5": "0.00",
+  "txtATCAmt6": "0.00",
+  "txtATCRate6": "0.00",
+  "txtATCDue6": "0.00",
+  "txtTotalSched1": "0.00"
+ },
+ "source": "Computed by eBIRForms v7.9.6.2 itself (the form BIR-Form2551Qv2018.hta unpacked by BIRForms.exe), with these inputs typed in, on 16 Nov 2026"
+}

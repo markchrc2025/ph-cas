@@ -172,6 +172,43 @@ def payment_checks(data: dict, items: tuple[int, int, int, int]) -> list[tuple[s
     ]
 
 
+_EBIR_ATC: dict | None = None
+
+
+def agent_category(data: dict, c: dict) -> str:
+    """"P" (private) or "G" (government) withholding agent, as eBIRForms picks its ATC list."""
+    cat = s(data.get("category")).lower() or ("government" if (c.get("ph_taxpayer_class") or "") == "Government" else "private")
+    return "G" if cat == "government" else "P"
+
+
+def ebir_atc_rate(form_key: str, atc, data: dict, c: dict) -> Decimal | None:
+    """The rate eBIRForms v7.9.6.2 fills in for an ATC on this form (its ATC list,
+    ph_cas/forms/data/ebirforms_atc.json); None when eBIRForms does not list the ATC."""
+    global _EBIR_ATC
+    if _EBIR_ATC is None:
+        import json
+        import os
+
+        with open(os.path.join(os.path.dirname(__file__), "data", "ebirforms_atc.json"), encoding="utf-8") as fh:
+            _EBIR_ATC = json.load(fh)
+    r = (_EBIR_ATC.get(form_key) or {}).get(agent_category(data, c), {}).get(s(atc).upper())
+    return Decimal(r) if r is not None else None
+
+
+def ebir_rows(form_key: str, rows: list[dict], data: dict, c: dict) -> list[dict]:
+    """ATC rows the eBIRForms way: the rate is the one eBIRForms lists for the ATC and the
+    tax withheld is base x rate, to the centavo. An ATC eBIRForms does not list keeps its
+    typed rate (needs() asks about it)."""
+    out = []
+    for r in rows:
+        rate = ebir_atc_rate(form_key, r.get("atc"), data, c)
+        rate = dec(r.get("rate")) if rate is None else rate
+        base = centavos(r.get("base"))
+        rate_text = f"{rate:f}".rstrip("0").rstrip(".") if "." in f"{rate:f}" else f"{rate:f}"
+        out.append(dict(r, base=str(base), rate=rate_text, withheld=str(centavos(base * rate / 100)), listed=ebir_atc_rate(form_key, r.get("atc"), data, c) is not None))
+    return out
+
+
 def line(item: str, label: str, amount: Decimal, kind: str) -> dict:
     return {"item": item, "label": label, "amount": centavos(amount), "kind": kind}
 

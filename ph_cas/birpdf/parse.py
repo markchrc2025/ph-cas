@@ -70,7 +70,7 @@ ENCODED_KEYS: dict[str, set[str]] = {
             "txtDate34",
         ],
     ),
-    "frm1702q": _ns("frm1702q", ["txtDescription", "txtTaxpayerName", "txtTaxPayerAdd"]),
+    "frm1702q": _ns("frm1702q", ["txtATC_1", "cbATC_2", "txtTaxpayerName1", "txtAddress", "txtTxRlfSpcfy", "txtPg2TaxpayerName", "Sched4:txtOthrTxCrdts0", "Sched4:txtOthrTxCrdts1", "txtLOB"]),
     "frm1701A": _ns(
         "frm1701A",
         [

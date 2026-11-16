@@ -1,6 +1,6 @@
 """BIR Form 1702Q, Quarterly Income Tax Return for Corporations, Partnerships and
-Other Non-Individual Taxpayers (January 2018 ENCS). Exported for eBIRForms and
-printed on the blank. Whole pesos.
+Other Non-Individual Taxpayers (January 2018 ENCS). Exported as eBIRForms'
+1702Qv2018C file and printed on the blank. Whole pesos, computed as eBIRForms does.
 
 Books (this quarter, from the tax engine): s2_1 sales, s2_2 cost of sales,
 s2_6 deductions (itemized), s2_8 taxable income previous quarters, sch3_1 to
@@ -24,6 +24,7 @@ from ph_cas.forms.needs import Need
 NS = "frm1702q:"
 INPUTS = [
     ("atc", "5 ATC", "select:IC055"),
+    ("regularAtc", "5 Other ATC at the regular rate (blank: IC010, domestic corporation)", "select:IC010,IC020,IC030,IC031,IC040,IC041,IC070,IC101,IC191"),
     ("rate", "Income tax rate % (25, or 20 for small corporations)", "text"),
     ("method", "Method of deduction", "select:itemized,osd"),
     ("mcit", "Minimum corporate income tax applies (4th year onward)", "select:yes,no"),
@@ -59,6 +60,9 @@ INPUTS = [
     ("sch4_6", "Sch 4 Item 6 Tax paid in return previously filed (amended)", "money"),
     ("sch4_6a", "Sch 4 Item 6a Other credits", "money"),
     ("sch4_6b", "Sch 4 Item 6b Other credits", "money"),
+    ("sch4_6aLabel", "Sch 4 Item 6a specify", "text"),
+    ("sch4_6bLabel", "Sch 4 Item 6b specify", "text"),
+    ("treatySpec", "Tax relief: specify", "text"),
     ("i15", "15 Unexpired excess of prior year's MCIT over normal tax", "money"),
     ("i21", "21 Surcharge", "money"),
     ("i22", "22 Interest", "money"),
@@ -135,22 +139,30 @@ def _compute(data: dict, ctx: Context) -> dict:
     o["s2_8"] = w("s2_8")
     o["s2_9"] = o["s2_7"] + o["s2_8"]
     o["s2_10"] = rate
-    o["s2_11"] = inc.whole_peso(o["s2_9"] * rate / 100)
+    # eBIRForms: no income tax on a loss to date
+    o["s2_11"] = inc.whole_peso(o["s2_9"] * rate / 100) if o["s2_9"] >= 0 else ZERO
     qn = ctx.period.quarter_no
-    for n in (1, 2, 3):
-        o[f"sch3_{n}"] = w(f"sch3_{n}") or (o["s2_5"] if qn == n else ZERO)
-    o["sch3_4"] = o["sch3_1"] + o["sch3_2"] + o["sch3_3"]
     mcit_on = (inc.s(data.get("mcit")) or "yes") == "yes"
-    base = o["sch3_4"] if o["sch3_4"] > 0 else o["s2_5"]
-    o["sch3_6"] = inc.whole_peso(base * Decimal("0.02")) if mcit_on else ZERO
+    o["mcitOn"] = mcit_on
+    # Schedule 3 the eBIRForms way: open only with the MCIT ATC, one line per quarter to date
+    for n in (1, 2, 3):
+        o[f"sch3_{n}"] = (w(f"sch3_{n}") or (o["s2_5"] if qn == n else ZERO)) if mcit_on and n <= qn else ZERO
+    o["sch3_4"] = o["sch3_1"] + o["sch3_2"] + o["sch3_3"]
+    end = ctx.period.end
+    create = (end.year, end.month) >= (2020, 7) and (end.year, end.month) <= (2023, 6)
+    o["sch3_5"] = (Decimal(1) if create else Decimal(2)) if mcit_on else ZERO
+    o["sch3_6"] = max(inc.whole_peso(o["sch3_4"] * o["sch3_5"] / 100), ZERO) if mcit_on else ZERO
     o["mcit"] = o["sch3_6"]
+    o["s2_12"] = o["mcit"]
     o["s2_13"] = max(o["s2_11"], o["mcit"])
     o["mcitApplies"] = o["mcit"] > o["s2_11"]
     for k in ("sch4_1", "sch4_2", "sch4_3", "sch4_4", "sch4_5", "sch4_6", "sch4_6a", "sch4_6b"):
         o[k] = w(k)
+    if not ctx.is_amended:
+        o["sch4_6"] = ZERO  # eBIRForms opens Schedule 4 Item 6 only on an amended return
     o["sch4_7"] = sum((o[k] for k in ("sch4_1", "sch4_2", "sch4_3", "sch4_4", "sch4_5", "sch4_6", "sch4_6a", "sch4_6b")), ZERO)
     o["i14"] = o["s2_13"]
-    o["i15"] = w("i15")
+    o["i15"] = w("i15") if o["s2_11"] > o["mcit"] else ZERO  # eBIRForms opens Item 15 only when the regular tax exceeds MCIT
     o["i16"] = o["i14"] - o["i15"]
     o["i17"] = o["sch1_13"]
     o["i18"] = o["i16"] + o["i17"]
@@ -158,7 +170,8 @@ def _compute(data: dict, ctx: Context) -> dict:
     o["i20"] = o["i18"] - o["i19"]
     o["i21"], o["i22"], o["i23"] = w("i21"), w("i22"), w("i23")
     o["i24"] = o["i21"] + o["i22"] + o["i23"]
-    o["i25"] = o["i20"] + o["i24"]
+    # eBIRForms: an overpayment (20 below zero) does not absorb penalties; 25 is then 24 alone
+    o["i25"] = o["i24"] if o["i20"] < 0 and o["i24"] > 0 else o["i20"] + o["i24"]
     return o
 
 
@@ -190,7 +203,19 @@ def needs(data: dict, ctx: Context) -> list[Need]:
     return inc.common_needs(data, ctx, "1702Q", False)
 
 
+# eBIRForms' Item 5 other-ATC choices for a corporation at the regular rate, by ATC and rate
+REGULAR_ATCS = ("IC010", "IC020", "IC030", "IC031", "IC040", "IC041", "IC070", "IC101", "IC191")
+
+
+def regular_atc(data: dict, rate: Decimal) -> str:
+    """The eBIRForms cbATC_2 value: "IC010_25%" (the ATC, then the regular rate)."""
+    code = "".join(inc.s(data.get("regularAtc")).split()).upper() or "IC010"
+    return f"{code}_{rate.normalize():f}%"
+
+
 def export_rows(data: dict, comp: list[dict], ctx: Context) -> tuple[list[tuple[str, str]], str]:
+    """The eBIRForms 1702Qv2018C file (the January 2018 1702Q), field for field in the
+    order the form saves them."""
     c = ctx.company
     o = inc.payload(comp)
     t = inc.tin(c)
@@ -198,107 +223,88 @@ def export_rows(data: dict, comp: list[dict], ctx: Context) -> tuple[list[tuple[
     qn = p.quarter_no
     if qn == 4:
         raise ExportRefusal("The 1702Q covers the first three quarters; the fourth quarter is reported in the annual return.")
-    atc = inc.chosen_atc(data.get("atc"), "1702Q")
+    code = "".join(inc.s(data.get("regularAtc")).split()).upper() or "IC010"
+    if code not in REGULAR_ATCS:
+        raise ExportRefusal(f"Item 5: eBIRForms has no {code} at the regular rate on the 1702Q. Choose the ATC again, then export again.")
     itemized = o["method"] != "osd"
+    mcit_on = o["mcitOn"]
     r = inc.Rows(NS)
-    r.b("itemFiscalStartMonth:_1", not p.fiscal)
-    r.b("itemFiscalStartMonth:_2", p.fiscal)
-    for n in (1, 2, 3):
-        r.b(f"optQtr:_{n}", qn == n)
-    r.b("optRemenderRtn_1", ctx.is_amended)
-    r.b("optRemenderRtn_2", not ctx.is_amended)
-    r.p("txtSheets", inc.s(data.get("attachments")) or "0")
     end_month = 12
     if p.fiscal:
         from ph_cas.forms.period import fiscal_start_month
 
         sm = fiscal_start_month(c.get("ph_fiscal_year_start"))
         end_month = sm - 1 if sm > 1 else 12
-    r.p("itemYearEndMonth", f"{end_month:02d}" if p.fiscal else "12")
-    r.p("txtYearEnded", str(p.year))
-    r.p("txtTin1", t["t1"])
-    r.p("txtTin2", t["t2"])
-    r.p("txtTin3", t["t3"])
-    r.p("txtBranchCode", t["branch3"])
-    r.p("txtRdoCode", c.get("ph_rdo") or "")
-    r.enc("txtDescription", inc.s(data.get("lineBus")) or c.get("ph_line_of_business"))
-    r.enc("txtTaxpayerName", inc.name_reg(c))
+    year_end = p.year
+    r.b("rbForClndrFscl_1", not p.fiscal)
+    r.b("rbForClndrFscl_2", p.fiscal)
+    r.p("rbYrEndMonth", f"{end_month:02d}")
+    r.p("txtYrEndYear", f"{year_end % 100:02d}")
+    for n in (1, 2, 3):
+        r.b(f"rbQuarter_{n}", qn == n)
+    r.b("rbAmendedRtn_1", ctx.is_amended)
+    r.b("rbAmendedRtn_2", not ctx.is_amended)
+    r.enc("txtATC_1", "IC055-Minimum Corporate Income Tax (MCIT)")
+    r.b("rbATC_1", mcit_on)
+    r.enc("cbATC_2", regular_atc(data, o["rate"]))
+    r.b("rbATC_2", True)
+    r.p("txtTIN1", t["t1"])
+    r.p("txtTIN2", t["t2"])
+    r.p("txtTIN3", t["t3"])
+    r.p("txtBranchCode", t["branch5"])
+    r.p("txtRDOCode", c.get("ph_rdo") or "")
+    r.enc("txtTaxpayerName1", inc.name_reg(c))
+    r.enc("txtAddress", inc.address(c))
+    r.p("txtZipCode", c.get("ph_zip") or "")
     r.p("txtTelNum", ctx.contact_number or c.get("ph_contact_number") or "")
-    r.enc("txtTaxPayerAdd", inc.address(c))
-    r.p("txtTaxPayerZip", c.get("ph_zip") or "")
-    r.g("1702q:OptMethodDeduct_1", "true" if itemized else "false")
-    r.g("1702q:OptMethodDeduct_2", "false" if itemized else "true")
-    treaty = inc.s(data.get("treaty")) == "yes"
-    r.b("optTreaty:_1", treaty)
-    r.b("optTreaty:_2", not treaty)
-    r.p("lstTaxTreaty", "0")
-    r.p("txtAtc", atc)
-    r.a("txt16A", o["sch1_1A"])
-    r.a("txt16B", o["sch1_1B"])
-    r.z("txt16C")
-    r.a("txt17A", o["sch1_2A"])
-    r.a("txt17B", o["sch1_2B"])
-    r.z("txt17C")
-    r.a("txt18A", o["sch1_3A"])
-    r.a("txt18B", o["sch1_3B"])
-    r.z("txt18C")
-    r.a("txt19A", o["sch1_4A"])
-    r.a("txt19B", o["sch1_4B"])
-    r.a("txt20A", o["sch1_5A"])
-    r.a("txt20B", o["sch1_5B"])
-    r.z("txt20C")
-    r.a("txt21A", o["sch1_6A"])
-    r.a("txt21B", o["sch1_6B"])
-    r.z("txt21C")
-    r.a("txt22A", o["sch1_7A"])
-    r.a("txt22B", o["sch1_7B"])
-    r.a("txt23A", o["sch1_9A"])
-    r.a("txt23B", o["sch1_9B"])
-    r.a("txt24A", o["sch1_13A"])
-    r.a("txt24B", o["sch1_13B"])
-    r.a("txt25A", o["sch1Rate"])
-    r.a("txt25B", o["rate"])
-    r.a("txt26A", o["i14"])
-    r.a("txt26B", o["i15"])
-    r.a("txt27", o["i16"])
-    r.a("txt28", o["i17"])
-    r.a("txt29A", o["sch4_1"])
-    r.a("txt29B", o["sch4_2"])
-    r.a("txt29C", o["sch4_3"])
-    r.a("txt29D", o["sch4_4"])
-    r.a("txt30", o["i18"])
-    r.a("txt31A", o["sch4_5"])
-    r.a("txt31B", o["sch4_6"])
-    r.a("txt31C", o["sch4_6a"])
-    r.a("txt31D", o["sch4_6b"])
-    r.a("txt31E", o["sch4_7"])
-    r.a("txt31F", o["i20"])
-    r.p("txt31Gothers", "")
-    r.a("txt31G", o["i21"])
-    r.a("txt31H", o["i22"])
-    r.a("txt32", o["i23"])
-    r.a("txt33A", o["i24"])
-    r.z("txt33B")
-    r.z("txt33C")
-    r.z("txt33D")
-    r.a("txt34", o["i25"])
-    for i in range(1, 19):
-        r.g(f"Codename{i}", "true" if i == 1 else "false")
-    r.g("txt1stQtr", inc.amt(o["sch3_1"]))
-    r.g("txt2ndQtr", inc.amt(o["sch3_2"]))
-    r.g("txt3rdQtr", inc.amt(o["sch3_3"]))
-    r.g("txtTotal", inc.amt(o["sch3_4"]))
-    r.g("txtTaxRate", "2%")
-    r.g("txtMinCorpIncomeTax", inc.amt(o["mcit"]))
-    inc.trailer(r, ctx.final)
     r.g("txtEmail", c.get("ph_email") or "")
+    r.b("rbMthdOfDdctns_1", itemized)
+    r.b("rbMthdOfDdctns_2", not itemized)
+    treaty = inc.s(data.get("treaty")) == "yes"
+    r.b("rbTxRlf_1", treaty)
+    r.b("rbTxRlf_2", not treaty)
+    r.enc("txtTxRlfSpcfy", data.get("treatySpec") if treaty else "")
+    for n in range(14, 26):
+        r.a(f"txtTax{n}", o[f"i{n}"])
+    r.p("txtSheets", inc.s(data.get("attachments")) or "0")
+    r.p("txtPg2TIN1", t["t1"])
+    r.p("txtPg2TIN2", t["t2"])
+    r.p("txtPg2TIN3", t["t3"])
+    r.p("txtPg2BranchCode", t["branch5"])
+    r.enc("txtPg2TaxpayerName", inc.name_reg(c))
+    for n in range(1, 14):
+        for col in "AB":
+            if n in (12, 13) and col == "A":
+                continue
+            key = f"sch1_{n}{col}" if n != 10 else ("sch1Rate" if col == "B" else None)
+            r.a(f"Sched1:txtTax{n}{col}", o[key] if key else 0)
+    for n in range(1, 14):
+        r.a(f"Sched2:txtTax{n}", o[{10: "rate", 12: "mcit"}.get(n, f"s2_{n}")])
+    for n in range(1, 7):
+        if n == 5 and not mcit_on:
+            r.p("Sched3:txtTax5", "0.0000")  # what eBIRForms keeps in the closed MCIT rate box
+            continue
+        r.a(f"Sched3:txtTax{n}", o[f"sch3_{n}"])
+    for n in range(1, 7):
+        r.a(f"Sched4:txtTax{n}", o[f"sch4_{n}"])
+    for i, key in enumerate(("sch4_6a", "sch4_6b")):
+        r.b(f"Sched4:chkOthrTxCrdts{i}", False)
+        r.enc(f"Sched4:txtOthrTxCrdts{i}", data.get(f"{key}Label") if o[key] else "")
+        r.a(f"Sched4:txtOthrTxCrdtAmnt{i}", o[key])
+    r.a("Sched4:txtTax7", o["sch4_7"])
+    r.p("txtCurrentPage", "1")
+    r.p("txtMaxPage", "3")
+    r.g("resultOtherSpecify", inc.amt(o["sch4_6a"] + o["sch4_6b"]))
+    inc.trailer(r, ctx.final)
+    r.enc("txtLOB", inc.s(data.get("lineBus")) or c.get("ph_line_of_business"))
+    r.p("txtTelNum", ctx.contact_number or c.get("ph_contact_number") or "")
     r.g("driveSelectTPExport", "0")
-    name = f"{t['t1']}{t['t2']}{t['t3']}{t['branch3']}1702Q{p.year}Q{qn}.xml"
+    name = f"{t['t1']}{t['t2']}{t['t3']}{t['branch5']}-1702Qv2018C-{year_end}Q{qn}.xml"
     return r.out, name
 
 
 def write_export(rows: list[tuple[str, str]]) -> str:
-    return inc.write_1702(rows, "2012.0")
+    return inc.write_1702(rows, "2012.0")  # the 1702Qv2018C closes its file with "All Rights Reserved BIR 2012." and "0"
 
 
 def key_figures(comp: list[dict]) -> dict[str, Decimal]:

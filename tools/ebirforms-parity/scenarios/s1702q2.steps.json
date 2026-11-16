@@ -1,0 +1,4 @@
+[["rbForClndrFscl_1","","click"],["txtYrEndYear","26"],["rbQuarter_1","","click"],["rbATC_2","","click"],["cbATC_2","IC010_20%","select"],["q","ATCEnableDisableSchedule3();","call"],
+ ["rbAmendedRtn_2","","click"],["rbMthdOfDdctns_2","","click"],["rbTxRlf_2","","click"],
+ ["Sched2:txtTax1","500000.50"],["Sched2:txtTax2","450000"],["Sched2:txtTax4","1000"],["Sched2:txtTax8","0"],
+ ["Sched4:txtTax1","15000"],["Sched4:txtTax5","2500.49"],["txtTax21","500"],["txtTax22","25.50"],["txtTax23","0"]]

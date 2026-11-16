@@ -1,0 +1,28 @@
+{
+ "form": "1701Q",
+ "period": "2026-Q2",
+ "taxpayer": "individual",
+ "ebir_form": "BIR-Form1701Qv2018.hta",
+ "data": {
+  "atc": "II012",
+  "rateA": "graduated",
+  "methodA": "itemized",
+  "salesA": "456789.50",
+  "cogsA": "120000.40",
+  "deductA": "50000.50",
+  "prevTaxableA": "80000",
+  "nonOpA": "12000.49",
+  "gppA": "0",
+  "excessA": "1000",
+  "prevPaidA": "2500",
+  "cwtPrevA": "1200",
+  "cwtA": "3456.50",
+  "foreignCreditsA": "0",
+  "otherCreditsA": "0",
+  "surchargeA": "100",
+  "interestA": "12.50",
+  "compromiseA": "0",
+  "foreignCredit": "no",
+  "taxPaidPrevA": "777"
+ }
+}

@@ -2,6 +2,49 @@
 
 One entry per bundle, newest first. Counts are the test totals on main after the merge.
 
+## B59 Every return computed the way eBIRForms computes it (16 Nov 2026)
+- PR: (filled in at merge)
+- Built: LDG-49. eBIRForms v7.9.6.2 itself was run. BIRForms.exe unpacked its forms under wine, and each form ran in Chromium with a shim for what mshta and JScript provide: FileSystemObject reads of the package's xml folder, alerts, Date#getYear, and Number#toLocaleString. The test inputs were typed in, and every computed field was read back and compared with Ledger. The harness is in tools/ebirforms-parity (README there); the figures it recorded are in ph_cas/tests/data/ebirforms_parity.
+- What the run found and what changed, form by form:
+  - 2550Q and 2551Q: centavos, not whole pesos. The papers have centavo boxes and eBIRForms keeps centavos.
+  - 2550Q:
+    - 44B, 45B and 46B are 12% of A, with a feed warning when the books' input tax differs.
+    - Items 39 and 52 come from Schedule 1 only. Col G is E / remaining life x 3 and Col H is E - G; purchases are up to 31 Dec 2021.
+    - Item 53 comes from Schedule 2 (exempt / total sales x the input tax not directly attributable). Items 16 and 17 come from Schedules 3 and 4 only.
+    - Item 15 carries Item 61. Item 26 is the penalties alone when there are excess credits.
+  - 2551Q:
+    - The ATC dropdown index followed a short list (PT120 and PT130 landed on PT101 and PT102). It now follows eBIRForms' 23 lines, including PT010 at 1%, and the rate must be the one eBIRForms lists.
+    - Item 16 only on an amended return.
+    - An individual on 8% files a zero return.
+  - 0619-E, 1601-EQ and 1600-VT:
+    - The previously remitted amount counts only on an amended return.
+    - Tax withheld is base x the rate eBIRForms lists for the ATC (ph_cas/forms/data/ebirforms_atc.json, private and government lists).
+    - 1601-EQ: a need when Item 24 (other payments) is used, since eBIRForms has no such line.
+    - 1600-VT: Item 27 is the penalties alone on an over-remittance.
+  - 1702Q:
+    - The export wrote eBIRForms' pre-2018 1702Q layout. It now writes the 1702Qv2018C file: field for field, in the order the form saves them, with file name TIN-1702Qv2018C-YYYYQn.xml.
+    - Item 5 is IC055 plus the regular ATC at its rate (new input regularAtc).
+    - Schedule 3 is open only with MCIT, one line per quarter to date, at 1% from July 2020 to June 2023.
+    - No regular tax on a loss to date. Item 15 only when the regular tax exceeds MCIT. Schedule 4 Item 6 only on an amended return. Item 25 is the penalties alone on an overpayment.
+    - The print map follows the new keys and now prints Schedule 2 Items 1 to 9 and 11 and Schedule 1 Items 8, 11 and 12, which the old map left blank.
+  - 1701Q, 1701A and 1701:
+    - The ATC sets the rate (II015, II017 and II016 are 8%), and only that rate's schedule is filled.
+    - Under OSD, cost of sales closes at 0 (40% of gross sales).
+    - No 250,000 reduction for II016 or for a compensation earner.
+    - 1701Q Item 59 only on an amended return.
+    - 1701 Part VII Items 3 and 4 split creditable tax withheld into the first three quarters and the fourth (feed split).
+    - 1701 marks the compensation earner box when there is compensation.
+    - 1701 Schedule 2 Item 7 always carries the tax on compensation.
+    - 1701 Item 31 is the penalties alone on an overpayment; on the 1701A, Item 29 is Item 24 on an overpayment, as eBIRForms does.
+  - 1702-RT:
+    - Item 38 only under OSD. MCIT is 1% from July 2020 to June 2023.
+    - Schedule 3 is filled only on a net operating loss.
+    - Item 21 is the penalties alone on an overpayment, and the overpayment boxes are marked only then.
+- Result: 2,676 figures in 27 scenarios match eBIRForms field for field. One eBIRForms defect is recorded, not copied: the 1702-RT form recurses without end on Schedule 3 and stops half way, so Ledger keeps the form's own rule (Schedule 3 zero when there is no loss).
+- Tests: test_b59_ebirforms_parity (every fixture, every figure). Updated test_g1, test_f1, test_g3 and test_f0 for the rules above. test_b18 no longer depends on the sales already on the test site.
+- Assumed: an annual return is tested for a year that has ended; eBIRForms clears a year still running.
+- Left out: the Portal's own 1702Q map and export still follow the pre-2018 layout. The Portal is another product, so this is reported, not changed here.
+
 ## B58 The owner accepted the tax rules (16 Nov 2026)
 - PR: (filled in at merge)
 - Built: LDG-47. The owner, MCRC Tax and Accounting Services, accepted all 74 rules in the tax rules catalogue without a signed document. ph_cas/setup/data/rules_acceptance.json lists every rule_id with who accepted them and when; ph_cas.tax.rules.apply_acceptance() runs on install and migrate after seed() and moves each listed rule still in draft to confirmed, with "Accepted by ... on ..." as its sign-off reference and one audit event. A new rule added to tax_rules.json later stays draft until the owner adds it to the acceptance list, so production keeps refusing unaccepted rules.

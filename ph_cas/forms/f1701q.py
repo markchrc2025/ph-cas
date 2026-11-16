@@ -102,13 +102,25 @@ def feed(ctx: Context) -> dict:
     return {"figures": figures, "lines": lines, "warnings": warnings}
 
 
-def _side(data: dict, s: str, year: int) -> dict[str, Decimal]:
+EIGHT_ATCS = ("II015", "II017", "II016")  # eBIRForms: these ATCs put the taxpayer on 8%; II012, II014, II013 on the graduated rates
+
+
+def side_atc(data: dict, s: str) -> str:
+    return "".join(inc.s(data.get("atc" if s == "A" else "spouseAtc")).split()).upper()
+
+
+def _side(data: dict, s: str, year: int, amended: bool = False) -> dict[str, Decimal]:
     w = lambda k: inc.w(data, k + s)  # noqa: E731
     o: dict = {}
     o["sales"] = w("sales")
-    o["cogs"] = w("cogs")
-    o["gross"] = o["sales"] - o["cogs"]
     o["method"] = inc.s(data.get("method" + s)) or "osd"
+    atc = side_atc(data, s)
+    # eBIRForms sets the rate from the ATC; without an ATC the typed rate stands
+    o["rate"] = ("eight" if atc in EIGHT_ATCS else "graduated") if atc else (inc.s(data.get("rate" + s)) or "graduated")
+    # eBIRForms: OSD is 40% of gross sales/receipts, so Item 37 (cost of sales) closes at 0;
+    # on 8% Schedule I is not used
+    o["cogs"] = w("cogs") if o["method"] == "itemized" and o["rate"] != "eight" else ZERO
+    o["gross"] = o["sales"] - o["cogs"]
     o["deductions"] = inc.whole_peso(o["sales"] * Decimal("0.4")) if o["method"] == "osd" else w("deduct")
     o["netIncome"] = o["gross"] - o["deductions"]
     o["prevTaxable"], o["nonOp"], o["gpp"] = w("prevTaxable"), w("nonOp"), w("gpp")
@@ -118,13 +130,23 @@ def _side(data: dict, s: str, year: int) -> dict[str, Decimal]:
     o["income8"] = o["sales8"] + o["nonOp8"]
     o["prev8"] = w("prev8")
     o["cum8"] = o["income8"] + o["prev8"]
-    o["reduce8"] = inc.REDUCTION if s == "A" else ZERO
+    # eBIRForms: no 250,000 reduction for mixed income (II016) or the spouse column
+    o["reduce8"] = inc.REDUCTION if s == "A" and atc != "II016" else ZERO
     o["taxable8"] = max(ZERO, o["cum8"] - o["reduce8"])
     o["tax8"] = inc.whole_peso(o["taxable8"] * inc.EIGHT)
-    o["rate"] = inc.s(data.get("rate" + s)) or "graduated"
+    if o["rate"] != "eight":
+        # eBIRForms fills Schedule II (the 8% option) only for a taxpayer on 8%
+        for k in ("sales8", "nonOp8", "income8", "prev8", "cum8", "reduce8", "taxable8", "tax8"):
+            o[k] = ZERO
+    else:
+        # and Schedule I (the graduated rates) only for a taxpayer on the graduated rates
+        for k in ("sales", "cogs", "gross", "deductions", "netIncome", "prevTaxable", "nonOp", "gpp", "taxableCum", "gradTax"):
+            o[k] = ZERO
     o["taxDue"] = o["tax8"] if o["rate"] == "eight" else o["gradTax"]
     for k in ("excess", "prevPaid", "cwtPrev", "cwt", "taxPaidPrev", "foreignCredits", "otherCredits"):
         o[k] = w(k)
+    if not amended:
+        o["taxPaidPrev"] = ZERO  # eBIRForms opens Item 59 only on an amended return
     o["credits"] = sum((o[k] for k in ("excess", "prevPaid", "cwtPrev", "cwt", "taxPaidPrev", "foreignCredits", "otherCredits")), ZERO)
     o["payable"] = o["taxDue"] - o["credits"]
     o["surcharge"], o["interest"], o["compromise"] = w("surcharge"), w("interest"), w("compromise")
@@ -149,7 +171,7 @@ DERIVED = {"gross", "deductions", "netIncome", "taxableCum", "gradTax", "cum8", 
 def compute(data: dict, ctx: Context) -> list[dict]:
     kind = inc.kinds(data)
     year = ctx.period.year
-    sides = {s: _side(data, s, year) for s in SIDES}
+    sides = {s: _side(data, s, year, ctx.is_amended) for s in SIDES}
     out = []
     for key, item, label in LABELS:
         for s in SIDES:
@@ -170,6 +192,10 @@ def _has_spouse(data: dict) -> bool:
 
 def needs(data: dict, ctx: Context) -> list[Need]:
     out = inc.common_needs(data, ctx, "1701Q", False)
+    atc = side_atc(data, "A")
+    typed = inc.s(data.get("rateA"))
+    if atc and typed and typed != ("eight" if atc in EIGHT_ATCS else "graduated"):
+        out.append(draft_need(ctx.return_name, "atc", f"Item 8 ATC {atc} is for the {'8%' if atc in EIGHT_ATCS else 'graduated'} rate, but the tax rate chosen is {'8%' if typed == 'eight' else 'graduated'}. Which ATC applies?", "eBIRForms takes the rate from the ATC.", "choice", ["II012", "II014", "II013", "II015", "II017", "II016"]))
     if inc.s(data.get("methodA")) == "itemized" and inc.s(data.get("rateA")) != "eight" and not inc.s(data.get("deductA")):
         out.append(draft_need(ctx.return_name, "deductA", "What are the itemized deductions for the quarter (Item 39)?", "The itemized method needs the figure; the books feed it when expenses are posted.", "money"))
     return out
@@ -219,8 +245,9 @@ def export_rows(data: dict, comp: list[dict], ctx: Context) -> tuple[list[tuple[
     r.b("optForeignTaxCredits_1", fc)
     r.b("optForeignTaxCredits_2", not fc)
     r.b("optTaxRate_1", A["rate"] != "eight")
-    r.b("optMethodOfDeduction:_1", inc.s(data.get("methodA")) == "itemized")
-    r.b("optMethodOfDeduction:_2", inc.s(data.get("methodA")) == "osd")
+    # eBIRForms clears the method of deduction for a taxpayer on 8%
+    r.b("optMethodOfDeduction:_1", A["rate"] != "eight" and A["method"] == "itemized")
+    r.b("optMethodOfDeduction:_2", A["rate"] != "eight" and A["method"] == "osd")
     r.b("optTaxRate_2", A["rate"] == "eight")
     stin = inc.spouse_tin(data)
     r.p("txtSpouseTIN1", stin[0:3])
@@ -242,8 +269,8 @@ def export_rows(data: dict, comp: list[dict], ctx: Context) -> tuple[list[tuple[
     r.b("optSpouseForeignTaxCred_1", has_spouse and sfc)
     r.b("optSpouseForeignTaxCred_2", has_spouse and not sfc)
     r.b("optSpouseTaxRate_1", has_spouse and B["rate"] != "eight")
-    r.b("optSpouseMethod:_1", inc.s(data.get("methodB")) == "itemized")
-    r.b("optSpouseMethod:_2", inc.s(data.get("methodB")) == "osd")
+    r.b("optSpouseMethod:_1", has_spouse and B["rate"] != "eight" and B["method"] == "itemized")
+    r.b("optSpouseMethod:_2", has_spouse and B["rate"] != "eight" and B["method"] == "osd")
     r.b("optSpouseTaxRate_2", has_spouse and B["rate"] == "eight")
     for item, key in ((26, "taxDue"), (27, "credits"), (28, "payable"), (29, "penalties"), (30, "totalPayable")):
         r.a(f"txt{item}A", A[key])

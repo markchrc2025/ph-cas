@@ -40,14 +40,17 @@ def feed(ctx: Context) -> dict:
         (company, start, end),
         as_dict=True,
     )
-    rows, total, n = [], ZERO, 0
+    rows, total, n, ebir_warnings = [], ZERO, 0, []
     for r in found:
         base, vat = centavos(r.base), centavos(r.vat)
-        rate = (vat / base * 100).quantize(dec("0.01")) if base else ZERO
+        listed = wh.ebir_atc_rate("1600VT", r.atc, {}, ctx.company)
+        rate = listed if listed is not None else ((vat / base * 100).quantize(dec("0.01")) if base else ZERO)
         rows.append({"atc": r.atc, "base": text(base), "rate": text(rate), "withheld": text(vat)})
+        if listed is not None and centavos(base * listed / 100) != vat:
+            ebir_warnings.append(f"{r.atc}: eBIRForms computes {text(centavos(base * listed / 100))} ({listed}% of {text(base)}); the books show {text(vat)}. Check the bills behind it.")
         total += vat
         n += int(r.n)
-    warnings = []
+    warnings = list(ebir_warnings)
     if len(rows) > ROWS_ON_THE_FORM:
         warnings.append(f"The month has {len(rows)} ATCs; the paper has room for {ROWS_ON_THE_FORM}.")
     figures = {"rows": rows, "anyWithheld": "yes" if total else "no"}
@@ -59,21 +62,27 @@ def _rows(data: dict) -> list[dict]:
     return data.get("rows") if isinstance(data.get("rows"), list) else []
 
 
+def _lines(data: dict, ctx: Context) -> list[dict]:
+    return wh.ebir_rows("1600VT", _rows(data), data, ctx.company)
+
+
 def compute(data: dict, ctx: Context) -> list[dict]:
     kind = wh.kinds(data)
     out = []
     i18 = ZERO
-    for i, r in enumerate(_rows(data), start=1):
+    for i, r in enumerate(_lines(data, ctx), start=1):
         w = centavos(r.get("withheld"))
         i18 += w
         out.append(wh.line(f"{12 + i} base", f"Row {i}: tax base ({wh.s(r.get('atc')) or 'no ATC'})", dec(r.get("base")), kind("rows")))
         out.append(wh.line(f"{12 + i} tax", f"Row {i}: VAT withheld ({wh.s(r.get('atc')) or 'no ATC'})", w, kind("rows")))
-    i19, i20 = dec(data.get("previouslyRemitted")), dec(data.get("otherPayments"))
+    # eBIRForms opens Item 19 only on an amended return
+    i19, i20 = (dec(data.get("previouslyRemitted")) if ctx.is_amended else ZERO), dec(data.get("otherPayments"))
     i21 = i19 + i20
     i22 = i18 - i21
     i23, i24, i25 = (dec(data.get(k)) for k in ("surcharge", "interest", "compromise"))
     i26 = i23 + i24 + i25
-    i27 = i22 + i26
+    # eBIRForms: an over-remittance (22 below zero) does not absorb penalties; 27 is then 26 alone
+    i27 = i26 if i22 < 0 and i26 > 0 else i22 + i26
     out += [
         wh.line("18", "Total Taxes Withheld", i18, "derived"),
         wh.line("19", "Less: Taxes Remitted in Return Previously Filed, if Amended", i19, kind("previouslyRemitted")),
@@ -98,6 +107,8 @@ def needs(data: dict, ctx: Context) -> list[Need]:
     for i, r in enumerate(live, start=1):
         if not wh.s(r.get("atc")):
             out.append(draft_need(ctx.return_name, f"rows.{i}.atc", f"Row {i} has an amount but no ATC. Which ATC is it?", "The paper prints the ATC per row.", "atc"))
+        elif wh.ebir_atc_rate("1600VT", r.get("atc"), data, ctx.company) is None:
+            out.append(draft_need(ctx.return_name, f"rows.{i}.atc", f"Row {i}: eBIRForms does not list {wh.s(r.get('atc')).upper()} on the 1600-VT for this withholding agent category. Which ATC is it?", "eBIRForms takes the rate from its own ATC list.", "atc"))
     if not wh.s(data.get("signatoryName")):
         out.append(draft_need(ctx.return_name, "signatoryName", "Who signs the return (name, title, TIN)?", "The signature block prints the signatory.", "text"))
     return out
@@ -109,9 +120,9 @@ def print_rows(data: dict, comp: list[dict], ctx: Context) -> list[tuple[str, st
     live = [r for r in rows if wh.s(r.get("atc")) or dec(r.get("withheld")) != 0]
     if len(live) > ROWS_ON_THE_FORM:
         raise ExportRefusal(f"The 1600-VT has {len(live)} ATC rows; the paper has room for {ROWS_ON_THE_FORM}. Combine or remove rows, then print again.")
-    used = rows[:ROWS_ON_THE_FORM]
+    used = wh.ebir_rows("1600VT", rows[:ROWS_ON_THE_FORM], data, ctx.company)
     checks = [(f"Item {12 + i}", wh.neg(r.get("base")) or wh.neg(r.get("withheld"))) for i, r in enumerate(used, start=1)]
-    checks += [("Item 18", c["i18"] < 0), ("Item 19", wh.neg(data.get("previouslyRemitted"))), ("Item 20", wh.neg(data.get("otherPayments"))), ("Item 22", c["i22"] < 0), ("Item 23", wh.neg(data.get("surcharge"))), ("Item 24", wh.neg(data.get("interest"))), ("Item 25", wh.neg(data.get("compromise"))), ("Item 27", c["i27"] < 0), *wh.payment_checks(data, (28, 29, 30, 31))]
+    checks += [("Item 18", c["i18"] < 0), ("Item 19", ctx.is_amended and wh.neg(data.get("previouslyRemitted"))), ("Item 20", wh.neg(data.get("otherPayments"))), ("Item 22", c["i22"] < 0), ("Item 23", wh.neg(data.get("surcharge"))), ("Item 24", wh.neg(data.get("interest"))), ("Item 25", wh.neg(data.get("compromise"))), ("Item 27", c["i27"] < 0), *wh.payment_checks(data, (28, 29, 30, 31))]
     wh.refuse_first_negative("1600-VT", checks)
     w = wh.Writer("f1600VT")
     w.put("month", f"{ctx.period.n:02d}")
@@ -131,7 +142,7 @@ def print_rows(data: dict, comp: list[dict], ctx: Context) -> list[tuple[str, st
         w.put(f"r{i}Rate", str(int(rate)) if rate == int(rate) else wh.s(r.get("rate")))
         w.typed(f"r{i}Withheld", r.get("withheld"))
     w.computed("i18", c["i18"])
-    w.typed("i19", data.get("previouslyRemitted"))
+    w.typed("i19", data.get("previouslyRemitted") if ctx.is_amended else "0.00")
     w.typed("i20", data.get("otherPayments"))
     w.computed("i21", c["i21"])
     w.computed("i22", c["i22"])

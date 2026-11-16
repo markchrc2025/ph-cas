@@ -1,0 +1,59 @@
+{
+ "form": "2551Q",
+ "period": "2026-Q3",
+ "company": {
+  "ph_taxpayer_type": "Non-individual"
+ },
+ "data": {
+  "rows": [
+   {
+    "atc": "PT010",
+    "taxable": "123456.78",
+    "rate": "3"
+   },
+   {
+    "atc": "PT040",
+    "taxable": "10000.55",
+    "rate": "3"
+   }
+  ],
+  "i15": "500.33",
+  "i17": "100.10",
+  "i17label": "EXCESS CREDIT",
+  "i20": "25.25",
+  "i21": "12.12",
+  "i22": "1000",
+  "taxRelief": "no"
+ },
+ "ebirforms": {
+  "txt14": "4,003.72",
+  "txt15": "500.33",
+  "txt16": "0.00",
+  "txt17": "100.10",
+  "txt18": "600.43",
+  "txt19": "3,403.29",
+  "txt20": "25.25",
+  "txt21": "12.12",
+  "txt22": "1,000.00",
+  "txt23": "1,037.37",
+  "txt24": "4,440.66",
+  "txtATCAmt1": "123,456.78",
+  "txtATCDue1": "3,703.70",
+  "txtATCAmt2": "10,000.55",
+  "txtATCDue2": "300.02",
+  "txtATCAmt3": "0.00",
+  "txtATCRate3": "0.00",
+  "txtATCDue3": "0.00",
+  "txtATCAmt4": "0.00",
+  "txtATCRate4": "0.00",
+  "txtATCDue4": "0.00",
+  "txtATCAmt5": "0.00",
+  "txtATCRate5": "0.00",
+  "txtATCDue5": "0.00",
+  "txtATCAmt6": "0.00",
+  "txtATCRate6": "0.00",
+  "txtATCDue6": "0.00",
+  "txtTotalSched1": "4,003.72"
+ },
+ "source": "Computed by eBIRForms v7.9.6.2 itself (the form BIR-Form2551Qv2018.hta unpacked by BIRForms.exe), with these inputs typed in, on 16 Nov 2026"
+}

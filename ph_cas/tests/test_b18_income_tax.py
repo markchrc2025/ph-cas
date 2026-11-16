@@ -86,10 +86,13 @@ class TestB18IncomeTax(IntegrationTestCase):
         nd.save()
         d0, f0 = self.fig("1702-RT")
         _je(acc("Cash"), acc("Sales"), 100000)
-        _je(acc("Entertainment Expenses"), acc("Cash"), 5000)  # cap is 1% of sales
+        # cap is 1% of the year's sales: post enough entertainment to pass it, whatever the
+        # test site already holds for the year
+        spend = max(5000, flt((f0["Sales"] + 100000) * 0.01 - f0["EAR"] + 5000, 2))
+        _je(acc("Entertainment Expenses"), acc("Cash"), spend)
         _je(acc("Legal Expenses"), acc("Cash"), 700)
         d, f = self.fig("1702-RT")
-        self.assertEqual(f["EAR"], min(f0["EAR"] + 5000, flt(f["Sales"] * 0.01, 2)))
+        self.assertEqual(f["EAR"], min(f0["EAR"] + spend, flt(f["Sales"] * 0.01, 2)))
         self.assertGreater(f["EAR excess"], 0)
         self.assertEqual(f["Non-deductible"] - f0["Non-deductible"], 700)
         from ph_cas.ph_cas.report.ph_book_to_tax_reconciliation.ph_book_to_tax_reconciliation import execute

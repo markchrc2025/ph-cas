@@ -389,8 +389,7 @@
     {
       "key": "frm2550qv2024:excessInputTax",
       "kind": "none",
-      "reason": "the builder's item 16 sub-line; the paper has no box for it and the builder always sends 0.00",
-      "expect": "^0\\.00$"
+      "reason": "eBIRForms' copy of Item 61 behind Item 15; Item 15 prints from netVatPayable"
     },
     {
       "key": "frm2550qv2024:creditableVat",

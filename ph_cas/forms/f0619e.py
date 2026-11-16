@@ -50,7 +50,8 @@ def feed(ctx: Context) -> dict:
 
 def compute(data: dict, ctx: Context) -> list[dict]:
     kind = wh.kinds(data)
-    i14, i15 = dec(data.get("remittance")), dec(data.get("previouslyRemitted"))
+    # eBIRForms opens Item 15 only on an amended return
+    i14, i15 = dec(data.get("remittance")), (dec(data.get("previouslyRemitted")) if ctx.is_amended else centavos(0))
     i16 = i14 - i15
     a, b, c = dec(data.get("surcharge")), dec(data.get("interest")), dec(data.get("compromise"))
     i17d = a + b + c
@@ -67,7 +68,7 @@ def compute(data: dict, ctx: Context) -> list[dict]:
     ]
     for atc, tax in ((data.get("_atc") or {}) if isinstance(data.get("_atc"), dict) else {}).items():
         out.append(wh.line(f"ATC {atc}", f"Withheld under {atc}", dec(tax), "books"))
-    out.append({"item": "_c", "label": "", "amount": centavos(0), "kind": "derived", "c": {"i16": i16, "i17d": i17d, "i18": i18}})
+    out.append({"item": "_c", "label": "", "amount": centavos(0), "kind": "derived", "c": {"i15": i15, "i16": i16, "i17d": i17d, "i18": i18}})
     return out
 
 
@@ -86,7 +87,7 @@ def print_rows(data: dict, comp: list[dict], ctx: Context) -> list[tuple[str, st
         "0619-E",
         [
             ("Item 14", wh.neg(data.get("remittance"))),
-            ("Item 15", wh.neg(data.get("previouslyRemitted"))),
+            ("Item 15", c["i15"] < 0),
             ("Item 16", c["i16"] < 0),
             ("Item 17A", wh.neg(data.get("surcharge"))),
             ("Item 17B", wh.neg(data.get("interest"))),
@@ -103,7 +104,7 @@ def print_rows(data: dict, comp: list[dict], ctx: Context) -> list[tuple[str, st
     wh.yes_no(w, "any", data.get("anyWithheld"), False)
     wh.common(w, data, ctx.company, ctx.contact_number)
     w.typed("i14", data.get("remittance"))
-    w.typed("i15", data.get("previouslyRemitted"))
+    w.computed("i15", c["i15"])
     w.computed("i16", c["i16"])
     w.typed("i17a", data.get("surcharge"))
     w.typed("i17b", data.get("interest"))

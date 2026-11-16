@@ -124,6 +124,10 @@ def _side(data: dict, s: str, year: int, rate: str) -> dict[str, Decimal]:
     o["54"] = inc.REDUCTION
     o["55"] = max(ZERO, o["53"] - o["54"])
     o["56"] = inc.whole_peso(o["55"] * inc.EIGHT)
+    # eBIRForms fills only the schedule of the rate the ATC sets: Part IV.A (graduated,
+    # Items 36 to 46) or Part IV.B (8%, Items 47 to 56)
+    for i in (range(36, 47) if rate == "eight" else range(47, 57)):
+        o[str(i)] = ZERO
     o["20"] = o["56"] if rate == "eight" else o["46"]
     for i in range(57, 64):
         o[str(i)] = w(i)
@@ -135,7 +139,8 @@ def _side(data: dict, s: str, year: int, rate: str) -> dict[str, Decimal]:
     o["24"] = o["22"] - o["23"]
     o["25"], o["26"], o["27"] = w(25), w(26), w(27)
     o["28"] = o["25"] + o["26"] + o["27"]
-    o["29"] = o["24"] + o["28"]
+    # eBIRForms (1701A): on an overpayment (24 below zero) Item 29 is Item 24, penalties left out
+    o["29"] = o["24"] if o["24"] < 0 else o["24"] + o["28"]
     return o
 
 
@@ -145,7 +150,9 @@ def _has_spouse(data: dict) -> bool:
 
 def compute(data: dict, ctx: Context) -> list[dict]:
     kind = inc.kinds(data)
-    rate = inc.s(data.get("taxRate")) or "graduated"
+    atc = "".join(inc.s(data.get("atc")).split()).upper()
+    # eBIRForms sets the rate from the ATC (II015 and II017 are 8%); without one the typed rate stands
+    rate = ("eight" if atc in ("II015", "II017") else "graduated") if atc else (inc.s(data.get("taxRate")) or "graduated")
     sides = {"A": _side(data, "A", ctx.period.year, rate), "B": _side(data, "B", ctx.period.year, inc.s(data.get("spouseTaxRate")) or rate)}
     spouse = _has_spouse(data)
     out = []

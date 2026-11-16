@@ -123,7 +123,7 @@ def feed(ctx: Context) -> dict:
     return {"figures": figures, "lines": lines, "warnings": warnings}
 
 
-def _compute(data: dict) -> dict:
+def _compute(data: dict, ctx: Context | None = None) -> dict:
     w = lambda k: inc.w(data, k)  # noqa: E731
     o: dict = {}
     rate = inc.dec(data.get("rate")) if inc.s(data.get("rate")) else Decimal(25)
@@ -143,15 +143,23 @@ def _compute(data: dict) -> dict:
     o["i35"] = o["sch2Total"] if o["sch2Total"] > 0 else w("i35")
     o["i36"] = o["sch3aTotal"] if o["sch3aTotal"] > 0 else w("i36")
     o["i37"] = o["i34"] + o["i35"] + o["i36"]
-    o["i38"] = inc.whole_peso(o["i33"] * Decimal("0.4"))
+    # eBIRForms: Item 38 only under OSD, else 0
+    o["i38"] = inc.whole_peso(o["i33"] * Decimal("0.4")) if o["method"] == "osd" else ZERO
     o["i39"] = o["i33"] - (o["i38"] if o["method"] == "osd" else o["i37"])
     o["i40"] = rate
     o["i41"] = inc.whole_peso(o["i39"] * rate / 100)
     mcit_on = (inc.s(data.get("mcit")) or "yes") == "yes"
-    o["i42"] = inc.whole_peso(o["i33"] * Decimal("0.02")) if mcit_on else ZERO
+    end = ctx.period.end if ctx else None
+    create = end is not None and (2020, 7) <= (end.year, end.month) <= (2023, 6)
+    o["i42"] = inc.whole_peso(o["i33"] * (Decimal("0.01") if create else Decimal("0.02"))) if mcit_on else ZERO
     o["i43"] = max(o["i41"], o["i42"])
     o["mcitApplies"] = o["i42"] > o["i41"]
-    o["sch3NetLoss"] = o["i33"] - o["i34"]
+    # Schedule 3 (net operating loss) the eBIRForms way: filled only when the ordinary
+    # deductions exceed the gross income, else all zero
+    loss = o["i34"] > o["i33"]
+    o["sch3Gross"] = o["i33"] if loss else ZERO
+    o["sch3Deductions"] = o["i34"] if loss else ZERO
+    o["sch3NetLoss"] = o["i33"] - o["i34"] if loss else ZERO
     for k in ("i44", "i45", "i46", "i48", "i49", "i50", "i51", "i52", "i53", "i54"):
         o[k] = w(k)
     o["i47"] = o["sch4Total"] if o["sch4Total"] > 0 else w("i47")
@@ -160,7 +168,8 @@ def _compute(data: dict) -> dict:
     o["i14"], o["i15"], o["i16"] = o["i43"], o["i55"], o["i56"]
     o["i17"], o["i18"], o["i19"] = w("i17"), w("i18"), w("i19")
     o["i20"] = o["i17"] + o["i18"] + o["i19"]
-    o["i21"] = o["i16"] + o["i20"]
+    # eBIRForms: an overpayment (16 below zero) does not absorb penalties; 21 is then 20 alone
+    o["i21"] = o["i20"] if o["i16"] < 0 and o["i20"] > 0 else o["i16"] + o["i20"]
     o["i57"] = inc.whole_peso(o["i35"] * rate / 100)
     o["i58"] = o["i52"]
     o["i59"] = o["i57"] + o["i58"]
@@ -186,7 +195,7 @@ TYPED = {"i27", "i28", "i30", "i32", "i44", "i45", "i46", "i48", "i49", "i50", "
 
 def compute(data: dict, ctx: Context) -> list[dict]:
     kind = inc.kinds(data)
-    o = _compute(data)
+    o = _compute(data, ctx)
     out = []
     for key, item, label in LABELS:
         if key in TYPED:
@@ -267,7 +276,7 @@ def export_rows(data: dict, comp: list[dict], ctx: Context) -> tuple[list[tuple[
     r.b("rdoPg1Pt1I13OptionalStandard", not itemized)
     for k, key in (("txtPg1Pt2I14IncomeTax", "i14"), ("txtPg1Pt2I15TotalTaxCredits", "i15"), ("txtPg1Pt2I16NetTax", "i16"), ("txtPg1Pt2I17Surcharge", "i17"), ("txtPg1Pt2I18Interest", "i18"), ("txtPg1Pt2I19Compromise", "i19"), ("txtPg1Pt2I20TotalPenalties", "i20"), ("txtPg1Pt2I21TotalAmount", "i21")):
         r.p(k, _n(o[key]))
-    over = inc.s(data.get("over"))
+    over = inc.s(data.get("over")) if o["i16"] < 0 else ""  # eBIRForms opens the boxes only on an overpayment (Item 16)
     r.b("rdoPg1Pt2I21OverpaymentRefunded", over == "refund")
     r.b("rdoPg1Pt2I21OverpaymentIssued", over == "tcc")
     r.b("rdoPg1Pt2I21OverpaymentCarried", over == "carry")
@@ -340,8 +349,8 @@ def export_rows(data: dict, comp: list[dict], ctx: Context) -> tuple[list[tuple[
     r.p("txtPg4TIN4", t["branch3"])
     r.g("txtBranchMaskP4", "00000")
     r.p("txtPg4RegisteredName", name)
-    r.p("txtPg4Sc3I1GrossIncome", _n(o["i33"]))
-    r.p("txtPg4Sc3I2TotalDeductions", _n(o["i34"]))
+    r.p("txtPg4Sc3I1GrossIncome", _n(o["sch3Gross"]))
+    r.p("txtPg4Sc3I2TotalDeductions", _n(o["sch3Deductions"]))
     r.p("txtPg4Sc3I3NetOperatingLoss", _n(o["sch3NetLoss"]))
     nv = lambda k: inc.whole_peso(inc.dec(data.get(k)))  # noqa: E731
     for i in NOLCO_ROWS:

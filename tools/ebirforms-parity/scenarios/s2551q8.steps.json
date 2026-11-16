@@ -1,0 +1,3 @@
+[["forThe_1","","click"],["rtnMonth","12","select"],["txtYear","2026"],["qtr_1","","click"],["amendedRtn_2","","click"],["taxTreaty_2","","click"],
+ ["taxRate1","","click"],["call1","taxRateOption();taxRateReset();","call"],["drpATC1","1","select"],["txtATCAmt1","50,000.10"],["txt15","100.00"],["txt20","5.00"],
+ ["taxRate2","","click"],["call2","taxRateOption();computeAll();","call"]]
