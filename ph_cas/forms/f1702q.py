@@ -23,7 +23,6 @@ from ph_cas.forms.needs import Need
 
 NS = "frm1702q:"
 INPUTS = [
-    ("atc", "5 ATC", "select:IC055"),
     ("atcChoice", "5 ATC chosen (blank: the higher of MCIT and the regular tax)", "select:mcit,regular"),
     ("regularAtc", "5 Other ATC at the regular rate (blank: IC010, domestic corporation)", "select:IC010,IC020,IC030,IC031,IC040,IC041,IC070,IC101,IC191"),
     ("rate", "Income tax rate % (25, or 20 for small corporations)", "text"),

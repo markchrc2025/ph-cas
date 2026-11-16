@@ -2,8 +2,15 @@
 
 One entry per bundle, newest first. Counts are the test totals on main after the merge.
 
-## B60 Item 5 takes one ATC, the higher tax by default (16 Nov 2026)
+## B61 No Item 5 question on the 1702Q and 1702-RT (16 Nov 2026)
 - PR: (filled in at merge)
+- Built: found on staging after B60. The 1702Q and 1702-RT still asked "Which ATC applies (Item 5: IC055)?", a question B60 made meaningless, since Item 5 now follows the higher of MCIT and the regular tax. The question and the old "5 ATC" input are gone from both forms; "ATC chosen" (to take the regular rate) and "Other ATC" stay.
+- Tests: 350 on main (test_g3 checks the question is gone).
+- Assumed: nothing new.
+- Left out: nothing in scope.
+
+## B60 Item 5 takes one ATC, the higher tax by default (16 Nov 2026)
+- PR: #70
 - Built: the owner's rule for Item 5 of the 1702Q and 1702-RT. One ATC is marked: IC055 when MCIT is higher than the regular tax, else the regular ATC. The taxpayer may still choose the regular rate (new input atcChoice), and the tax due (1702Q Schedule 2 Item 13 and Item 14; 1702-RT Item 43) follows the ATC chosen. Both computations stay on the return whichever ATC is marked: Schedule 2 (regular) and Schedule 3 (MCIT) on the 1702Q, Items 41 and 42 on the 1702-RT. The excess MCIT credit (1702Q Item 15) applies only when the regular rate is chosen. The 1702-RT names the regular ATC (new input regularAtc, default IC010) when the regular rate is chosen. B59 had marked both boxes, as eBIRForms' 1702Qv2018C needs both to compute Schedule 3.
 - Tests: 350 on main (+1, test_g3: the higher tax by default, the regular rate by choice, both computations kept).
 - Assumed: nothing new.

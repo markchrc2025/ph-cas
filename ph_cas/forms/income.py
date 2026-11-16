@@ -218,7 +218,8 @@ def neg(v) -> bool:
 def common_needs(data: dict, ctx: Context, form: str, overpaid: bool) -> list[Need]:
     out = []
     c = ctx.company
-    if not s(data.get("atc")):
+    # the 1702Q and 1702-RT set Item 5 from the computation (the higher of MCIT and the regular tax)
+    if form not in ("1702Q", "1702-RT") and not s(data.get("atc")):
         out.append(draft_need(ctx.return_name, "atc", f"Which ATC applies (Item {ATC_ITEM[form]}: {', '.join(ATC[form])})?", "The return marks one ATC.", "choice", list(ATC[form])))
     if individual(c) and form != "1702Q" and form != "1702-RT" and not taxpayer_type(c):
         out.append(Need("company.individual_type", "Is the taxpayer a single proprietor or a professional?", f"The BIR {form} marks the taxpayer type.", f"/app/company/{c.get('name')}", "choice", ["Single Proprietorship", "Professional"]))
