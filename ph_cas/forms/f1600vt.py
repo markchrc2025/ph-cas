@@ -162,7 +162,7 @@ def write_attachment(return_doc) -> str:
     from ph_cas.dat.qap import generate
 
     name = generate(return_doc.company, "1600VT", str(return_doc.period_start), str(return_doc.period_end))
-    return_doc.db_set("alphalist_file", name)
+    return_doc.db_set("alphalist_file", name)  # None when there is no payee (no file)
     return name
 
 

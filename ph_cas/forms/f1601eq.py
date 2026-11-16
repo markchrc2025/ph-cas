@@ -221,14 +221,15 @@ def filed_snapshot_extra(data: dict, ctx: Context) -> dict:
     return {"alphalist": {"withheld": _withheld(company, ctx.period.start, ctx.period.end), "not_withheld": _not_withheld(company, ctx.period.start, ctx.period.end)}}
 
 
-def write_attachment(return_doc) -> str:
-    """The QAP .DAT for a 1601-EQ return (from the posted records; the snapshot holds the
-    same rows once filed), stored as a PH Alphalist File and linked to the return."""
+def write_attachment(return_doc) -> list[str]:
+    """The QAP for a 1601-EQ return: one .DAT per month of the quarter that has payees, as
+    the BIR Alphalist module writes it (from the posted records; the snapshot holds the
+    same rows once filed). Each is a PH Alphalist File; the return links the last one."""
     from ph_cas.dat.qap import generate
 
-    name = generate(return_doc.company, "1601EQ", str(return_doc.period_start), str(return_doc.period_end))
-    return_doc.db_set("alphalist_file", name)
-    return name
+    names = generate(return_doc.company, "1601EQ", str(return_doc.period_start), str(return_doc.period_end))
+    return_doc.db_set("alphalist_file", names[-1] if names else None)
+    return names
 
 
 def on_filed(return_doc):

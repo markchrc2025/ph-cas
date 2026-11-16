@@ -17,7 +17,14 @@ frappe.ui.form.on("PH Tax Return", {
 		}
 		if (["1601-EQ", "1604-E"].includes(frm.doc.form)) {
 			frm.add_custom_button(frm.doc.form === "1601-EQ" ? __("Generate QAP (.dat)") : __("Generate alphalist (.dat)"), () =>
-				call(frm, "generate_attachment", null, (name) => frappe.show_alert({ message: __("Written: {0}", [name]), indicator: "green" }))
+				call(frm, "generate_attachment", null, (name) => {
+					// the QAP is one file per month with payees (a list); the 1604-E one file;
+					// a period with no payee gives no file (the BIR validator rejects an empty one)
+					const names = (Array.isArray(name) ? name : [name]).filter(Boolean);
+					frappe.show_alert(names.length
+						? { message: __("Written: {0}", [names.join(", ")]), indicator: "green" }
+						: { message: __("No payees in this period, so no file."), indicator: "orange" });
+				})
 			);
 		}
 		if (["2550Q", "2551Q", "1701Q", "1702Q", "1701", "1702-RT"].includes(frm.doc.form)) {

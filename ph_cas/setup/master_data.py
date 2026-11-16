@@ -145,11 +145,19 @@ def validate_branch(code: str, label: str = "Branch code"):
 
 
 def dat_branch(code: str) -> str:
-    """The branch code the alphalist DAT files take: the full 5-digit code with its
-    leading zeroes (RDO answer 8b, 14 Nov 2026: the correct and complete branch code)."""
+    """The branch code the alphalist DAT files take: 4 digits.
+
+    The BIR Alphalist Validation module 7.4 rejects a 5-digit branch code ("Invalid
+    Length in Branch of Withholding Agent", "Invalid length of Payees Branch Code",
+    run on 16 Nov 2026), and its Data Entry module writes 4 ("0000"). So the 5-digit
+    code loses its leading zero; a code that does not start with 0 cannot be written
+    in 4 digits and is refused with a message. This replaces RDO answer 8b (full
+    5 digits), which the validator does not accept."""
     code = (code or "00000").strip() or "00000"
     validate_branch(code)
-    return code
+    if not code.startswith("0"):
+        frappe.throw(_("Branch code {0} cannot be written in an alphalist file: the BIR Alphalist module takes a 4-digit branch code, and this 5-digit code does not start with 0.").format(code))
+    return code[1:]
 
 
 def validate_company(doc, method=None):

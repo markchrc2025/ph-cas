@@ -146,7 +146,8 @@ class TestG2Books(IntegrationTestCase):
         q.set_inputs(json.dumps({"signatoryName": "X", "overRemittanceChoice": "tcc"}))
         q.reload()
         self.assertIn("DRAFT", q.preview())
-        name = q.generate_attachment()
+        names = q.generate_attachment()  # one QAP per month with payees (B62)
+        name = names[-1]
         self.assertTrue(frappe.db.exists("PH Alphalist File", name))
         q.reload()
         self.assertEqual(q.alphalist_file, name)
