@@ -81,14 +81,17 @@ def feed(ctx: Context) -> dict:
     sales = inc.nonneg_peso(annual_figs.get("Sales"))
     credits = annual_figs.get("Credits 2307", ZERO)
     credits_q3 = through_q3.get("Credits 2307", ZERO)
+    paid, _mcit, missing = inc.quarter_payments(company, "1701Q", p.year, (1, 2, 3))
     figures = {
         "taxRate": "eight" if eight else "graduated",
         "i36A": inc.peso_text(sales),
         "i47A": inc.peso_text(sales),
-        "i58A": inc.peso_text(annual_figs.get("Prior quarters", ZERO)),
+        "i58A": inc.peso_text(paid),
         "i59A": inc.peso_text(credits_q3),
         "i60A": inc.peso_text(credits - credits_q3),
     }
+    if inc.individual_atc(c) in ("II012", "II014", "II015", "II017"):
+        figures["atc"] = inc.individual_atc(c)
     if ctx.extra.get("amends"):
         import frappe
 
@@ -96,10 +99,11 @@ def feed(ctx: Context) -> dict:
         figures["i61A"] = inc.peso_text(inc.nonneg_peso(paid))
     lines = [
         inc.books_line("i36A", "Item 36, sales/revenues/receipts/fees for the year", figures["i36A"], company, p.start, p.end),
-        inc.books_line("i58A", "Item 58, tax payments for the first three quarters (filed 1701Q returns)", figures["i58A"], company, p.start, p.end, "ph-tax-return"),
+        {"key": "i58A", "label": "Item 58, tax payments for the first three quarters (filed 1701Q returns)", "amount": figures["i58A"], "records": 3 - len(missing), "filter": f"/app/ph-tax-return?company={company}&form=1701Q&docstatus=1"},
         inc.books_line("i60A", "Item 60, creditable tax withheld per 2307 for the fourth quarter", figures["i60A"], company, p.start, p.end, "ph-2307-received"),
     ]
     warnings = [] if annual_figs.get("Sales", ZERO) >= 0 else ["Item 36 is below zero in the books; it is shown as 0."]
+    warnings += inc.missing_quarters_warning("1701Q", p.year, missing, "Item 58")
     if (c.get("ph_deduction_method") or "Itemized") == "Itemized" and not eight:
         warnings.append("The Company uses itemized deductions; the 1701A allows only the optional standard deduction or the 8% option. File the 1701 instead, or change the method.")
     return {"figures": figures, "lines": lines, "warnings": warnings}

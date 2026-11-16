@@ -76,6 +76,18 @@ def taxpayer_type(c: dict) -> str:
     return {"professional": "prof", "single proprietorship": "single"}.get(k, "")
 
 
+def individual_atc(c: dict) -> str:
+    """The 1701 forms' ATC from the Company: business or professional, graduated or 8%,
+    mixed income; "" when the individual type is not set."""
+    t = taxpayer_type(c)
+    if not t:
+        return ""
+    eight = (c.get("ph_income_tax_option") or "") == "8% option (individual)"
+    if c.get("ph_mixed_income"):
+        return "II016" if eight else "II013"
+    return {("single", False): "II012", ("prof", False): "II014", ("single", True): "II015", ("prof", True): "II017"}[(t, eight)]
+
+
 def civil_status(c: dict) -> str:
     k = "".join(ch for ch in str(c.get("ph_civil_status") or "").lower() if ch.isalpha())
     return {"single": "single", "married": "married", "legallyseparated": "separated", "widower": "widow", "widow": "widow", "widowed": "widow"}.get(k, "")
@@ -168,6 +180,47 @@ def quarter_figures(company: str, ctx: Context) -> tuple[dict, dict, list[dict]]
             prev = cum
         cum_prev = cum
     return this, prev, series
+
+
+# The net amount payable (before penalties) on each quarterly return, and the lines that tell
+# whether a 1702Q quarter paid under MCIT (Item 5 IC055): Schedule 2 Item 13 equals Item 12.
+QUARTER_PAYABLE = {"1702Q": "20", "1701Q": "28/63A"}
+
+
+def quarter_payments(company: str, form_q: str, year: int, quarters, fiscal_start=None) -> tuple[Decimal, Decimal, list[int]]:
+    """What the filed quarterly returns of the year paid: (regular, MCIT, quarters with no
+    filed return). Each quarter adds the net payable of every return filed for it (the
+    original and any amendment, which pays only the difference); an overpayment pays 0.
+    A 1702Q quarter that took MCIT (Item 5 IC055) counts as an MCIT payment."""
+    import frappe
+
+    from ph_cas.forms.period import fiscal_start_month, quarter_range
+
+    sm = fiscal_start_month(fiscal_start) if fiscal_start else 1
+    regular = mcit = ZERO
+    missing = []
+    for q in quarters:
+        qs, qe = quarter_range(year, q, sm)
+        filed = frappe.get_all("PH Tax Return", filters={"company": company, "form": form_q, "docstatus": 1, "period_start": qs, "period_end": qe}, pluck="name")
+        if not filed:
+            missing.append(q)
+            continue
+        for name in filed:
+            by = {r.item: dec(r.amount) for r in frappe.get_all("PH Tax Return Line", filters={"parent": name}, fields=["item", "amount"])}
+            paid = max(whole_peso(by.get(QUARTER_PAYABLE[form_q], ZERO)), ZERO)
+            took_mcit = form_q == "1702Q" and by.get("Sch 2.12", ZERO) > by.get("Sch 2.11", ZERO) and by.get("Sch 2.13") == by.get("Sch 2.12")
+            if took_mcit:
+                mcit += paid
+            else:
+                regular += paid
+    return regular, mcit, missing
+
+
+def missing_quarters_warning(form_q: str, year: int, missing: list[int], where: str) -> list[str]:
+    if not missing:
+        return []
+    qs = ", ".join(f"Q{q}" for q in missing)
+    return [f"No filed {form_q} in Ledger for {qs} {year}: {where} leaves out what was paid for {'that quarter' if len(missing) == 1 else 'those quarters'}. Type the payment if the return was filed outside Ledger."]
 
 
 def peso_text(d) -> str:

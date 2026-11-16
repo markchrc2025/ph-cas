@@ -316,6 +316,7 @@ def scenario_individual_year(company=None):
         "ph_individual_type": "Single Proprietorship", "ph_last_name": "Santos", "ph_first_name": "Maria", "ph_middle_name": "Lopez",
         "ph_birthdate": "1985-03-14", "ph_civil_status": "Single", "ph_registered_name": "MARIA LOPEZ SANTOS", "ph_business_style": "SANTOS BAKESHOP",
         "ph_registered_address": "5 Mabini Street\nBarangay 2, San Juan City", "ph_zip": "1500", "ph_taxpayer_class": "Micro",
+        "ph_contact_number": "09171234567", "ph_email": "qa.soleprop@example.com",
         "ph_income_tax_option": "Graduated (individual)", "ph_deduction_method": "OSD (40%)",
     }, update_modified=False)
     frappe.clear_document_cache("Company", name)

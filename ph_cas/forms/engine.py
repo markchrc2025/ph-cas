@@ -49,6 +49,13 @@ TAXPAYER_FIELDS = (
     "ph_psic",
     "ph_pt_atc",
     "ph_fiscal_year_start",
+    # income tax options: the 1701 and 1702 forms read them (rate, OSD, MCIT, 8% option)
+    "ph_income_tax_option",
+    "ph_deduction_method",
+    "ph_mixed_income",
+    "ph_primary_business",
+    "ph_operations_start_year",
+    "ph_corp_small",
 )
 
 

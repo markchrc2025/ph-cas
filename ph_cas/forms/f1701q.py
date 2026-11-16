@@ -72,6 +72,7 @@ def feed(ctx: Context) -> dict:
     c = ctx.company
     eight = (c.get("ph_income_tax_option") or "") == "8% option (individual)"
     osd = (c.get("ph_deduction_method") or "Itemized") != "Itemized"
+    paid, _mcit, missing = inc.quarter_payments(company, "1701Q", ctx.period.year, range(1, ctx.period.quarter_no), c.get("ph_fiscal_year_start") if ctx.period.fiscal else None)
     figures = {
         "rateA": "eight" if eight else "graduated",
         "methodA": "osd" if osd else "itemized",
@@ -81,8 +82,11 @@ def feed(ctx: Context) -> dict:
         "prev8A": inc.peso_text(inc.nonneg_peso(prev.get("Sales"))),
         "cwtPrevA": inc.peso_text(prev.get("Credits 2307", ZERO)) if prev else "0",
         "cwtA": inc.peso_text(this.get("Credits 2307", ZERO)),
-        "prevPaidA": inc.peso_text(this.get("Prior quarters", ZERO) + prev.get("Prior quarters", ZERO)),
+        "prevPaidA": inc.peso_text(paid),
     }
+    atc = inc.individual_atc(c)
+    if atc:
+        figures["atc"] = atc
     if ctx.extra.get("amends"):
         import frappe
 
@@ -98,7 +102,10 @@ def feed(ctx: Context) -> dict:
     ]
     if "deductA" in figures:
         lines.append(inc.books_line("deductA", "Item 39, itemized deductions this quarter", figures["deductA"], company, start, end, "purchase-invoice"))
+    if ctx.period.quarter_no > 1:
+        lines.append({"key": "prevPaidA", "label": "Item 56, tax paid in earlier quarters (filed 1701Q returns)", "amount": figures["prevPaidA"], "records": ctx.period.quarter_no - 1 - len(missing), "filter": f"/app/ph-tax-return?company={company}&form=1701Q&docstatus=1"})
     warnings = [f"Item {k} ({v}) is below zero in the books; it is shown as 0." for k, v in (("36", this.get("Sales", ZERO)), ("37", this.get("COGS", ZERO))) if v < 0]
+    warnings += inc.missing_quarters_warning("1701Q", ctx.period.year, missing, "Item 56")
     return {"figures": figures, "lines": lines, "warnings": warnings}
 
 

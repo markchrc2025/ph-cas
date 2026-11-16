@@ -77,6 +77,8 @@ def feed(ctx: Context) -> dict:
     osd = (c.get("ph_deduction_method") or "Itemized") != "Itemized"
     year = ctx.period.year
     start_year = c.get("ph_operations_start_year")
+    # Schedule 4 Items 2 and 3: what the filed 1702Q returns of the earlier quarters paid
+    paid_regular, paid_mcit, missing = inc.quarter_payments(company, "1702Q", year, range(1, ctx.period.quarter_no), c.get("ph_fiscal_year_start") if ctx.period.fiscal else None)
     figures = {
         "rate": "20" if c.get("ph_corp_small") else "25",
         "method": "osd" if osd else "itemized",
@@ -84,7 +86,8 @@ def feed(ctx: Context) -> dict:
         "s2_1": inc.peso_text(inc.nonneg_peso(this.get("Sales"))),
         "s2_2": inc.peso_text(inc.nonneg_peso(this.get("COGS"))),
         "s2_8": inc.peso_text(prev.get("Taxable income", ZERO)) if prev else "0",
-        "sch4_2": inc.peso_text(this.get("Prior quarters", ZERO) + prev.get("Prior quarters", ZERO)),
+        "sch4_2": inc.peso_text(paid_regular),
+        "sch4_3": inc.peso_text(paid_mcit),
         "sch4_4": inc.peso_text(prev.get("Credits 2307", ZERO)) if prev else "0",
         "sch4_5": inc.peso_text(this.get("Credits 2307", ZERO)),
     }
@@ -106,7 +109,12 @@ def feed(ctx: Context) -> dict:
     ]
     if "s2_6" in figures:
         lines.append(inc.books_line("s2_6", "Schedule 2 Item 6, itemized deductions this quarter", figures["s2_6"], company, start, end, "purchase-invoice"))
+    if ctx.period.quarter_no > 1:
+        rets = f"/app/ph-tax-return?company={company}&form=1702Q&docstatus=1"
+        lines.append({"key": "sch4_2", "label": "Schedule 4 Item 2, tax paid in earlier quarters (filed 1702Q returns)", "amount": figures["sch4_2"], "records": ctx.period.quarter_no - 1 - len(missing), "filter": rets})
+        lines.append({"key": "sch4_3", "label": "Schedule 4 Item 3, MCIT paid in earlier quarters (filed 1702Q returns)", "amount": figures["sch4_3"], "records": ctx.period.quarter_no - 1 - len(missing), "filter": rets})
     warnings = [f"Schedule 2 Item {i} ({v}) is below zero in the books; it is shown as 0." for i, v in (("1", this.get("Sales", ZERO)), ("2", this.get("COGS", ZERO))) if v < 0]
+    warnings += inc.missing_quarters_warning("1702Q", year, missing, "Schedule 4 Items 2 and 3")
     return {"figures": figures, "lines": lines, "warnings": warnings}
 
 
