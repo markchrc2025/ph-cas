@@ -105,10 +105,40 @@ class TestG3Pure(IntegrationTestCase):
         self.assertEqual(rows["frm1702q:Sched3:txtTax3"], "600,000.00")
         self.assertEqual(rows["frm1702q:Sched2:txtTax12"], "12,000.00")
         self.assertEqual(rows["frm1702q:rbMthdOfDdctns_1"], "true")
-        self.assertEqual((rows["frm1702q:rbATC_1"], rows["frm1702q:cbATC_2"]), ("true", "IC010_25%25"))
+        # Item 5 takes one ATC: the regular tax (175,000) is higher, so IC010 alone is marked
+        self.assertEqual((rows["frm1702q:rbATC_1"], rows["frm1702q:rbATC_2"], rows["frm1702q:cbATC_2"]), ("false", "true", "IC010_25%25"))
         data["mcit"] = "no"
         by = {ln["item"]: ln["amount"] for ln in f1702q.compute(data, c)}
         self.assertEqual(by["Sch 2.12"], 0)
+
+    def test_item_5_takes_the_higher_tax_and_the_taxpayer_may_choose_the_regular_rate(self):
+        c = ctx("1702Q", "2026-Q3")
+        # a thin margin: regular tax 25,000 (25% of 100,000), MCIT 40,000 (2% of 2,000,000)
+        data = {"s2_1": "2000000", "s2_2": "0", "s2_6": "1900000", "mcit": "yes"}
+        by = {ln["item"]: ln["amount"] for ln in f1702q.compute(data, c)}
+        self.assertEqual((by["Sch 2.11"], by["Sch 2.12"], by["Sch 2.13"], by["14"]), (25000, 40000, 40000, 40000))
+        rows = dict(f1702q.export_rows(data, f1702q.compute(data, c), c)[0])
+        self.assertEqual((rows["frm1702q:rbATC_1"], rows["frm1702q:rbATC_2"]), ("true", "false"))
+        # both computations stay on the return
+        self.assertEqual((rows["frm1702q:Sched2:txtTax11"], rows["frm1702q:Sched3:txtTax6"]), ("25,000.00", "40,000.00"))
+        data["atcChoice"] = "regular"
+        data["i15"] = "1000"
+        by = {ln["item"]: ln["amount"] for ln in f1702q.compute(data, c)}
+        self.assertEqual((by["Sch 2.13"], by["14"], by["15"], by["16"]), (25000, 25000, 1000, 24000))
+        rows = dict(f1702q.export_rows(data, f1702q.compute(data, c), c)[0])
+        self.assertEqual((rows["frm1702q:rbATC_1"], rows["frm1702q:rbATC_2"], rows["frm1702q:Sched3:txtTax6"]), ("false", "true", "40,000.00"))
+        c = ctx("1702-RT", "2025")
+        data = {"atc": "IC055", "i27": "100000", "i30": "0", "i34": "90000", "mcit": "yes", "presTitle": "President", "treasurer": "X"}
+        by = {ln["item"]: ln["amount"] for ln in f1702rt.compute(data, c)}
+        self.assertEqual((by["41"], by["42"], by["43"]), (2500, 2000, 2500))
+        data["i34"] = "99000"
+        by = {ln["item"]: ln["amount"] for ln in f1702rt.compute(data, c)}
+        self.assertEqual((by["41"], by["42"], by["43"]), (250, 2000, 2000))
+        rows = dict(f1702rt.export_rows(data, f1702rt.compute(data, c), c)[0])
+        self.assertEqual((rows["frm1702RT:rdoPg1I5Atc"], rows["frm1702RT:rdoPg1I5AtcOther"]), ("true", "false"))
+        data["atcChoice"] = "regular"
+        rows = dict(f1702rt.export_rows(data, f1702rt.compute(data, c), c)[0])
+        self.assertEqual((rows["frm1702RT:rdoPg1I5Atc"], rows["frm1702RT:rdoPg1I5AtcOther"], rows["frm1702RT:drpPg1I5AtcOther"], rows["frm1702RT:txtPg2Pt4I43TotalIncomeTax"]), ("false", "true", "IC010", "250.00"))
         c = ctx("1702-RT", "2026")
         data = {"atc": "IC055", "i27": "5000000", "i30": "3000000", "s1_13": "800000", "s1_5": "100000", "rate": "25", "i49": "40000", "mcit": "yes", "presTitle": "President", "treasurer": "X"}
         by = {ln["item"]: ln["amount"] for ln in f1702rt.compute(data, c)}

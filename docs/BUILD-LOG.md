@@ -2,8 +2,15 @@
 
 One entry per bundle, newest first. Counts are the test totals on main after the merge.
 
-## B59 Every return computed the way eBIRForms computes it (16 Nov 2026)
+## B60 Item 5 takes one ATC, the higher tax by default (16 Nov 2026)
 - PR: (filled in at merge)
+- Built: the owner's rule for Item 5 of the 1702Q and 1702-RT. One ATC is marked: IC055 when MCIT is higher than the regular tax, else the regular ATC. The taxpayer may still choose the regular rate (new input atcChoice), and the tax due (1702Q Schedule 2 Item 13 and Item 14; 1702-RT Item 43) follows the ATC chosen. Both computations stay on the return whichever ATC is marked: Schedule 2 (regular) and Schedule 3 (MCIT) on the 1702Q, Items 41 and 42 on the 1702-RT. The excess MCIT credit (1702Q Item 15) applies only when the regular rate is chosen. The 1702-RT names the regular ATC (new input regularAtc, default IC010) when the regular rate is chosen. B59 had marked both boxes, as eBIRForms' 1702Qv2018C needs both to compute Schedule 3.
+- Tests: 350 on main (+1, test_g3: the higher tax by default, the regular rate by choice, both computations kept).
+- Assumed: nothing new.
+- Left out: nothing in scope.
+
+## B59 Every return computed the way eBIRForms computes it (16 Nov 2026)
+- PR: #68
 - Built: LDG-49. eBIRForms v7.9.6.2 itself was run. BIRForms.exe unpacked its forms under wine, and each form ran in Chromium with a shim for what mshta and JScript provide: FileSystemObject reads of the package's xml folder, alerts, Date#getYear, and Number#toLocaleString. The test inputs were typed in, and every computed field was read back and compared with Ledger. The harness is in tools/ebirforms-parity (README there); the figures it recorded are in ph_cas/tests/data/ebirforms_parity.
 - What the run found and what changed, form by form:
   - 2550Q and 2551Q: centavos, not whole pesos. The papers have centavo boxes and eBIRForms keeps centavos.
@@ -40,13 +47,13 @@ One entry per bundle, newest first. Counts are the test totals on main after the
     - Item 38 only under OSD. MCIT is 1% from July 2020 to June 2023.
     - Schedule 3 is filled only on a net operating loss.
     - Item 21 is the penalties alone on an overpayment, and the overpayment boxes are marked only then.
-- Result: 2,676 figures in 27 scenarios match eBIRForms field for field. One eBIRForms defect is recorded, not copied: the 1702-RT form recurses without end on Schedule 3 and stops half way, so Ledger keeps the form's own rule (Schedule 3 zero when there is no loss).
+- Result: 3,425 figures in 23 scenarios match eBIRForms field for field. One eBIRForms defect is recorded, not copied: the 1702-RT form recurses without end on Schedule 3 and stops half way, so Ledger keeps the form's own rule (Schedule 3 zero when there is no loss).
 - Tests: test_b59_ebirforms_parity (every fixture, every figure). Updated test_g1, test_f1, test_g3 and test_f0 for the rules above. test_b18 no longer depends on the sales already on the test site.
 - Assumed: an annual return is tested for a year that has ended; eBIRForms clears a year still running.
 - Left out: the Portal's own 1702Q map and export still follow the pre-2018 layout. The Portal is another product, so this is reported, not changed here.
 
 ## B58 The owner accepted the tax rules (16 Nov 2026)
-- PR: (filled in at merge)
+- PR: #67
 - Built: LDG-47. The owner, MCRC Tax and Accounting Services, accepted all 74 rules in the tax rules catalogue without a signed document. ph_cas/setup/data/rules_acceptance.json lists every rule_id with who accepted them and when; ph_cas.tax.rules.apply_acceptance() runs on install and migrate after seed() and moves each listed rule still in draft to confirmed, with "Accepted by ... on ..." as its sign-off reference and one audit event. A new rule added to tax_rules.json later stays draft until the owner adds it to the acceptance list, so production keeps refusing unaccepted rules.
 - Tests: 344 on main (+1; the draft-rule tests in test_b11 and test_b31 now use rules of their own).
 - Assumed: nothing new.

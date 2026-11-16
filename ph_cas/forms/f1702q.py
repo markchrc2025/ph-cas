@@ -24,6 +24,7 @@ from ph_cas.forms.needs import Need
 NS = "frm1702q:"
 INPUTS = [
     ("atc", "5 ATC", "select:IC055"),
+    ("atcChoice", "5 ATC chosen (blank: the higher of MCIT and the regular tax)", "select:mcit,regular"),
     ("regularAtc", "5 Other ATC at the regular rate (blank: IC010, domestic corporation)", "select:IC010,IC020,IC030,IC031,IC040,IC041,IC070,IC101,IC191"),
     ("rate", "Income tax rate % (25, or 20 for small corporations)", "text"),
     ("method", "Method of deduction", "select:itemized,osd"),
@@ -110,6 +111,14 @@ def feed(ctx: Context) -> dict:
     return {"figures": figures, "lines": lines, "warnings": warnings}
 
 
+def atc_choice(data: dict, mcit_on: bool, mcit: Decimal, regular: Decimal) -> str:
+    """Item 5: "mcit" (IC055) or "regular". Typed choice first; else the higher tax."""
+    typed = inc.s(data.get("atcChoice"))
+    if typed in ("mcit", "regular"):
+        return typed if (typed == "regular" or mcit_on) else "regular"
+    return "mcit" if mcit_on and mcit > regular else "regular"
+
+
 def _compute(data: dict, ctx: Context) -> dict:
     w = lambda k: inc.w(data, k)  # noqa: E731
     o: dict = {}
@@ -144,7 +153,8 @@ def _compute(data: dict, ctx: Context) -> dict:
     qn = ctx.period.quarter_no
     mcit_on = (inc.s(data.get("mcit")) or "yes") == "yes"
     o["mcitOn"] = mcit_on
-    # Schedule 3 the eBIRForms way: open only with the MCIT ATC, one line per quarter to date
+    # Schedule 3 (MCIT) is computed whenever MCIT applies (fourth year onward), whichever
+    # ATC Item 5 ends up with, so the return shows both computations; one line per quarter to date
     for n in (1, 2, 3):
         o[f"sch3_{n}"] = (w(f"sch3_{n}") or (o["s2_5"] if qn == n else ZERO)) if mcit_on and n <= qn else ZERO
     o["sch3_4"] = o["sch3_1"] + o["sch3_2"] + o["sch3_3"]
@@ -154,15 +164,18 @@ def _compute(data: dict, ctx: Context) -> dict:
     o["sch3_6"] = max(inc.whole_peso(o["sch3_4"] * o["sch3_5"] / 100), ZERO) if mcit_on else ZERO
     o["mcit"] = o["sch3_6"]
     o["s2_12"] = o["mcit"]
-    o["s2_13"] = max(o["s2_11"], o["mcit"])
-    o["mcitApplies"] = o["mcit"] > o["s2_11"]
+    # Item 5 takes one ATC: by default the higher tax (IC055 when MCIT is higher, else the
+    # regular ATC); the taxpayer may still choose the regular rate. The tax due follows it.
+    o["atcChoice"] = atc_choice(data, mcit_on, o["mcit"], o["s2_11"])
+    o["mcitApplies"] = o["atcChoice"] == "mcit"
+    o["s2_13"] = o["mcit"] if o["mcitApplies"] else o["s2_11"]
     for k in ("sch4_1", "sch4_2", "sch4_3", "sch4_4", "sch4_5", "sch4_6", "sch4_6a", "sch4_6b"):
         o[k] = w(k)
     if not ctx.is_amended:
         o["sch4_6"] = ZERO  # eBIRForms opens Schedule 4 Item 6 only on an amended return
     o["sch4_7"] = sum((o[k] for k in ("sch4_1", "sch4_2", "sch4_3", "sch4_4", "sch4_5", "sch4_6", "sch4_6a", "sch4_6b")), ZERO)
     o["i14"] = o["s2_13"]
-    o["i15"] = w("i15") if o["s2_11"] > o["mcit"] else ZERO  # eBIRForms opens Item 15 only when the regular tax exceeds MCIT
+    o["i15"] = ZERO if o["mcitApplies"] else w("i15")  # the excess MCIT credit applies only against the regular tax
     o["i16"] = o["i14"] - o["i15"]
     o["i17"] = o["sch1_13"]
     o["i18"] = o["i16"] + o["i17"]
@@ -178,7 +191,7 @@ def _compute(data: dict, ctx: Context) -> dict:
 LABELS = [
     ("s2_1", "Sch 2.1", "Sales/Revenues/Receipts/Fees"), ("s2_2", "Sch 2.2", "Less: Cost of Sales/Services"), ("s2_3", "Sch 2.3", "Gross Income from Operation"), ("s2_4", "Sch 2.4", "Add: Non-operating and Other Taxable Income"),
     ("s2_5", "Sch 2.5", "Total Gross Income"), ("s2_6", "Sch 2.6", "Less: Deductions"), ("s2_7", "Sch 2.7", "Taxable Income this Quarter"), ("s2_8", "Sch 2.8", "Add: Taxable Income Previous Quarters"),
-    ("s2_9", "Sch 2.9", "Total Taxable Income to Date"), ("s2_11", "Sch 2.11", "Income Tax Due (regular rate)"), ("mcit", "Sch 2.12", "Minimum Corporate Income Tax (2% of gross income)"), ("s2_13", "Sch 2.13", "Income Tax Due (higher of 11 and 12)"),
+    ("s2_9", "Sch 2.9", "Total Taxable Income to Date"), ("s2_11", "Sch 2.11", "Income Tax Due (regular rate)"), ("mcit", "Sch 2.12", "Minimum Corporate Income Tax (2% of gross income)"), ("s2_13", "Sch 2.13", "Income Tax Due (11 or 12, the ATC chosen in Item 5)"),
     ("sch1_13", "Sch 1.13", "Net Income Tax Due, exempt and special"), ("i14", "14", "Income Tax Due, Regular Rate"), ("i15", "15", "Less: Unexpired Excess of Prior Year's MCIT"), ("i16", "16", "Balance Income Tax Still Due, Regular Rate"),
     ("i17", "17", "Add: Income Tax Due, Special Rate"), ("i18", "18", "Aggregate Income Tax Due"), ("sch4_1", "Sch 4.1", "Prior Year's Excess Credits"), ("sch4_2", "Sch 4.2", "Tax Payments for the Previous Quarters (other than MCIT)"),
     ("sch4_3", "Sch 4.3", "MCIT Payments for the Previous Quarters"), ("sch4_4", "Sch 4.4", "Creditable Tax Withheld for the Previous Quarters"), ("sch4_5", "Sch 4.5", "Creditable Tax Withheld per BIR Form 2307 for this Quarter"), ("sch4_6", "Sch 4.6", "Tax Paid in Return Previously Filed, if Amended"),
@@ -228,6 +241,7 @@ def export_rows(data: dict, comp: list[dict], ctx: Context) -> tuple[list[tuple[
         raise ExportRefusal(f"Item 5: eBIRForms has no {code} at the regular rate on the 1702Q. Choose the ATC again, then export again.")
     itemized = o["method"] != "osd"
     mcit_on = o["mcitOn"]
+    choice = o["atcChoice"]
     r = inc.Rows(NS)
     end_month = 12
     if p.fiscal:
@@ -245,9 +259,10 @@ def export_rows(data: dict, comp: list[dict], ctx: Context) -> tuple[list[tuple[
     r.b("rbAmendedRtn_1", ctx.is_amended)
     r.b("rbAmendedRtn_2", not ctx.is_amended)
     r.enc("txtATC_1", "IC055-Minimum Corporate Income Tax (MCIT)")
-    r.b("rbATC_1", mcit_on)
+    # one ATC marked (Item 5); the regular ATC stays named because Schedule 2 is computed at its rate
+    r.b("rbATC_1", choice == "mcit")
     r.enc("cbATC_2", regular_atc(data, o["rate"]))
-    r.b("rbATC_2", True)
+    r.b("rbATC_2", choice == "regular")
     r.p("txtTIN1", t["t1"])
     r.p("txtTIN2", t["t2"])
     r.p("txtTIN3", t["t3"])
