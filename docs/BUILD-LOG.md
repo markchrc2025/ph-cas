@@ -2,6 +2,13 @@
 
 One entry per bundle, newest first. Counts are the test totals on main after the merge.
 
+## B60 Item 5 takes one ATC, the higher tax by default (16 Nov 2026)
+- PR: (filled in at merge)
+- Built: the owner's rule for Item 5 of the 1702Q and 1702-RT. One ATC is marked: IC055 when MCIT is higher than the regular tax, else the regular ATC. The taxpayer may still choose the regular rate (new input atcChoice), and the tax due (1702Q Schedule 2 Item 13 and Item 14; 1702-RT Item 43) follows the ATC chosen. Both computations stay on the return whichever ATC is marked: Schedule 2 (regular) and Schedule 3 (MCIT) on the 1702Q, Items 41 and 42 on the 1702-RT. The excess MCIT credit (1702Q Item 15) applies only when the regular rate is chosen. The 1702-RT names the regular ATC (new input regularAtc, default IC010) when the regular rate is chosen. B59 had marked both boxes, as eBIRForms' 1702Qv2018C needs both to compute Schedule 3.
+- Tests: 350 on main (+1, test_g3: the higher tax by default, the regular rate by choice, both computations kept).
+- Assumed: nothing new.
+- Left out: nothing in scope.
+
 ## B59 Every return computed the way eBIRForms computes it (16 Nov 2026)
 - PR: #68
 - Built: LDG-49. eBIRForms v7.9.6.2 itself was run. BIRForms.exe unpacked its forms under wine, and each form ran in Chromium with a shim for what mshta and JScript provide: FileSystemObject reads of the package's xml folder, alerts, Date#getYear, and Number#toLocaleString. The test inputs were typed in, and every computed field was read back and compared with Ledger. The harness is in tools/ebirforms-parity (README there); the figures it recorded are in ph_cas/tests/data/ebirforms_parity.

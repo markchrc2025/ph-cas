@@ -31,6 +31,8 @@ S1 = [
 INPUTS = (
     [
         ("atc", "5 ATC", "select:IC055"),
+        ("atcChoice", "5 ATC chosen (blank: the higher of MCIT and the regular tax)", "select:mcit,regular"),
+        ("regularAtc", "5 Other ATC at the regular rate (blank: IC010, corporation in general)", "select:IC010,IC020,IC040,IC041,IC070"),
         ("rate", "Income tax rate % (25, or 20 for small corporations)", "text"),
         ("method", "13 Method of deduction", "select:itemized,osd"),
         ("mcit", "Minimum corporate income tax applies (4th year onward)", "select:yes,no"),
@@ -152,8 +154,14 @@ def _compute(data: dict, ctx: Context | None = None) -> dict:
     end = ctx.period.end if ctx else None
     create = end is not None and (2020, 7) <= (end.year, end.month) <= (2023, 6)
     o["i42"] = inc.whole_peso(o["i33"] * (Decimal("0.01") if create else Decimal("0.02"))) if mcit_on else ZERO
-    o["i43"] = max(o["i41"], o["i42"])
-    o["mcitApplies"] = o["i42"] > o["i41"]
+    # Item 5 takes one ATC: by default the higher tax (IC055 when MCIT is higher); the
+    # taxpayer may still choose the regular rate, and the tax due follows the choice.
+    # Both computations (Items 41 and 42) stay on the return.
+    from ph_cas.forms.f1702q import atc_choice
+
+    o["atcChoice"] = atc_choice(data, mcit_on, o["i42"], o["i41"])
+    o["mcitApplies"] = o["atcChoice"] == "mcit"
+    o["i43"] = o["i42"] if o["mcitApplies"] else o["i41"]
     # Schedule 3 (net operating loss) the eBIRForms way: filled only when the ordinary
     # deductions exceed the gross income, else all zero
     loss = o["i34"] > o["i33"]
@@ -236,7 +244,7 @@ def export_rows(data: dict, comp: list[dict], ctx: Context) -> tuple[list[tuple[
     p = ctx.period
     mm = f"{p.end.month:02d}"
     yy = str(p.year)[-2:]
-    atc = inc.chosen_atc(data.get("atc"), "1702-RT")
+    inc.chosen_atc(data.get("atc"), "1702-RT")  # refuses an ATC the form does not print
     itemized = o["method"] != "osd"
     name = inc.name_reg(c)
     rdo = c.get("ph_rdo") or ""
@@ -251,10 +259,11 @@ def export_rows(data: dict, comp: list[dict], ctx: Context) -> tuple[list[tuple[
     short = inc.s(data.get("shortPeriod")) == "yes"
     r.b("rdoPg1I4ShortPeriodYes", short)
     r.b("rdoPg1I4ShortPeriodNo", not short)
-    is_mcit = atc == "IC055"
+    is_mcit = o["mcitApplies"]
+    regular = "".join(inc.s(data.get("regularAtc")).split()).upper() or "IC010"
     r.b("rdoPg1I5Atc", is_mcit)
-    r.p("drpPg1I5AtcOther", "" if is_mcit else atc)
-    r.b("rdoPg1I5AtcOther", not is_mcit and atc != "")
+    r.p("drpPg1I5AtcOther", "" if is_mcit else regular)
+    r.b("rdoPg1I5AtcOther", not is_mcit)
     r.p("txtPg1Pt1I6TIN1", t["t1"])
     r.p("txtPg1Pt1I6TIN2", t["t2"])
     r.p("txtPg1Pt1I6TIN3", t["t3"])
