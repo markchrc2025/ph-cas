@@ -20,6 +20,11 @@ frappe.ui.form.on("PH Tax Return", {
 				call(frm, "generate_attachment", null, (name) => frappe.show_alert({ message: __("Written: {0}", [name]), indicator: "green" }))
 			);
 		}
+		if (["2550Q", "2551Q", "1701Q", "1702Q", "1701", "1702-RT"].includes(frm.doc.form)) {
+			frm.add_custom_button(__("Generate SAWT (.dat)"), () =>
+				call(frm, "generate_sawt", null, (name) => frappe.show_alert({ message: __("Written: {0}", [name]), indicator: "green" }))
+			);
+		}
 		if (frm.doc.form === "2550Q") {
 			frm.add_custom_button(__("Generate SLSP (.dat)"), () =>
 				call(frm, "generate_slsp", null, (r) => {

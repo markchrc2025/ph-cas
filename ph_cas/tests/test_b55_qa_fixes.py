@@ -220,3 +220,77 @@ class TestB55QAFixes(IntegrationTestCase):
             rows = [r for r in cal.calendar(TEST_COMPANY, ms.year) if r["form"] == "0619-E" and getdate(r["period_start"]) == ms]
         if ms.month % 3:  # months 1 and 2 of a quarter have a 0619-E
             self.assertEqual(rows[0]["status"], "OVERDUE, computed, not filed")
+
+
+class TestB56TaxBreakup(IntegrationTestCase):
+    """LDG-112: output and input VAT sit only on the lines they belong to."""
+
+    def setUp(self):
+        frappe.set_user("Administrator")
+        setup_philippine_company(TEST_COMPANY)
+        _set_regime("VAT")
+
+    def tearDown(self):
+        _set_regime("Non-VAT")
+
+    def test_output_vat_is_not_spread_over_exempt_or_zero_rated_lines(self):
+        from ph_cas.tests.test_b12_sales_vat import _item
+
+        si = _invoice([(_item("_PH VATable", "VATable"), 2, 15000, {}), (_item("_PH Exempt", "VAT-exempt"), 5, 300, {}), (_item("_PH Zero", "Zero-rated"), 1, 1000, {})], submit=True)
+        self.assertEqual(flt(si.ph_vat_amount), 3600)
+        by_item = {}
+        for d in si.item_wise_tax_details:
+            row = next(i for i in si.items if i.name == d.item_row)
+            by_item[row.item_code] = by_item.get(row.item_code, 0) + flt(d.amount)
+        self.assertEqual(flt(by_item.get("_PH VATable"), 2), 3600)
+        self.assertEqual(flt(by_item.get("_PH Exempt", 0), 2), 0)
+        self.assertEqual(flt(by_item.get("_PH Zero", 0), 2), 0)
+        self.assertEqual(flt(si.grand_total), 35100 + 1000)
+        gl = frappe.db.get_value("GL Entry", {"voucher_no": si.name, "account": account_for(TEST_COMPANY, "output_vat"), "is_cancelled": 0}, "credit")
+        self.assertEqual(flt(gl), 3600)
+
+    def test_input_vat_sits_on_its_own_kind_of_line(self):
+        from ph_cas.tests.fixtures import ensure_supplier_profile, make_purchase_invoice
+        from ph_cas.tests.test_b12_sales_vat import _item
+
+        sup = ensure_supplier_profile("_Test PH VAT Supplier B56", ph_vat_status="VAT", ph_ewt_category="None (no withholding)")
+        pi = make_purchase_invoice(sup, [(_item("_PH VATable", "VATable"), 1, 10000, {}), (_item("_PH Exempt", "VAT-exempt"), 1, 500, {})], submit=True)
+        exempt_row = next(i for i in pi.items if i.item_code == "_PH Exempt")
+        on_exempt = sum(flt(d.amount) for d in pi.item_wise_tax_details if d.item_row == exempt_row.name)
+        self.assertEqual(flt(on_exempt, 2), 0)
+        self.assertEqual(flt(pi.ph_input_vat_goods) + flt(pi.ph_input_vat_services), 1200)
+
+
+class TestB56Exports(IntegrationTestCase):
+    def test_an_event_asks_for_the_commit_so_a_download_keeps_it(self):
+        from ph_cas.audit.events import record
+
+        frappe.set_user("Administrator")
+        frappe.local.flags.commit = False
+        record("export", "Company", TEST_COMPANY, 0, {"test": "b56"})
+        self.assertTrue(frappe.local.flags.commit)
+        frappe.local.flags.commit = False
+
+    def test_1604e_takes_the_top_agent_answer_from_the_company(self):
+        frappe.set_user("Administrator")
+        frappe.db.set_value("Company", TEST_COMPANY, "ph_top_withholding_agent", 1, update_modified=False)
+        frappe.clear_document_cache("Company", TEST_COMPANY)
+        try:
+            ret = frappe.get_doc({"doctype": "PH Tax Return", "company": TEST_COMPANY, "form": "1604-E", "period_key": str(getdate(today()).year)})
+            ret.insert()
+            ret.refresh_from_books()
+            import json
+
+            self.assertEqual(json.loads(ret.data)["topAgent"], "yes")
+            self.assertNotIn("topAgent", ret.needs or "")
+        finally:
+            frappe.db.set_value("Company", TEST_COMPANY, "ph_top_withholding_agent", 0, update_modified=False)
+            frappe.clear_document_cache("Company", TEST_COMPANY)
+
+    def test_sawt_takes_the_form_names_bir_returns_uses(self):
+        from ph_cas.dat.sawt import build
+
+        frappe.set_user("Administrator")
+        name, content, n = build(TEST_COMPANY, "1702-RT", "2026-01-01", "2026-12-31")
+        self.assertIn(b"H1702RT", content)
+        self.assertTrue(name.endswith("1702RT.DAT"))
