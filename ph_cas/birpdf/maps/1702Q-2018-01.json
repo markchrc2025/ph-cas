@@ -20,21 +20,21 @@
   "size": 10,
   "fields": [
     {
-      "key": "frm1702q:itemFiscalStartMonth:_1",
+      "key": "frm1702q:rbForClndrFscl_1",
       "item": "1 Calendar",
       "kind": "mark",
       "page": 1,
       "box": [49.8, 801.0, 63.24, 812.88]
     },
     {
-      "key": "frm1702q:itemFiscalStartMonth:_2",
+      "key": "frm1702q:rbForClndrFscl_2",
       "item": "1 Fiscal",
       "kind": "mark",
       "page": 1,
       "box": [106.08, 801.36, 119.52, 813.24]
     },
     {
-      "key": "frm1702q:itemYearEndMonth",
+      "key": "frm1702q:rbYrEndMonth",
       "item": "2 MM",
       "kind": "comb",
       "rows": [
@@ -47,7 +47,7 @@
       "ghost": "8"
     },
     {
-      "key": "frm1702q:txtYearEnded",
+      "key": "frm1702q:txtYrEndYear",
       "item": "2 YY",
       "kind": "comb",
       "rows": [
@@ -57,58 +57,45 @@
           "cells": [82.56, 95.64, 108.72]
         }
       ],
-      "ghost": "8",
-      "strip": "20"
+      "ghost": "8"
     },
     {
-      "key": "frm1702q:optQtr:_1",
+      "key": "frm1702q:rbQuarter_1",
       "item": "3 1st",
       "kind": "mark",
       "page": 1,
       "box": [155.4, 785.64, 168.72, 797.52]
     },
     {
-      "key": "frm1702q:optQtr:_2",
+      "key": "frm1702q:rbQuarter_2",
       "item": "3 2nd",
       "kind": "mark",
       "page": 1,
       "box": [182.76, 785.4, 196.2, 797.28]
     },
     {
-      "key": "frm1702q:optQtr:_3",
+      "key": "frm1702q:rbQuarter_3",
       "item": "3 3rd",
       "kind": "mark",
       "page": 1,
       "box": [211.8, 785.76, 225.24, 797.76]
     },
     {
-      "key": "frm1702q:optRemenderRtn_1",
+      "key": "frm1702q:rbAmendedRtn_1",
       "item": "4 Yes",
       "kind": "mark",
       "page": 1,
       "box": [256.08, 783.96, 269.4, 795.84]
     },
     {
-      "key": "frm1702q:optRemenderRtn_2",
+      "key": "frm1702q:rbAmendedRtn_2",
       "item": "4 No",
       "kind": "mark",
       "page": 1,
       "box": [299.4, 783.96, 312.72, 795.84]
     },
     {
-      "key": "frm1702q:txtAtc",
-      "item": "5 ATC",
-      "kind": "text",
-      "page": 1,
-      "y": 782.2,
-      "x0": 354.91,
-      "x1": 390.91,
-      "size": 8,
-      "minSize": 6,
-      "align": "center"
-    },
-    {
-      "key": "frm1702q:txtTin1",
+      "key": "frm1702q:txtTIN1",
       "item": "6 TIN",
       "kind": "comb",
       "rows": [
@@ -121,7 +108,7 @@
       "ghost": "8"
     },
     {
-      "key": "frm1702q:txtTin2",
+      "key": "frm1702q:txtTIN2",
       "item": "6 TIN",
       "kind": "comb",
       "rows": [
@@ -134,7 +121,7 @@
       "ghost": "8"
     },
     {
-      "key": "frm1702q:txtTin3",
+      "key": "frm1702q:txtTIN3",
       "item": "6 TIN",
       "kind": "comb",
       "rows": [
@@ -153,7 +140,7 @@
       "expect": "^0*$"
     },
     {
-      "key": "frm1702q:txtRdoCode",
+      "key": "frm1702q:txtRDOCode",
       "item": "7",
       "kind": "comb",
       "rows": [
@@ -166,7 +153,7 @@
       "ghost": "8"
     },
     {
-      "key": "frm1702q:txtTaxpayerName",
+      "key": "frm1702q:txtTaxpayerName1",
       "item": "8",
       "kind": "comb",
       "rows": [
@@ -195,7 +182,7 @@
       "squeeze": true
     },
     {
-      "key": "frm1702q:txtTaxPayerAdd",
+      "key": "frm1702q:txtAddress",
       "item": "9",
       "kind": "comb",
       "rows": [
@@ -224,7 +211,7 @@
       "squeeze": true
     },
     {
-      "key": "frm1702q:txtTaxPayerZip",
+      "key": "frm1702q:txtZipCode",
       "item": "9A",
       "kind": "comb",
       "rows": [
@@ -272,46 +259,40 @@
       "squeeze": true
     },
     {
-      "key": "1702q:OptMethodDeduct_1",
+      "key": "frm1702q:rbMthdOfDdctns_1",
       "item": "12 Itemized",
       "kind": "mark",
       "page": 1,
       "box": [135.72, 598.08, 149.16, 609.96]
     },
     {
-      "key": "1702q:OptMethodDeduct_2",
+      "key": "frm1702q:rbMthdOfDdctns_2",
       "item": "12 OSD",
       "kind": "mark",
       "page": 1,
       "box": [351.96, 597.72, 365.4, 609.72]
     },
     {
-      "key": "frm1702q:optTreaty:_1",
+      "key": "frm1702q:rbTxRlf_1",
       "item": "13 Yes",
       "kind": "mark",
       "page": 1,
       "box": [178.8, 579.72, 192.24, 591.72]
     },
     {
-      "key": "frm1702q:optTreaty:_2",
+      "key": "frm1702q:rbTxRlf_2",
       "item": "13 No",
       "kind": "mark",
       "page": 1,
       "box": [220.8, 579.72, 234.12, 591.6]
     },
     {
-      "key": "frm1702q:lstTaxTreaty",
-      "kind": "none",
-      "reason": "the treaty dropdown index; the Portal carries no treaty name, so 13A stays blank",
-      "expect": "^0$"
-    },
-    {
-      "key": "frm1702q:txtDescription",
+      "key": "frm1702q:txtLOB",
       "kind": "none",
       "reason": "the January 2018 1702Q has no line-of-business box"
     },
     {
-      "key": "frm1702q:txt26A",
+      "key": "frm1702q:txtTax14",
       "item": "14",
       "kind": "money",
       "page": 1,
@@ -322,7 +303,7 @@
       ]
     },
     {
-      "key": "frm1702q:txt26B",
+      "key": "frm1702q:txtTax15",
       "item": "15",
       "kind": "money",
       "page": 1,
@@ -333,7 +314,7 @@
       ]
     },
     {
-      "key": "frm1702q:txt27",
+      "key": "frm1702q:txtTax16",
       "item": "16",
       "kind": "money",
       "page": 1,
@@ -344,7 +325,7 @@
       ]
     },
     {
-      "key": "frm1702q:txt28",
+      "key": "frm1702q:txtTax17",
       "item": "17",
       "kind": "money",
       "page": 1,
@@ -355,7 +336,7 @@
       ]
     },
     {
-      "key": "frm1702q:txt30",
+      "key": "frm1702q:txtTax18",
       "item": "18",
       "kind": "money",
       "page": 1,
@@ -366,7 +347,7 @@
       ]
     },
     {
-      "key": "frm1702q:txt31E",
+      "key": "frm1702q:txtTax19",
       "item": "19",
       "kind": "money",
       "page": 1,
@@ -377,7 +358,7 @@
       ]
     },
     {
-      "key": "frm1702q:txt31F",
+      "key": "frm1702q:txtTax20",
       "item": "20",
       "kind": "money",
       "page": 1,
@@ -388,7 +369,7 @@
       ]
     },
     {
-      "key": "frm1702q:txt31G",
+      "key": "frm1702q:txtTax21",
       "item": "21",
       "kind": "money",
       "page": 1,
@@ -399,7 +380,7 @@
       ]
     },
     {
-      "key": "frm1702q:txt31H",
+      "key": "frm1702q:txtTax22",
       "item": "22",
       "kind": "money",
       "page": 1,
@@ -410,7 +391,7 @@
       ]
     },
     {
-      "key": "frm1702q:txt32",
+      "key": "frm1702q:txtTax23",
       "item": "23",
       "kind": "money",
       "page": 1,
@@ -421,7 +402,7 @@
       ]
     },
     {
-      "key": "frm1702q:txt33A",
+      "key": "frm1702q:txtTax24",
       "item": "24",
       "kind": "money",
       "page": 1,
@@ -432,7 +413,7 @@
       ]
     },
     {
-      "key": "frm1702q:txt34",
+      "key": "frm1702q:txtTax25",
       "item": "25",
       "kind": "money",
       "page": 1,
@@ -441,30 +422,6 @@
         412.15, 427.39, 442.51, 457.75, 472.9, 488.02, 503.14, 518.38, 533.5, 548.74,
         563.86, 578.98, 594.24
       ]
-    },
-    {
-      "key": "frm1702q:txt31Gothers",
-      "kind": "none",
-      "reason": "the January 2018 1702Q has no other-penalty line; the builder always sends it empty",
-      "expect": "^$"
-    },
-    {
-      "key": "frm1702q:txt33B",
-      "kind": "none",
-      "reason": "no box for it on the paper; the builder always sends 0.00",
-      "expect": "^0*(\\.0*)?$"
-    },
-    {
-      "key": "frm1702q:txt33C",
-      "kind": "none",
-      "reason": "no box for it on the paper; the builder always sends 0.00",
-      "expect": "^0*(\\.0*)?$"
-    },
-    {
-      "key": "frm1702q:txt33D",
-      "kind": "none",
-      "reason": "no box for it on the paper; the builder always sends 0.00",
-      "expect": "^0*(\\.0*)?$"
     },
     {
       "key": "frm1702q:txtSheets",
@@ -481,7 +438,7 @@
       "ghost": "8"
     },
     {
-      "key": "frm1702q:txt26A",
+      "key": "frm1702q:Sched2:txtTax13",
       "item": "Sch2 13",
       "kind": "money",
       "page": 2,
@@ -492,7 +449,7 @@
       ]
     },
     {
-      "key": "frm1702q:txt31E",
+      "key": "frm1702q:Sched4:txtTax7",
       "item": "Sch4 7",
       "kind": "money",
       "page": 2,
@@ -503,7 +460,7 @@
       ]
     },
     {
-      "key": "frm1702q:txtTin1",
+      "key": "frm1702q:txtPg2TIN1",
       "item": "p2 TIN",
       "kind": "comb",
       "rows": [
@@ -516,7 +473,7 @@
       "ghost": "8"
     },
     {
-      "key": "frm1702q:txtTin2",
+      "key": "frm1702q:txtPg2TIN2",
       "item": "p2 TIN",
       "kind": "comb",
       "rows": [
@@ -529,7 +486,7 @@
       "ghost": "8"
     },
     {
-      "key": "frm1702q:txtTin3",
+      "key": "frm1702q:txtPg2TIN3",
       "item": "p2 TIN",
       "kind": "comb",
       "rows": [
@@ -542,7 +499,7 @@
       "ghost": "8"
     },
     {
-      "key": "frm1702q:txtTaxpayerName",
+      "key": "frm1702q:txtPg2TaxpayerName",
       "item": "p2 registered name",
       "kind": "comb",
       "rows": [
@@ -559,7 +516,7 @@
       "squeeze": true
     },
     {
-      "key": "frm1702q:txt16A",
+      "key": "frm1702q:Sched1:txtTax1A",
       "item": "Sch1 1 A",
       "kind": "money",
       "page": 2,
@@ -570,7 +527,7 @@
       ]
     },
     {
-      "key": "frm1702q:txt16B",
+      "key": "frm1702q:Sched1:txtTax1B",
       "item": "Sch1 1 B",
       "kind": "money",
       "page": 2,
@@ -581,7 +538,7 @@
       ]
     },
     {
-      "key": "frm1702q:txt17A",
+      "key": "frm1702q:Sched1:txtTax2A",
       "item": "Sch1 2 A",
       "kind": "money",
       "page": 2,
@@ -592,7 +549,7 @@
       ]
     },
     {
-      "key": "frm1702q:txt17B",
+      "key": "frm1702q:Sched1:txtTax2B",
       "item": "Sch1 2 B",
       "kind": "money",
       "page": 2,
@@ -603,7 +560,7 @@
       ]
     },
     {
-      "key": "frm1702q:txt18A",
+      "key": "frm1702q:Sched1:txtTax3A",
       "item": "Sch1 3 A",
       "kind": "money",
       "page": 2,
@@ -614,7 +571,7 @@
       ]
     },
     {
-      "key": "frm1702q:txt18B",
+      "key": "frm1702q:Sched1:txtTax3B",
       "item": "Sch1 3 B",
       "kind": "money",
       "page": 2,
@@ -625,7 +582,7 @@
       ]
     },
     {
-      "key": "frm1702q:txt19A",
+      "key": "frm1702q:Sched1:txtTax4A",
       "item": "Sch1 4 A",
       "kind": "money",
       "page": 2,
@@ -636,7 +593,7 @@
       ]
     },
     {
-      "key": "frm1702q:txt19B",
+      "key": "frm1702q:Sched1:txtTax4B",
       "item": "Sch1 4 B",
       "kind": "money",
       "page": 2,
@@ -647,7 +604,7 @@
       ]
     },
     {
-      "key": "frm1702q:txt20A",
+      "key": "frm1702q:Sched1:txtTax5A",
       "item": "Sch1 5 A",
       "kind": "money",
       "page": 2,
@@ -658,7 +615,7 @@
       ]
     },
     {
-      "key": "frm1702q:txt20B",
+      "key": "frm1702q:Sched1:txtTax5B",
       "item": "Sch1 5 B",
       "kind": "money",
       "page": 2,
@@ -669,7 +626,7 @@
       ]
     },
     {
-      "key": "frm1702q:txt21A",
+      "key": "frm1702q:Sched1:txtTax6A",
       "item": "Sch1 6 A",
       "kind": "money",
       "page": 2,
@@ -680,7 +637,7 @@
       ]
     },
     {
-      "key": "frm1702q:txt21B",
+      "key": "frm1702q:Sched1:txtTax6B",
       "item": "Sch1 6 B",
       "kind": "money",
       "page": 2,
@@ -691,7 +648,7 @@
       ]
     },
     {
-      "key": "frm1702q:txt22A",
+      "key": "frm1702q:Sched1:txtTax7A",
       "item": "Sch1 7 A",
       "kind": "money",
       "page": 2,
@@ -702,7 +659,7 @@
       ]
     },
     {
-      "key": "frm1702q:txt22B",
+      "key": "frm1702q:Sched1:txtTax7B",
       "item": "Sch1 7 B",
       "kind": "money",
       "page": 2,
@@ -713,7 +670,7 @@
       ]
     },
     {
-      "key": "frm1702q:txt23A",
+      "key": "frm1702q:Sched1:txtTax9A",
       "item": "Sch1 9 A",
       "kind": "money",
       "page": 2,
@@ -724,7 +681,7 @@
       ]
     },
     {
-      "key": "frm1702q:txt23B",
+      "key": "frm1702q:Sched1:txtTax9B",
       "item": "Sch1 9 B",
       "kind": "money",
       "page": 2,
@@ -735,37 +692,7 @@
       ]
     },
     {
-      "key": "frm1702q:txt16C",
-      "kind": "none",
-      "reason": "no third column on the paper; the builder always sends 0.00",
-      "expect": "^0*(\\.0*)?$"
-    },
-    {
-      "key": "frm1702q:txt17C",
-      "kind": "none",
-      "reason": "no third column on the paper; the builder always sends 0.00",
-      "expect": "^0*(\\.0*)?$"
-    },
-    {
-      "key": "frm1702q:txt18C",
-      "kind": "none",
-      "reason": "no third column on the paper; the builder always sends 0.00",
-      "expect": "^0*(\\.0*)?$"
-    },
-    {
-      "key": "frm1702q:txt20C",
-      "kind": "none",
-      "reason": "no third column on the paper; the builder always sends 0.00",
-      "expect": "^0*(\\.0*)?$"
-    },
-    {
-      "key": "frm1702q:txt21C",
-      "kind": "none",
-      "reason": "no third column on the paper; the builder always sends 0.00",
-      "expect": "^0*(\\.0*)?$"
-    },
-    {
-      "key": "frm1702q:txt25A",
+      "key": "frm1702q:Sched1:txtTax10B",
       "item": "Sch1 10 B",
       "kind": "money",
       "page": 2,
@@ -774,7 +701,7 @@
       "cents": [563.86, 578.98]
     },
     {
-      "key": "frm1702q:txt24B",
+      "key": "frm1702q:Sched1:txtTax13B",
       "item": "Sch1 13 B",
       "kind": "money",
       "page": 2,
@@ -785,13 +712,7 @@
       ]
     },
     {
-      "key": "frm1702q:txt24A",
-      "kind": "none",
-      "reason": "no exempt-column box for Schedule 1 item 13 on the paper; exempt tax is 0",
-      "expect": "^0*(\\.0*)?$"
-    },
-    {
-      "key": "frm1702q:txt25B",
+      "key": "frm1702q:Sched2:txtTax10",
       "item": "Sch2 10",
       "kind": "money",
       "page": 2,
@@ -799,7 +720,7 @@
       "cells": [548.74, 563.86, 578.98]
     },
     {
-      "key": "txtMinCorpIncomeTax",
+      "key": "frm1702q:Sched2:txtTax12",
       "item": "Sch2 12",
       "kind": "money",
       "page": 2,
@@ -810,7 +731,7 @@
       ]
     },
     {
-      "key": "txt1stQtr",
+      "key": "frm1702q:Sched3:txtTax1",
       "item": "Sch3 1",
       "kind": "money",
       "page": 2,
@@ -821,7 +742,7 @@
       ]
     },
     {
-      "key": "txt2ndQtr",
+      "key": "frm1702q:Sched3:txtTax2",
       "item": "Sch3 2",
       "kind": "money",
       "page": 2,
@@ -832,7 +753,7 @@
       ]
     },
     {
-      "key": "txt3rdQtr",
+      "key": "frm1702q:Sched3:txtTax3",
       "item": "Sch3 3",
       "kind": "money",
       "page": 2,
@@ -843,7 +764,7 @@
       ]
     },
     {
-      "key": "txtTotal",
+      "key": "frm1702q:Sched3:txtTax4",
       "item": "Sch3 4",
       "kind": "money",
       "page": 2,
@@ -854,13 +775,12 @@
       ]
     },
     {
-      "key": "txtTaxRate",
+      "key": "frm1702q:Sched3:txtTax5",
       "kind": "none",
-      "reason": "the paper pre-prints the MCIT rate, 2 %",
-      "expect": "^2%$"
+      "reason": "the MCIT rate (2.00, or 1.00 from July 2020 to June 2023); the paper pre-prints 2 %"
     },
     {
-      "key": "txtMinCorpIncomeTax",
+      "key": "frm1702q:Sched3:txtTax6",
       "item": "Sch3 6",
       "kind": "money",
       "page": 2,
@@ -871,7 +791,7 @@
       ]
     },
     {
-      "key": "frm1702q:txt29A",
+      "key": "frm1702q:Sched4:txtTax1",
       "item": "Sch4 1",
       "kind": "money",
       "page": 2,
@@ -882,7 +802,7 @@
       ]
     },
     {
-      "key": "frm1702q:txt29B",
+      "key": "frm1702q:Sched4:txtTax2",
       "item": "Sch4 2",
       "kind": "money",
       "page": 2,
@@ -893,7 +813,7 @@
       ]
     },
     {
-      "key": "frm1702q:txt29C",
+      "key": "frm1702q:Sched4:txtTax3",
       "item": "Sch4 3",
       "kind": "money",
       "page": 2,
@@ -904,7 +824,7 @@
       ]
     },
     {
-      "key": "frm1702q:txt29D",
+      "key": "frm1702q:Sched4:txtTax4",
       "item": "Sch4 4",
       "kind": "money",
       "page": 2,
@@ -915,7 +835,7 @@
       ]
     },
     {
-      "key": "frm1702q:txt31A",
+      "key": "frm1702q:Sched4:txtTax5",
       "item": "Sch4 5",
       "kind": "money",
       "page": 2,
@@ -926,7 +846,7 @@
       ]
     },
     {
-      "key": "frm1702q:txt31B",
+      "key": "frm1702q:Sched4:txtTax6",
       "item": "Sch4 6",
       "kind": "money",
       "page": 2,
@@ -937,7 +857,7 @@
       ]
     },
     {
-      "key": "frm1702q:txt31C",
+      "key": "frm1702q:Sched4:txtOthrTxCrdtAmnt0",
       "item": "Sch4 6a",
       "kind": "money",
       "page": 2,
@@ -948,7 +868,7 @@
       ]
     },
     {
-      "key": "frm1702q:txt31D",
+      "key": "frm1702q:Sched4:txtOthrTxCrdtAmnt1",
       "item": "Sch4 6b",
       "kind": "money",
       "page": 2,
@@ -957,96 +877,6 @@
         412.15, 427.39, 442.51, 457.75, 472.9, 488.02, 503.14, 518.38, 533.5, 548.74,
         563.86, 578.98, 594.24
       ]
-    },
-    {
-      "key": "Codename1",
-      "kind": "none",
-      "reason": "eBIRForms package setting, not printed on the return"
-    },
-    {
-      "key": "Codename2",
-      "kind": "none",
-      "reason": "eBIRForms package setting, not printed on the return"
-    },
-    {
-      "key": "Codename3",
-      "kind": "none",
-      "reason": "eBIRForms package setting, not printed on the return"
-    },
-    {
-      "key": "Codename4",
-      "kind": "none",
-      "reason": "eBIRForms package setting, not printed on the return"
-    },
-    {
-      "key": "Codename5",
-      "kind": "none",
-      "reason": "eBIRForms package setting, not printed on the return"
-    },
-    {
-      "key": "Codename6",
-      "kind": "none",
-      "reason": "eBIRForms package setting, not printed on the return"
-    },
-    {
-      "key": "Codename7",
-      "kind": "none",
-      "reason": "eBIRForms package setting, not printed on the return"
-    },
-    {
-      "key": "Codename8",
-      "kind": "none",
-      "reason": "eBIRForms package setting, not printed on the return"
-    },
-    {
-      "key": "Codename9",
-      "kind": "none",
-      "reason": "eBIRForms package setting, not printed on the return"
-    },
-    {
-      "key": "Codename10",
-      "kind": "none",
-      "reason": "eBIRForms package setting, not printed on the return"
-    },
-    {
-      "key": "Codename11",
-      "kind": "none",
-      "reason": "eBIRForms package setting, not printed on the return"
-    },
-    {
-      "key": "Codename12",
-      "kind": "none",
-      "reason": "eBIRForms package setting, not printed on the return"
-    },
-    {
-      "key": "Codename13",
-      "kind": "none",
-      "reason": "eBIRForms package setting, not printed on the return"
-    },
-    {
-      "key": "Codename14",
-      "kind": "none",
-      "reason": "eBIRForms package setting, not printed on the return"
-    },
-    {
-      "key": "Codename15",
-      "kind": "none",
-      "reason": "eBIRForms package setting, not printed on the return"
-    },
-    {
-      "key": "Codename16",
-      "kind": "none",
-      "reason": "eBIRForms package setting, not printed on the return"
-    },
-    {
-      "key": "Codename17",
-      "kind": "none",
-      "reason": "eBIRForms package setting, not printed on the return"
-    },
-    {
-      "key": "Codename18",
-      "kind": "none",
-      "reason": "eBIRForms package setting, not printed on the return"
     },
     {
       "key": "txtFinalFlag",
@@ -1077,6 +907,406 @@
       "key": "driveSelectTPExport",
       "kind": "none",
       "reason": "eBIRForms export-drive setting, not printed on the return"
+    },
+    {
+      "key": "frm1702q:Sched1:txtTax8A",
+      "item": "Sch1 8 A",
+      "kind": "money",
+      "page": 2,
+      "y": 665.1,
+      "cells": [
+        230.33, 245.45, 260.57, 275.81, 290.93, 306.05, 321.29, 336.43, 351.55, 366.79,
+        381.91, 397.03, 412.15
+      ]
+    },
+    {
+      "key": "frm1702q:Sched1:txtTax8B",
+      "item": "Sch1 8 B",
+      "kind": "money",
+      "page": 2,
+      "y": 665.1,
+      "cells": [
+        412.15, 427.39, 442.51, 457.75, 472.9, 488.02, 503.14, 518.38, 533.5, 548.74,
+        563.86, 578.98, 594.24
+      ]
+    },
+    {
+      "key": "frm1702q:Sched1:txtTax11B",
+      "item": "Sch1 11 B",
+      "kind": "money",
+      "page": 2,
+      "y": 612.6,
+      "cells": [
+        412.15, 427.39, 442.51, 457.75, 472.9, 488.02, 503.14, 518.38, 533.5, 548.74,
+        563.86, 578.98, 594.24
+      ]
+    },
+    {
+      "key": "frm1702q:Sched1:txtTax12B",
+      "item": "Sch1 12 B",
+      "kind": "money",
+      "page": 2,
+      "y": 595.0,
+      "cells": [
+        412.15, 427.39, 442.51, 457.75, 472.9, 488.02, 503.14, 518.38, 533.5, 548.74,
+        563.86, 578.98, 594.24
+      ]
+    },
+    {
+      "key": "frm1702q:Sched2:txtTax1",
+      "item": "Sch2 1",
+      "kind": "money",
+      "page": 2,
+      "y": 542.4,
+      "cells": [
+        412.15, 427.39, 442.51, 457.75, 472.9, 488.02, 503.14, 518.38, 533.5, 548.74,
+        563.86, 578.98, 594.24
+      ]
+    },
+    {
+      "key": "frm1702q:Sched2:txtTax2",
+      "item": "Sch2 2",
+      "kind": "money",
+      "page": 2,
+      "y": 525.4,
+      "cells": [
+        412.15, 427.39, 442.51, 457.75, 472.9, 488.02, 503.14, 518.38, 533.5, 548.74,
+        563.86, 578.98, 594.24
+      ]
+    },
+    {
+      "key": "frm1702q:Sched2:txtTax3",
+      "item": "Sch2 3",
+      "kind": "money",
+      "page": 2,
+      "y": 508.2,
+      "cells": [
+        412.15, 427.39, 442.51, 457.75, 472.9, 488.02, 503.14, 518.38, 533.5, 548.74,
+        563.86, 578.98, 594.24
+      ]
+    },
+    {
+      "key": "frm1702q:Sched2:txtTax4",
+      "item": "Sch2 4",
+      "kind": "money",
+      "page": 2,
+      "y": 491.2,
+      "cells": [
+        412.15, 427.39, 442.51, 457.75, 472.9, 488.02, 503.14, 518.38, 533.5, 548.74,
+        563.86, 578.98, 594.24
+      ]
+    },
+    {
+      "key": "frm1702q:Sched2:txtTax5",
+      "item": "Sch2 5",
+      "kind": "money",
+      "page": 2,
+      "y": 474.0,
+      "cells": [
+        412.15, 427.39, 442.51, 457.75, 472.9, 488.02, 503.14, 518.38, 533.5, 548.74,
+        563.86, 578.98, 594.24
+      ]
+    },
+    {
+      "key": "frm1702q:Sched2:txtTax6",
+      "item": "Sch2 6",
+      "kind": "money",
+      "page": 2,
+      "y": 457.0,
+      "cells": [
+        412.15, 427.39, 442.51, 457.75, 472.9, 488.02, 503.14, 518.38, 533.5, 548.74,
+        563.86, 578.98, 594.24
+      ]
+    },
+    {
+      "key": "frm1702q:Sched2:txtTax7",
+      "item": "Sch2 7",
+      "kind": "money",
+      "page": 2,
+      "y": 439.8,
+      "cells": [
+        412.15, 427.39, 442.51, 457.75, 472.9, 488.02, 503.14, 518.38, 533.5, 548.74,
+        563.86, 578.98, 594.24
+      ]
+    },
+    {
+      "key": "frm1702q:Sched2:txtTax8",
+      "item": "Sch2 8",
+      "kind": "money",
+      "page": 2,
+      "y": 422.8,
+      "cells": [
+        412.15, 427.39, 442.51, 457.75, 472.9, 488.02, 503.14, 518.38, 533.5, 548.74,
+        563.86, 578.98, 594.24
+      ]
+    },
+    {
+      "key": "frm1702q:Sched2:txtTax9",
+      "item": "Sch2 9",
+      "kind": "money",
+      "page": 2,
+      "y": 405.6,
+      "cells": [
+        412.15, 427.39, 442.51, 457.75, 472.9, 488.02, 503.14, 518.38, 533.5, 548.74,
+        563.86, 578.98, 594.24
+      ]
+    },
+    {
+      "key": "frm1702q:Sched2:txtTax11",
+      "item": "Sch2 11",
+      "kind": "money",
+      "page": 2,
+      "y": 371.4,
+      "cells": [
+        412.15, 427.39, 442.51, 457.75, 472.9, 488.02, 503.14, 518.38, 533.5, 548.74,
+        563.86, 578.98, 594.24
+      ]
+    },
+    {
+      "key": "frm1702q:rbATC_1",
+      "item": "5 IC055",
+      "kind": "mark",
+      "page": 1,
+      "box": [564.0, 793.4, 576.9, 802.7]
+    },
+    {
+      "key": "frm1702q:rbATC_2",
+      "item": "5 other ATC",
+      "kind": "mark",
+      "page": 1,
+      "box": [564.0, 780.7, 576.9, 789.8]
+    },
+    {
+      "key": "frm1702q:cbATC_2",
+      "item": "5 other ATC",
+      "kind": "choice",
+      "options": {
+        "IC010_30%25": "IC010",
+        "IC010_30%": "IC010",
+        "IC010_25%25": "IC010",
+        "IC010_25%": "IC010",
+        "IC010_20%25": "IC010",
+        "IC010_20%": "IC010",
+        "IC010_10%25": "IC010",
+        "IC010_10%": "IC010",
+        "IC010_1%25": "IC010",
+        "IC010_1%": "IC010",
+        "IC010_0%25": "IC010",
+        "IC010_0%": "IC010",
+        "IC010_5%25": "IC010",
+        "IC010_5%": "IC010",
+        "IC010_2%25": "IC010",
+        "IC010_2%": "IC010",
+        "IC010_2.5%25": "IC010",
+        "IC010_2.5%": "IC010",
+        "IC020_30%25": "IC020",
+        "IC020_30%": "IC020",
+        "IC020_25%25": "IC020",
+        "IC020_25%": "IC020",
+        "IC020_20%25": "IC020",
+        "IC020_20%": "IC020",
+        "IC020_10%25": "IC020",
+        "IC020_10%": "IC020",
+        "IC020_1%25": "IC020",
+        "IC020_1%": "IC020",
+        "IC020_0%25": "IC020",
+        "IC020_0%": "IC020",
+        "IC020_5%25": "IC020",
+        "IC020_5%": "IC020",
+        "IC020_2%25": "IC020",
+        "IC020_2%": "IC020",
+        "IC020_2.5%25": "IC020",
+        "IC020_2.5%": "IC020",
+        "IC030_30%25": "IC030",
+        "IC030_30%": "IC030",
+        "IC030_25%25": "IC030",
+        "IC030_25%": "IC030",
+        "IC030_20%25": "IC030",
+        "IC030_20%": "IC030",
+        "IC030_10%25": "IC030",
+        "IC030_10%": "IC030",
+        "IC030_1%25": "IC030",
+        "IC030_1%": "IC030",
+        "IC030_0%25": "IC030",
+        "IC030_0%": "IC030",
+        "IC030_5%25": "IC030",
+        "IC030_5%": "IC030",
+        "IC030_2%25": "IC030",
+        "IC030_2%": "IC030",
+        "IC030_2.5%25": "IC030",
+        "IC030_2.5%": "IC030",
+        "IC031_30%25": "IC031",
+        "IC031_30%": "IC031",
+        "IC031_25%25": "IC031",
+        "IC031_25%": "IC031",
+        "IC031_20%25": "IC031",
+        "IC031_20%": "IC031",
+        "IC031_10%25": "IC031",
+        "IC031_10%": "IC031",
+        "IC031_1%25": "IC031",
+        "IC031_1%": "IC031",
+        "IC031_0%25": "IC031",
+        "IC031_0%": "IC031",
+        "IC031_5%25": "IC031",
+        "IC031_5%": "IC031",
+        "IC031_2%25": "IC031",
+        "IC031_2%": "IC031",
+        "IC031_2.5%25": "IC031",
+        "IC031_2.5%": "IC031",
+        "IC040_30%25": "IC040",
+        "IC040_30%": "IC040",
+        "IC040_25%25": "IC040",
+        "IC040_25%": "IC040",
+        "IC040_20%25": "IC040",
+        "IC040_20%": "IC040",
+        "IC040_10%25": "IC040",
+        "IC040_10%": "IC040",
+        "IC040_1%25": "IC040",
+        "IC040_1%": "IC040",
+        "IC040_0%25": "IC040",
+        "IC040_0%": "IC040",
+        "IC040_5%25": "IC040",
+        "IC040_5%": "IC040",
+        "IC040_2%25": "IC040",
+        "IC040_2%": "IC040",
+        "IC040_2.5%25": "IC040",
+        "IC040_2.5%": "IC040",
+        "IC041_30%25": "IC041",
+        "IC041_30%": "IC041",
+        "IC041_25%25": "IC041",
+        "IC041_25%": "IC041",
+        "IC041_20%25": "IC041",
+        "IC041_20%": "IC041",
+        "IC041_10%25": "IC041",
+        "IC041_10%": "IC041",
+        "IC041_1%25": "IC041",
+        "IC041_1%": "IC041",
+        "IC041_0%25": "IC041",
+        "IC041_0%": "IC041",
+        "IC041_5%25": "IC041",
+        "IC041_5%": "IC041",
+        "IC041_2%25": "IC041",
+        "IC041_2%": "IC041",
+        "IC041_2.5%25": "IC041",
+        "IC041_2.5%": "IC041",
+        "IC070_30%25": "IC070",
+        "IC070_30%": "IC070",
+        "IC070_25%25": "IC070",
+        "IC070_25%": "IC070",
+        "IC070_20%25": "IC070",
+        "IC070_20%": "IC070",
+        "IC070_10%25": "IC070",
+        "IC070_10%": "IC070",
+        "IC070_1%25": "IC070",
+        "IC070_1%": "IC070",
+        "IC070_0%25": "IC070",
+        "IC070_0%": "IC070",
+        "IC070_5%25": "IC070",
+        "IC070_5%": "IC070",
+        "IC070_2%25": "IC070",
+        "IC070_2%": "IC070",
+        "IC070_2.5%25": "IC070",
+        "IC070_2.5%": "IC070",
+        "IC101_30%25": "IC101",
+        "IC101_30%": "IC101",
+        "IC101_25%25": "IC101",
+        "IC101_25%": "IC101",
+        "IC101_20%25": "IC101",
+        "IC101_20%": "IC101",
+        "IC101_10%25": "IC101",
+        "IC101_10%": "IC101",
+        "IC101_1%25": "IC101",
+        "IC101_1%": "IC101",
+        "IC101_0%25": "IC101",
+        "IC101_0%": "IC101",
+        "IC101_5%25": "IC101",
+        "IC101_5%": "IC101",
+        "IC101_2%25": "IC101",
+        "IC101_2%": "IC101",
+        "IC101_2.5%25": "IC101",
+        "IC101_2.5%": "IC101",
+        "IC191_30%25": "IC191",
+        "IC191_30%": "IC191",
+        "IC191_25%25": "IC191",
+        "IC191_25%": "IC191",
+        "IC191_20%25": "IC191",
+        "IC191_20%": "IC191",
+        "IC191_10%25": "IC191",
+        "IC191_10%": "IC191",
+        "IC191_1%25": "IC191",
+        "IC191_1%": "IC191",
+        "IC191_0%25": "IC191",
+        "IC191_0%": "IC191",
+        "IC191_5%25": "IC191",
+        "IC191_5%": "IC191",
+        "IC191_2%25": "IC191",
+        "IC191_2%": "IC191",
+        "IC191_2.5%25": "IC191",
+        "IC191_2.5%": "IC191"
+      },
+      "page": 1,
+      "y": 782.2,
+      "cells": [355.1, 362.22, 369.34, 376.46, 383.58, 390.7]
+    },
+    {
+      "key": "frm1702q:txtATC_1",
+      "kind": "none",
+      "reason": "the IC055 line is pre-printed; rbATC_1 marks it"
+    },
+    {
+      "key": "frm1702q:txtTxRlfSpcfy",
+      "kind": "none",
+      "reason": "13A tax relief specification: not carried by Ledger"
+    },
+    {
+      "key": "frm1702q:Sched1:txtTax10A",
+      "kind": "none",
+      "reason": "the exempt column rate is pre-printed 0 %"
+    },
+    {
+      "key": "frm1702q:Sched1:txtTax11A",
+      "kind": "none",
+      "reason": "the exempt column tax is pre-printed 000"
+    },
+    {
+      "key": "frm1702q:Sched4:chkOthrTxCrdts0",
+      "kind": "none",
+      "reason": "eBIRForms row selector, not printed"
+    },
+    {
+      "key": "frm1702q:Sched4:chkOthrTxCrdts1",
+      "kind": "none",
+      "reason": "eBIRForms row selector, not printed"
+    },
+    {
+      "key": "frm1702q:Sched4:txtOthrTxCrdts0",
+      "kind": "none",
+      "reason": "6a description: the paper line carries the amount"
+    },
+    {
+      "key": "frm1702q:Sched4:txtOthrTxCrdts1",
+      "kind": "none",
+      "reason": "6b description: the paper line carries the amount"
+    },
+    {
+      "key": "frm1702q:txtCurrentPage",
+      "kind": "none",
+      "reason": "eBIRForms page state, not printed"
+    },
+    {
+      "key": "frm1702q:txtMaxPage",
+      "kind": "none",
+      "reason": "eBIRForms page state, not printed"
+    },
+    {
+      "key": "frm1702q:txtPg2BranchCode",
+      "kind": "none",
+      "reason": "page 2 pre-prints the branch code"
+    },
+    {
+      "key": "resultOtherSpecify",
+      "kind": "none",
+      "reason": "eBIRForms total of the other credits, not printed"
     }
   ]
 }

@@ -1,0 +1,77 @@
+{
+ "form": "1601-EQ",
+ "period": "2026-Q3",
+ "data": {
+  "rows": [
+   {
+    "atc": "WI010",
+    "base": "50000.33",
+    "rate": "5.00",
+    "withheld": "2500.02"
+   },
+   {
+    "atc": "WI158",
+    "base": "123456.78",
+    "rate": "0.99",
+    "withheld": "1234.00"
+   },
+   {
+    "atc": "WC160",
+    "base": "8888.88",
+    "rate": "2.00",
+    "withheld": "177.78"
+   }
+  ],
+  "remittance1": "1000.10",
+  "remittance2": "900.90",
+  "previouslyRemitted": "50.00",
+  "overRemittancePrior": "120.00",
+  "surcharge": "25.50",
+  "interest": "3.33",
+  "compromise": "1000.00",
+  "anyWithheld": "yes",
+  "signatoryName": "JUAN DELA CRUZ",
+  "category": "private"
+ },
+ "map": {
+  "txtTaxBase1": "13 base",
+  "txtTaxbeWithHeld1": "13 tax",
+  "txtTaxBase2": "14 base",
+  "txtTaxbeWithHeld2": "14 tax",
+  "txtTaxBase3": "15 base",
+  "txtTaxbeWithHeld3": "15 tax",
+  "txtTax19": "19",
+  "txtTax20": "20",
+  "txtTax21": "21",
+  "txtTax22": "22",
+  "txtTax23": "23",
+  "txtTax24": "25",
+  "txtTax25": "26",
+  "txtTax26": "27",
+  "txtTax27": "28",
+  "txtTax28": "29",
+  "txtTax29": "30",
+  "txtTax30": "31"
+ },
+ "ebirforms": {
+  "txtTaxBase1": "50,000.33",
+  "txtTaxbeWithHeld1": "2,500.02",
+  "txtTaxBase2": "123,456.78",
+  "txtTaxbeWithHeld2": "1,234.57",
+  "txtTaxBase3": "8,888.88",
+  "txtTaxbeWithHeld3": "177.78",
+  "txtTax19": "3,912.37",
+  "txtTax20": "1,000.10",
+  "txtTax21": "900.90",
+  "txtTax22": "0.00",
+  "txtTax23": "120.00",
+  "txtTax24": "2,021.00",
+  "txtTax25": "1,891.37",
+  "txtTax26": "25.50",
+  "txtTax27": "3.33",
+  "txtTax28": "1,000.00",
+  "txtTax29": "1,028.83",
+  "txtTax30": "2,920.20"
+ },
+ "source": "Computed by eBIRForms v7.9.6.2 itself (the form BIR-Form1601EQ.hta unpacked by BIRForms.exe), with these inputs typed in, on 16 Nov 2026"
+}

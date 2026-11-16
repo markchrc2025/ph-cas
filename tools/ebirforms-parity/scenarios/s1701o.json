@@ -1,0 +1,31 @@
+{
+ "form": "1701",
+ "period": "2025",
+ "taxpayer": "individual",
+ "ebir_form": "BIR-Form1701v2018.hta",
+ "data": {
+  "atc": "II013",
+  "rateA": "graduated",
+  "methodA": "osd",
+  "foreignCredit": "no",
+  "incomeExempt": "no",
+  "incomeSpecial": "no",
+  "compA": "360000.40",
+  "compCwtA": "1500.50",
+  "salesA": "1500000.49",
+  "returnsA": "20000.50",
+  "cogsA": "600000",
+  "s4_5A": "50000",
+  "s4_13A": "200000.50",
+  "s4_15A": "12000",
+  "otherA": "15000.40",
+  "excessA": "2000",
+  "prevPaidA": "30000",
+  "cwtA": "3000.20",
+  "installA": "0",
+  "interestA": "0",
+  "surchargeA": "0",
+  "compromiseA": "0",
+  "cwtPrevA": "9000.40"
+ }
+}

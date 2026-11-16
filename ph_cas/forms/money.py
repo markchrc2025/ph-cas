@@ -1,8 +1,8 @@
 """Exact money for the forms. Never float.
 
-Whole-peso forms (the income-tax returns, the 2550Q, the 2551Q: "do not enter
-centavos") round half up once, at the line, with whole_peso(). Centavo forms
-(0619-E, 1601-EQ, 1601-C, 2307) keep exact decimals and report to the centavo,
+Whole-peso forms (the income-tax returns: "do not enter centavos") round half up
+once, at the line, with whole_peso(). Centavo forms (2550Q, 2551Q, 0619-E,
+1601-EQ, 1600-VT, 1601-C, 2307, as eBIRForms computes them) keep exact decimals and report to the centavo,
 half up, never changing a two-place input.
 """
 

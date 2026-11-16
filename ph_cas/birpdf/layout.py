@@ -56,7 +56,9 @@ def layout_return(m: dict, rows: list[tuple[str, str]], met: Metrics) -> list[Dr
     """Lay out every mapped field of an export."""
     values: dict[str, str] = {}
     for k, v in rows:
-        if k in values:
+        # eBIRForms itself writes a key twice when its form has two fields of that id (the
+        # 1702Qv2018C's txtTelNum); the same value twice is that, a different one is an error
+        if k in values and values[k] != v:
             raise BirPdfError(f"{m['form']} {m['version']}: key {k} appears twice in the export", k)
         values[k] = v
     mapped = {f["key"] for f in m["fields"]}

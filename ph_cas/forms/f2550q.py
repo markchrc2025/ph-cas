@@ -5,16 +5,18 @@ Data keys, after the Portal's editor. Books (fed from the quarter's posted recor
   receivables, i36b recovered, i38 carried over, i39 deferred on capital goods from
   the previous quarter, i44a/b domestic purchases and input tax, i45a/b services by
   non-residents, i46a/b importations, i48a purchases with no input tax, i49a exempt
-  imports, sch2_ratable (53), i55 input VAT on unpaid payables, i58 settled addback,
+  imports, sch2_ratable (53, shown for the tie-out; compute derives it as eBIRForms does), i55 input VAT on unpaid payables, i58 settled addback,
   sch3 rows (VAT withheld per 2307 received: date, agent, income, tax).
-Typed: i40, i41, i42 (+i42label), i47a/b (+i47label), i49a, i52, sch1 rows (capital
-  goods over 1M: c0 date, c1 source, c2 description, c3 amount, c4 balance previous,
-  c5 life, c6 recognized, c7 allowed, c8 balance next), sch2_direct, i54, i56
-  (+i56label), i17 / sch4 rows (advance payments), i18, i19 (+i19label), i22 to i24,
-  classification, taxRelief/reliefKind/taxReliefSpec, shortPeriod.
-Derived (never stored): i31b, i34a/b, i37, i43, i50a/b, i51, i57, i59, i60, i61, i15,
-  i16 (from sch3), i17 (from sch4), i20, i21, i25, i26, the schedule totals.
-Whole pesos.
+Typed: i40, i41, i42 (+i42label), i47a/b (+i47label), i49a, sch1 rows (capital goods
+  over 1M bought up to 31 Dec 2021: c0 date, c1 source, c2 description, c3 amount,
+  c4 balance previous, c5 life, c6 remaining life; c7 allowed and c8 balance next are
+  derived), sch2_direct, sch2_basis, i54, i56 (+i56label), sch4 rows (advance payments),
+  i18, i19 (+i19label), i22 to i24, classification, taxRelief/reliefKind/taxReliefSpec,
+  shortPeriod.
+Derived (never stored), each the way eBIRForms computes it: i31b, i34a/b, i37, i39 and
+  i52 (Schedule 1), i43, i44b/i45b/i46b (12% of A), i50a/b, i51, i53 (Schedule 2), i57,
+  i59, i60, i61, i15, i16 (Schedule 3), i17 (Schedule 4), i20, i21, i25, i26.
+Centavos, as eBIRForms keeps them (the April 2024 paper has no whole-peso rule).
 """
 
 from decimal import Decimal
@@ -24,7 +26,7 @@ from frappe.utils import flt
 
 from ph_cas.forms.engine import Context
 from ph_cas.forms.export import ExportRefusal, amt, enc, file_name, rb, tin_parts
-from ph_cas.forms.money import ZERO, dec, nonneg, text, whole_peso
+from ph_cas.forms.money import ZERO, centavos, dec, nonneg, text
 from ph_cas.forms.needs import Need, draft_need
 from ph_cas.forms.period import mdy
 
@@ -46,12 +48,11 @@ INPUTS = [
     ("i47a", "47A Others: purchases", "money"),
     ("i47b", "47B Others: input tax", "money"),
     ("i47label", "47 specify", "text"),
-    ("i52", "52 Input tax on capital goods deferred (if no Schedule 1 rows)", "money"),
     ("sch2_direct", "53 Schedule 2: input tax directly attributable to exempt sales", "money"),
+    ("sch2_basis", "53 Schedule 2: input tax not directly attributable (blank: current input tax less the direct part)", "money"),
     ("i54", "54 VAT refund or TCC claimed", "money"),
     ("i56", "56 Others", "money"),
     ("i56label", "56 specify", "text"),
-    ("i17", "17 Advance payments (if no Schedule 4 rows)", "money"),
     ("i18", "18 VAT paid in return previously filed (amended)", "money"),
     ("i19", "19 Other credits", "money"),
     ("i19label", "19 specify", "text"),
@@ -87,9 +88,14 @@ def feed(ctx: Context) -> dict:
         v, label = lines[item]
         if v < 0:
             warnings.append(f"Item {item} ({label}) is below zero in the books ({v}); it is shown as 0.")
-        figures[key] = text(whole_peso(nonneg(dec(v))), 0)
+        figures[key] = text(centavos(nonneg(dec(v))))
         sales_side = item[0] == "3"
         out_lines.append({"key": key, "label": f"Item {item}, {label}", "amount": figures[key], "records": n_si if sales_side else n_pi, "filter": si if sales_side else pi})
+    for a_key, b_key, item in (("i44a", "i44b", "44"), ("i45a", "i45b", "45"), ("i46a", "i46b", "46")):
+        if a_key in figures and b_key in figures:
+            twelve = centavos(dec(figures[a_key]) * Decimal("0.12"))
+            if twelve != dec(figures[b_key]):
+                warnings.append(f"Item {item}B is 12% of {item}A on eBIRForms ({text(twelve)}); the books show input tax of {figures[b_key]}. Check the purchases behind Item {item}A.")
     # Schedule 3: the 2307s received for VAT withheld, one row per certificate
     certs = frappe.db.sql(
         """select d.name, d.customer, d.period_from, d.period_to, sum(l.base_total) as income, sum(l.tax_withheld) as tax
@@ -103,14 +109,14 @@ def feed(ctx: Context) -> dict:
         rows = []
         for c in certs:
             agent = frappe.db.get_value("Customer", c.customer, "ph_registered_name") or c.customer
-            rows.append({"c0": mdy(c.period_from, True), "c1": agent, "c2": text(whole_peso(dec(c.income)), 0), "c3": text(whole_peso(dec(c.tax)), 0)})
+            rows.append({"c0": mdy(c.period_from, True), "c0to": mdy(c.period_to, True), "c1": agent, "c2": text(centavos(dec(c.income))), "c3": text(centavos(dec(c.tax)))})
         figures["sch3"] = rows
-        out_lines.append({"key": "sch3", "label": "Schedule 3, VAT withheld per 2307 received", "amount": text(sum(whole_peso(dec(c.tax)) for c in certs), 0), "records": len(certs), "filter": f"/app/ph-2307-received?company={company}&docstatus=1"})
+        out_lines.append({"key": "sch3", "label": "Schedule 3, VAT withheld per 2307 received", "amount": text(sum(centavos(dec(c.tax)) for c in certs)), "records": len(certs), "filter": f"/app/ph-2307-received?company={company}&docstatus=1"})
         if len(certs) > SCHEDULE_ROWS["sch3"]:
             warnings.append(f"Schedule 3 has {len(certs)} certificates; the paper has room for {SCHEDULE_ROWS['sch3']} rows. Combine them by agent or attach a schedule.")
     if ctx.extra.get("amends"):
         prev = frappe.db.get_value("PH Tax Return Line", {"parent": ctx.extra["amends"], "item": "26"}, "amount") or 0
-        figures["i18"] = text(whole_peso(nonneg(dec(prev))), 0)
+        figures["i18"] = text(centavos(nonneg(dec(prev))))
         out_lines.append({"key": "i18", "label": "Item 18, VAT paid in the return previously filed", "amount": figures["i18"], "records": 1, "filter": f"/app/ph-tax-return/{ctx.extra['amends']}"})
     return {"figures": figures, "lines": out_lines, "warnings": warnings}
 
@@ -122,18 +128,46 @@ def _rows(data: dict, key: str) -> list[dict]:
 
 
 def _col_total(rows: list[dict], c: int) -> Decimal:
-    return sum((whole_peso(dec(r.get(f"c{c}"))) for r in rows), ZERO)
+    return sum((centavos(dec(r.get(f"c{c}"))) for r in rows), ZERO)
 
 
 def _w(data: dict, key: str) -> Decimal:
-    return whole_peso(dec(data.get(key)))
+    return centavos(dec(data.get(key)))
+
+
+SCH1_LAST_PURCHASE = (2021, 12, 31)  # eBIRForms takes Schedule 1 purchases up to 31 Dec 2021 only
+
+
+def _sch1(rows: list[dict]) -> list[dict]:
+    """Schedule 1 the eBIRForms way: Col G (allowed this quarter) = Col E (balance from the
+    previous period) / Col F2 (remaining life in months) x 3; Col H = E - G. Typed G and H
+    are ignored."""
+    out = []
+    for r in rows:
+        r = dict(r)
+        e, life = centavos(dec(r.get("c4"))), dec(r.get("c6"))
+        g = centavos(e / life * 3) if life else ZERO
+        r["c7"], r["c8"] = text(g), text(e - g)
+        out.append(r)
+    return out
+
+
+def _sch1_late(rows: list[dict]) -> list[str]:
+    late = []
+    for r in rows:
+        parts = str(r.get("c0") or "").split("/")
+        if len(parts) == 3 and all(x.strip().isdigit() for x in parts):
+            m, d_, y = (int(x) for x in parts)
+            if (y, m, d_) > SCH1_LAST_PURCHASE:
+                late.append(str(r.get("c0")))
+    return late
 
 
 def compute(data: dict, ctx: Context) -> list[dict]:
-    sch1, sch3, sch4 = _rows(data, "sch1"), _rows(data, "sch3"), _rows(data, "sch4")
+    sch1, sch3, sch4 = _sch1(_rows(data, "sch1")), _rows(data, "sch3"), _rows(data, "sch4")
     o: dict[str, Decimal] = {}
     o["i31a"] = _w(data, "i31a")
-    o["i31b"] = whole_peso(o["i31a"] * Decimal("0.12"))
+    o["i31b"] = centavos(o["i31a"] * Decimal("0.12"))
     o["i32a"], o["i33a"] = _w(data, "i32a"), _w(data, "i33a")
     o["i34a"] = o["i31a"] + o["i32a"] + o["i33a"]
     o["i34b"] = o["i31b"]
@@ -141,19 +175,28 @@ def compute(data: dict, ctx: Context) -> list[dict]:
     o["i37"] = o["i34b"] - o["i35b"] + o["i36b"]
     o["i38"] = _w(data, "i38")
     sch1e = _col_total(sch1, 4)
-    o["i39"] = sch1e or _w(data, "i39")
+    o["i39"] = sch1e  # eBIRForms: Schedule 1 only
     o["i40"], o["i41"], o["i42"] = _w(data, "i40"), _w(data, "i41"), _w(data, "i42")
     o["i43"] = o["i38"] + o["i39"] + o["i40"] + o["i41"] + o["i42"]
-    for k in ("i44a", "i44b", "i45a", "i45b", "i46a", "i46b", "i47a", "i47b", "i48a", "i49a"):
+    for k in ("i44a", "i45a", "i46a", "i47a", "i47b", "i48a", "i49a"):
         o[k] = _w(data, k)
+    # eBIRForms computes the input tax of 44 to 46 as 12% of the purchases; the books'
+    # input tax is a tie-out (feed warns when they differ)
+    for k in ("44", "45", "46"):
+        o[f"i{k}b"] = centavos(o[f"i{k}a"] * Decimal("0.12"))
     o["i50a"] = o["i44a"] + o["i45a"] + o["i46a"] + o["i47a"] + o["i48a"] + o["i49a"]
     o["i50b"] = o["i44b"] + o["i45b"] + o["i46b"] + o["i47b"]
     o["i51"] = o["i43"] + o["i50b"]
     sch1i = _col_total(sch1, 8)
-    o["i52"] = sch1i or _w(data, "i52")
-    o["sch2Direct"], o["sch2Ratable"] = _w(data, "sch2_direct"), _w(data, "sch2_ratable")
+    o["i52"] = sch1i  # eBIRForms: Schedule 1 only
+    # Schedule 2 the eBIRForms way: ratable = exempt sales / total sales x the input tax
+    # not directly attributable (typed as sch2_basis; by default the current input tax
+    # less the part directly attributable to exempt sales)
+    o["sch2Direct"] = _w(data, "sch2_direct")
+    o["sch2Basis"] = _w(data, "sch2_basis") if str(data.get("sch2_basis") or "").strip() else o["i50b"] - o["sch2Direct"]
+    o["sch2Ratable"] = centavos(o["i33a"] * o["sch2Basis"] / o["i34a"]) if o["i33a"] and o["i34a"] else ZERO
     o["sch2Total"] = o["sch2Direct"] + o["sch2Ratable"]
-    o["i53"] = o["sch2Total"] or _w(data, "i53")
+    o["i53"] = o["sch2Total"]  # eBIRForms: Schedule 2 only
     o["i54"], o["i55"], o["i56"] = _w(data, "i54"), _w(data, "i55"), _w(data, "i56")
     o["i57"] = o["i52"] + o["i53"] + o["i54"] + o["i55"] + o["i56"]
     o["i58"] = _w(data, "i58")
@@ -162,19 +205,20 @@ def compute(data: dict, ctx: Context) -> list[dict]:
     o["i61"] = o["i37"] - o["i60"]
     o["i15"] = o["i61"]
     o["sch3C"], o["sch3D"] = _col_total(sch3, 2), _col_total(sch3, 3)
-    o["i16"] = o["sch3D"] or _w(data, "i16")
+    o["i16"] = o["sch3D"]  # eBIRForms: Schedule 3 only
     o["sch4"] = _col_total(sch4, 4)
-    o["i17"] = o["sch4"] or _w(data, "i17")
+    o["i17"] = o["sch4"]  # eBIRForms: Schedule 4 only
     o["i18"], o["i19"] = _w(data, "i18"), _w(data, "i19")
     o["i20"] = o["i16"] + o["i17"] + o["i18"] + o["i19"]
     o["i21"] = o["i15"] - o["i20"]
     o["i22"], o["i23"], o["i24"] = _w(data, "i22"), _w(data, "i23"), _w(data, "i24")
     o["i25"] = o["i22"] + o["i23"] + o["i24"]
-    o["i26"] = o["i21"] + o["i25"]
+    # eBIRForms: excess credits (21 below zero) do not absorb penalties; 26 is then 25 alone
+    o["i26"] = o["i25"] if o["i21"] < 0 and o["i25"] > 0 else o["i21"] + o["i25"]
     o["sch1E"], o["sch1H"], o["sch1I"] = sch1e, _col_total(sch1, 7), sch1i
 
     kind = _kinds(data)
-    derived = {"i31b", "i34a", "i34b", "i37", "i43", "i50a", "i50b", "i51", "i57", "i59", "i60", "i61", "i15", "i20", "i21", "i25", "i26"}
+    derived = {"i31b", "i34a", "i34b", "i37", "i39", "i43", "i44b", "i45b", "i46b", "i50a", "i50b", "i51", "i52", "i53", "i57", "i59", "i60", "i61", "i15", "i16", "i17", "i20", "i21", "i25", "i26"}
     out = []
     for k, label in LABELS:
         if k not in o:
@@ -222,6 +266,12 @@ def needs(data: dict, ctx: Context) -> list[Need]:
         rows = [r for r in _rows(data, key) if any(str(r.get(f"c{c}") or "").strip() for c in range(9))]
         if len(rows) > n:
             out.append(draft_need(ctx.return_name, key, f"{SCHEDULES[key][0].split(':')[0]} has room for {n} rows; the draft has {len(rows)}. Which rows are combined or removed?", "The form cannot carry more rows.", "text"))
+    late = _sch1_late(_rows(data, "sch1"))
+    if late:
+        out.append(draft_need(ctx.return_name, "sch1", f"Schedule 1 has purchases dated after 31 December 2021 ({', '.join(late)}). eBIRForms takes only earlier purchases; which rows are removed?", "Input VAT on capital goods bought from 1 January 2022 is claimed in full, not amortized (RR 21-2021).", "text"))
+    for key, item, sch in (("i39", "39", "sch1"), ("i52", "52", "sch1"), ("i16", "16", "sch3"), ("i17", "17", "sch4")):
+        if dec(data.get(key)) != 0 and not _rows(data, sch):
+            out.append(draft_need(ctx.return_name, sch, f"Item {item} shows {text(dec(data.get(key)))} but {SCHEDULES[sch][0].split(':')[0]} is empty. eBIRForms takes Item {item} from the schedule only; what are its rows?", f"Item {item} is the total of the schedule.", "text"))
     for item in ("19", "42", "47", "56"):
         amount_key = "i47b" if item == "47" else f"i{item}"
         if dec(data.get(amount_key)) != 0 and not (data.get(f"i{item}label") or "").strip():
@@ -240,6 +290,11 @@ def _full_name(c: dict) -> str:
         given = " ".join(x for x in (c.get("ph_first_name"), c.get("ph_middle_name")) if x)
         return ", ".join(x for x in (c.get("ph_last_name"), given) if x)
     return c.get("ph_registered_name") or c.get("company_name") or ""
+
+
+def _life(v: str) -> str:
+    """Months of life, a whole number as eBIRForms takes it ("0" when blank)."""
+    return str(int(dec(v))) if str(v or "").strip() else "0"
 
 
 def _cell(rows: list[dict], i: int, c: int) -> str:
@@ -299,7 +354,7 @@ def export_rows(data: dict, comp: list[dict], ctx: Context) -> tuple[list[tuple[
     P("internationalTreatyYn", rb(relief and data.get("reliefKind") == "treaty"))
     P("specialRateYn", rb(relief and data.get("reliefKind") != "treaty"))
     P("specifyInternationalTreaty", enc(data.get("taxReliefSpec")))
-    P("excessInputTax", amt(0))
+    P("excessInputTax", amt(o["i15"]))
     P("creditableVat", amt(o["i16"]))
     P("advVatPayment", amt(o["i17"]))
     P("vatPaidReturn", amt(o["i18"]))
@@ -333,29 +388,29 @@ def export_rows(data: dict, comp: list[dict], ctx: Context) -> tuple[list[tuple[
     P("otherSpecify56", amt(o["i56"]))
     for k, key in (("totalDeductions", "i57"), ("addInputVat", "i58"), ("adjDeductions", "i59"), ("totalAllowInputTax", "i60"), ("netVatPayable", "i61")):
         P(k, amt(o[key]))
-    sch1 = _rows(data, "sch1")
+    sch1 = _sch1(_rows(data, "sch1"))
     for i, n in enumerate(("10", "11")):
         G(f"txtDatePurchase{n}", _cell(sch1, i, 0))
         G(f"txtSourceCode{n}", _cell(sch1, i, 1))
         G(f"txtDescription{n}", enc(_cell(sch1, i, 2)))
         G(f"txtAmountPurchase{n}", amt(_cell(sch1, i, 3)))
         G(f"txtInputTax{n}", amt(_cell(sch1, i, 4)))
-        G(f"txtEstimatedLife{n}", amt(_cell(sch1, i, 5)))
-        G(f"txtRecognizedLife{n}", amt(_cell(sch1, i, 6)))
+        G(f"txtEstimatedLife{n}", _life(_cell(sch1, i, 5)))
+        G(f"txtRecognizedLife{n}", _life(_cell(sch1, i, 6)))
         G(f"txtAllowedInputTax{n}", amt(_cell(sch1, i, 7)))
         G(f"txtBalanceInputTax{n}", amt(_cell(sch1, i, 8)))
     G("sched1TotalBalPrev", amt(o["sch1E"]))
     G("sched1TotalBalNext", amt(o["sch1I"]))
     P("sched2InputTaxDirect", amt(o["sch2Direct"]))
-    P("sched2VatExemptSale", amt(0))
-    P("sched2AmountInputTax", amt(0))
-    P("sched2TotalSales", amt(0))
+    P("sched2VatExemptSale", amt(o["i33a"]))
+    P("sched2AmountInputTax", amt(o["sch2Basis"]))
+    P("sched2TotalSales", amt(o["i34a"]))
     P("sched2TotalRatable", amt(o["sch2Ratable"]))
     P("sched2TotalAttr", amt(o["sch2Total"]))
     sch3 = _rows(data, "sch3")
     for i, n in enumerate(("30", "31")):
         G(f"txtDateCovered{n}", _cell(sch3, i, 0))
-        G(f"txtDateCovered3To{n[-1]}", "")
+        G(f"txtDateCovered3To{n[-1]}", str((sch3[i] if i < len(sch3) else {}).get("c0to") or ""))
         G(f"txtNameWithHoldingAgent{n}", enc(_cell(sch3, i, 1)))
         G(f"txtIncomePayment{n}", amt(_cell(sch3, i, 2)))
         G(f"txtTotalTaxWithHeld{n}", amt(_cell(sch3, i, 3)))
@@ -364,7 +419,7 @@ def export_rows(data: dict, comp: list[dict], ctx: Context) -> tuple[list[tuple[
     sch4 = _rows(data, "sch4")
     for i, n in enumerate(("40", "41")):
         G(f"txtDate{n}", _cell(sch4, i, 0))
-        G(f"txtDate4To{n[-1]}", "")
+        G(f"txtDate4To{n[-1]}", str((sch4[i] if i < len(sch4) else {}).get("c0to") or ""))
         G(f"txtNameOfMiller{n}", enc(_cell(sch4, i, 1)))
         G(f"txtNameOfTaxpayer{n}", enc(_cell(sch4, i, 2)))
         G(f"txtOfficialReceiptNumber{n}", enc(_cell(sch4, i, 3)) if _cell(sch4, i, 3) else amt(0))
@@ -423,7 +478,7 @@ def slsp_tie_out(data: dict, ctx: Context) -> list[str]:
             inputs += dec(p_head[15])  # the purchases header's input tax total
         except (IndexError, ValueError):
             return ["SLSP header could not be read for the tie-out."]
-    slsp_sales, slsp_input = whole_peso(sales), whole_peso(inputs)
+    slsp_sales, slsp_input = centavos(sales), centavos(inputs)
     o = _o(compute(data, ctx))
     if slsp_sales != o["i34a"]:
         out.append(f"SLSP sales ({slsp_sales}) differ from Item 34A ({o['i34a']}).")

@@ -9,7 +9,7 @@ Data keys (the draft's `data`), after the Portal's editor:
   over            "refund" or "tcc" when Item 24 is an overpayment (typed)
   taxRelief, taxReliefSpec, itRate ("graduated" or "eight"), sheets, pay25..28*, taxAgent* (typed)
 Derived (never stored): each row's due, Items 14, 18, 19, 23, 24.
-Whole pesos: the paper says do not enter centavos.
+Centavos, as eBIRForms keeps them (the January 2018 paper has no whole-peso rule).
 """
 
 from decimal import Decimal
@@ -18,12 +18,34 @@ import frappe
 
 from ph_cas.forms.engine import Context
 from ph_cas.forms.export import ExportRefusal, amt, enc, file_name, rb, tin_parts
-from ph_cas.forms.money import ZERO, dec, nonneg, text, whole_peso
+from ph_cas.forms.money import ZERO, centavos, dec, nonneg, text
 from ph_cas.forms.needs import Need, draft_need
 
 NS = "frm2551Qv2018:"
-# The eBIRForms Schedule 1 dropdown, 1-based, in the package's order; 0 is an empty line.
-ATC_INDEX = {"PT010": 1, "PT040": 2, "PT041": 3, "PT060": 4, "PT070": 5, "PT090": 6, "PT120": 7, "PT130": 8}
+# The eBIRForms v7.9.6.2 Schedule 1 dropdown (BIR-Form2551Qv2018, its ATC list in the
+# package's order): value, ATC, rate the form fills in. 0 is an empty line. PT010 is listed
+# twice, at 3% and at the CREATE 1% (1 Jul 2020 to 30 Jun 2023).
+EBIR_ATCS = [
+    (1, "PT010", "3.0"), (2, "PT040", "3.0"), (3, "PT041", "3.0"), (4, "PT060", "2.0"), (5, "PT070", "3.0"), (6, "PT090", "10.0"),
+    (7, "PT101", "1.0"), (8, "PT102", "0.0"), (9, "PT103", "7.0"), (10, "PT104", "7.0"), (11, "PT105", "5.0"), (12, "PT113", "5.0"),
+    (13, "PT114", "1.0"), (14, "PT115", "5.0"), (15, "PT120", "2.0"), (16, "PT130", "4.0"), (17, "PT132", "5.0"), (18, "PT140", "18.0"),
+    (19, "PT150", "18.0"), (20, "PT160", "10.0"), (21, "PT170", "15.0"), (22, "PT180", "30.0"), (23, "PT010", "1.0"),
+]
+ATC_INDEX = {}  # ATC -> its first dropdown value
+for _v, _c, _r in EBIR_ATCS:
+    ATC_INDEX.setdefault(_c, _v)
+
+
+def ebir_rates(code: str) -> list[Decimal]:
+    return [Decimal(r) for _v, c, r in EBIR_ATCS if c == code]
+
+
+def atc_value(code: str, rate) -> int:
+    """The dropdown value for an ATC at a rate; 0 when eBIRForms has no such line."""
+    for v, c, r in EBIR_ATCS:
+        if c == code and Decimal(r) == dec(rate):
+            return v
+    return 0
 SCHEDULE_1_ROWS = 6
 INPUTS = [
     ("i16", "16 Tax paid in return previously filed (amended)", "money"),
@@ -83,38 +105,41 @@ def feed(ctx: Context) -> dict:
     warnings: list[str] = []
     if base_exact < 0:
         warnings.append(f"The books total for Schedule 1 is below zero ({base_exact}); it is shown as 0.")
-    base = whole_peso(nonneg(base_exact))
+    base = centavos(nonneg(base_exact))
     withheld = frappe.db.sql(
         """select coalesce(sum(l.tax_withheld), 0), count(distinct d.name) from `tabPH 2307 Received Line` l
            join `tabPH 2307 Received` d on d.name = l.parent
            where d.docstatus = 1 and d.company = %s and l.kind = 'Percentage tax' and d.period_from >= %s and d.period_to <= %s""",
         (company, start, end),
     )[0]
-    i15 = whole_peso(nonneg(dec(withheld[0])))
+    i15 = centavos(nonneg(dec(withheld[0])))
     if str(start) <= CREATE_WINDOW[1] and str(end) >= CREATE_WINDOW[0]:
         warnings.append("This quarter falls in the CREATE window (1 July 2020 to 30 June 2023, 1 percent); check the rate on each row.")
-    figures = {"rows": [{"atc": atc, "taxable": text(base, 0), "rate": text(rate, 1)}], "i15": text(i15, 0)}
+    figures = {"rows": [{"atc": atc, "taxable": text(base), "rate": text(rate, 1)}], "i15": text(i15)}
     lines = [
-        {"key": f"rows.{atc}", "label": f"Schedule 1, {atc} at {rate}% ({rule.rule_id})", "amount": text(base, 0), "records": n_sales, "filter": f"/app/sales-invoice?company={company}&docstatus=1&posting_date=%5B%22Between%22%2C%5B%22{start}%22%2C%22{end}%22%5D%5D"},
-        {"key": "i15", "label": "Item 15, percentage tax withheld per 2307", "amount": text(i15, 0), "records": int(withheld[1]), "filter": f"/app/ph-2307-received?company={company}&docstatus=1"},
+        {"key": f"rows.{atc}", "label": f"Schedule 1, {atc} at {rate}% ({rule.rule_id})", "amount": text(base), "records": n_sales, "filter": f"/app/sales-invoice?company={company}&docstatus=1&posting_date=%5B%22Between%22%2C%5B%22{start}%22%2C%22{end}%22%5D%5D"},
+        {"key": "i15", "label": "Item 15, percentage tax withheld per 2307", "amount": text(i15), "records": int(withheld[1]), "filter": f"/app/ph-2307-received?company={company}&docstatus=1"},
     ]
     if ctx.extra.get("amends"):
         prev = frappe.db.get_value("PH Tax Return Line", {"parent": ctx.extra["amends"], "item": "24"}, "amount") or 0
-        figures["i16"] = text(whole_peso(nonneg(dec(prev))), 0)
+        figures["i16"] = text(centavos(nonneg(dec(prev))))
         lines.append({"key": "i16", "label": "Item 16, tax paid in the return previously filed", "amount": figures["i16"], "records": 1, "filter": f"/app/ph-tax-return/{ctx.extra['amends']}"})
     return {"figures": figures, "lines": lines, "warnings": warnings}
 
 
 # ---- compute -----------------------------------------------------------------------
 def compute(data: dict, ctx: Context) -> list[dict]:
-    rows = data.get("rows") or []
+    # eBIRForms: an individual who chose 8% in Item 13 files a zero return (the form
+    # zeroes Schedule 1 and Items 15 to 22 and locks them)
+    eight = ctx.company.get("ph_taxpayer_type") == "Individual" and ctx.period.quarter_no == 1 and data.get("itRate") == "eight"
+    rows = [] if eight else (data.get("rows") or [])
     out: list[dict] = []
     kind_of = _kinds(data)
     total_due = ZERO
     dues = []
     for i, r in enumerate(rows[:SCHEDULE_1_ROWS], start=1):
         taxable, rate = dec(r.get("taxable")), dec(r.get("rate"))
-        due = whole_peso(taxable * rate / 100)
+        due = centavos(taxable * rate / 100)
         dues.append(due)
         total_due += due
         atc = (r.get("atc") or "").strip().upper()
@@ -123,14 +148,13 @@ def compute(data: dict, ctx: Context) -> list[dict]:
         out.append({"item": f"S1.{i} tax", "label": f"Schedule 1 row {i}: tax due", "amount": due, "kind": "derived"})
     i = {}
     i[14] = total_due
-    i[15] = whole_peso(dec(data.get("i15")))
-    i[16] = whole_peso(dec(data.get("i16")))
-    i[17] = whole_peso(dec(data.get("i17")))
+    z = (lambda k: ZERO) if eight else (lambda k: centavos(dec(data.get(k))))
+    i[15] = z("i15")
+    i[16] = z("i16") if ctx.is_amended else ZERO  # eBIRForms opens Item 16 only on an amended return
+    i[17] = z("i17")
     i[18] = i[15] + i[16] + i[17]
     i[19] = i[14] - i[18]
-    i[20] = whole_peso(dec(data.get("i20")))
-    i[21] = whole_peso(dec(data.get("i21")))
-    i[22] = whole_peso(dec(data.get("i22")))
+    i[20], i[21], i[22] = z("i20"), z("i21"), z("i22")
     i[23] = i[20] + i[21] + i[22]
     i[24] = i[19] + i[23]
     labels = {
@@ -169,7 +193,10 @@ def needs(data: dict, ctx: Context) -> list[Need]:
         if not code and dec(r.get("taxable")) != 0:
             out.append(draft_need(ctx.return_name, f"rows.{n}.atc", f"Schedule 1, row {n} has an amount but no ATC. Which ATC is it?", "The eBIRForms file carries each row by its ATC.", "atc", list(ATC_INDEX)))
         elif code and code not in ATC_INDEX:
-            out.append(draft_need(ctx.return_name, f"rows.{n}.atc", f"Schedule 1, row {n}: the ATC {code} is not one the 2551Q lists. Which ATC is it?", "The eBIRForms file lists eight ATCs for Schedule 1.", "atc", list(ATC_INDEX)))
+            out.append(draft_need(ctx.return_name, f"rows.{n}.atc", f"Schedule 1, row {n}: the ATC {code} is not one the 2551Q lists. Which ATC is it?", "eBIRForms lists its own ATCs for Schedule 1.", "atc", list(ATC_INDEX)))
+        elif code and not atc_value(code, r.get("rate")):
+            rates = " or ".join(f"{x}%" for x in ebir_rates(code))
+            out.append(draft_need(ctx.return_name, f"rows.{n}.rate", f"Schedule 1, row {n}: eBIRForms takes {code} at {rates}, not {dec(r.get('rate'))}%. Which rate applies?", "eBIRForms fills in the rate from the ATC.", "choice", [str(x) for x in ebir_rates(code)]))
     if len([r for r in rows if (r.get("atc") or "").strip() or dec(r.get("taxable")) != 0]) > SCHEDULE_1_ROWS:
         out.append(draft_need(ctx.return_name, "rows", f"Schedule 1 has room for {SCHEDULE_1_ROWS} rows; the draft has more. Which rows are combined or removed?", "The form cannot carry more rows.", "text"))
     comp = _comp(compute(data, ctx))["i"]
@@ -205,6 +232,8 @@ def _assert_encodable(rows: list[dict]):
             raise ExportRefusal(f"Schedule 1, row {i} has an amount but no ATC. Choose its ATC or remove the row, then export again.")
         if code not in ATC_INDEX:
             raise ExportRefusal(f"Schedule 1, row {i}: the ATC {code} cannot be written into the eBIRForms export. Change the row's ATC or remove the row, then export again.")
+        if not atc_value(code, r.get("rate")):
+            raise ExportRefusal(f"Schedule 1, row {i}: eBIRForms takes {code} at {' or '.join(str(x) + '%' for x in ebir_rates(code))}, not {dec(r.get('rate'))}%. Correct the rate, then export again.")
         if i > SCHEDULE_1_ROWS:
             raise ExportRefusal(f"Schedule 1, row {i}: the form has room for {SCHEDULE_1_ROWS} rows. Move it into an empty row or remove it, then export again.")
 
@@ -214,7 +243,8 @@ def export_rows(data: dict, comp: list[dict], ctx: Context) -> tuple[list[tuple[
     t = tin_parts(c.get("tax_id") or "", c.get("ph_branch_code") or "00000")
     yyyy = str(ctx.period.year)
     qn = ctx.period.quarter_no
-    sched = data.get("rows") or []
+    eight = (c.get("ph_taxpayer_type") or "") == "Individual" and qn == 1 and data.get("itRate") == "eight"
+    sched = [] if eight else (data.get("rows") or [])
     _assert_encodable(sched)
     cm = _comp(comp)
     i, dues = cm["i"], cm["dues"]
@@ -274,7 +304,7 @@ def export_rows(data: dict, comp: list[dict], ctx: Context) -> tuple[list[tuple[
     for n in range(SCHEDULE_1_ROWS):
         r = sched[n] if n < len(sched) else {}
         code = (r.get("atc") or "").strip().upper()
-        idx = ATC_INDEX.get(code, 0)
+        idx = atc_value(code, r.get("rate")) if code else 0
         G(f"drpATC{n + 1}", str(idx))
         G(f"txtATCAmt{n + 1}", amt(r.get("taxable") if idx else 0))
         G(f"txtATCRate{n + 1}", _rate1(r.get("rate")) if idx else "0.00")

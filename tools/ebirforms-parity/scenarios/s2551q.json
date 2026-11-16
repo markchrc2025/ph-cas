@@ -1,0 +1,29 @@
+{
+ "form": "2551Q",
+ "period": "2026-Q3",
+ "ebir_form": "BIR-Form2551Qv2018.hta",
+ "company": {
+  "ph_taxpayer_type": "Non-individual"
+ },
+ "data": {
+  "rows": [
+   {
+    "atc": "PT010",
+    "taxable": "123456.78",
+    "rate": "3"
+   },
+   {
+    "atc": "PT040",
+    "taxable": "10000.55",
+    "rate": "3"
+   }
+  ],
+  "i15": "500.33",
+  "i17": "100.10",
+  "i17label": "EXCESS CREDIT",
+  "i20": "25.25",
+  "i21": "12.12",
+  "i22": "1000",
+  "taxRelief": "no"
+ }
+}

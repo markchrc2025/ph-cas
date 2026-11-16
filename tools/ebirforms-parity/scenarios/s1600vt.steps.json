@@ -1,0 +1,5 @@
+[["txtPg1I1Month","10","select"],["txtPg1I1Year","2026"],["rdoPg1I2AmendedNo","","click"],["rdoPg1I3TaxWithheldYes","","click"],["rdoPg1I10CategoryofWthholdAgentPriv","","click"],
+ ["a","showPartIIATC();","call"],
+ ["b","[...document.querySelectorAll('input[id^=AtcCode]')].forEach(e=>{ if(['WV060','WV080'].includes(e.value)) e.checked=true }); getATCCode();","call"],
+ ["w","500","wait"],
+ ["txtPg1P2TaxBase1",null],["txtPg1P2TaxBase2",null],["txtPg1P2I20OthrPymntsMade",null]]

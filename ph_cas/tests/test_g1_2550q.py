@@ -31,7 +31,7 @@ class TestG1Compute(IntegrationTestCase):
         data = {
             "i31a": "100000", "i32a": "0", "i33a": "20000", "i38": "500",
             "i44a": "50000", "i44b": "6000", "i48a": "1000",
-            "sch1": [{"c0": "01/15/2026", "c1": "S", "c2": "MACHINE", "c3": "2000000", "c4": "240000", "c5": "60", "c6": "3", "c7": "12000", "c8": "228000"}],
+            "sch1": [{"c0": "01/15/2021", "c1": "S", "c2": "MACHINE", "c3": "2000000", "c4": "240000", "c5": "60", "c6": "60"}],
             "sch3": [{"c0": "01/01/2026", "c1": "GOV AGENCY", "c2": "10000", "c3": "500"}],
             "sch2_ratable": "1000", "i22": "0",
         }
@@ -50,6 +50,23 @@ class TestG1Compute(IntegrationTestCase):
         self.assertEqual(o["i16"], 500)  # Schedule 3 Col D feeds 16
         self.assertEqual(o["i21"], o["i15"] - 500)
         self.assertEqual(o["i26"], o["i21"])
+
+    def test_ebirforms_rules_input_tax_schedules_and_item_26(self):
+        c = ctx_for()
+        data = {"i31a": "10000.37", "i44a": "1000.10", "i44b": "999", "i39": "500", "i17": "70", "sch2_ratable": "5", "i22": "10"}
+        o = f2550q._o(f2550q.compute(data, c))
+        self.assertEqual(str(o["i31b"]), "1200.04")  # centavos, as eBIRForms keeps them
+        self.assertEqual(str(o["i44b"]), "120.01")  # 12% of 44A, not the typed input tax
+        self.assertEqual(o["i39"], 0)  # Schedule 1 only
+        self.assertEqual(o["i17"], 0)  # Schedule 4 only
+        self.assertEqual(o["i53"], 0)  # no exempt sales, no ratable share
+        keys = [n.key for n in f2550q.needs(data, c)]
+        self.assertIn("data.sch1", keys)
+        self.assertIn("data.sch4", keys)
+        data = {"i31a": "1000", "sch3": [{"c0": "10/01/2026", "c1": "AGENCY", "c2": "50000", "c3": "5000"}], "i22": "10"}
+        o = f2550q._o(f2550q.compute(data, c))
+        self.assertLess(o["i21"], 0)
+        self.assertEqual(o["i26"], 10)  # excess credits do not absorb penalties
 
     def test_export_keys_match_the_portal_fixture_and_print(self):
         c = ctx_for()

@@ -1,0 +1,25 @@
+{
+ "form": "0619-E",
+ "period": "2026-11",
+ "ebir_form": "BIR-Form0619E.hta",
+ "data": {
+  "remittance": "12345.67",
+  "previouslyRemitted": "2000.50",
+  "surcharge": "123.45",
+  "interest": "10.01",
+  "compromise": "1000",
+  "anyWithheld": "yes",
+  "signatoryName": "JUAN DELA CRUZ"
+ },
+ "map": {
+  "txtTax14": "14",
+  "txtTax15": "15",
+  "txtTax16": "16",
+  "txtTax17A": "17A",
+  "txtTax17B": "17B",
+  "txtTax17C": "17C",
+  "txtTax17D": "17D",
+  "txtTax18": "18"
+ },
+ "amended": true
+}

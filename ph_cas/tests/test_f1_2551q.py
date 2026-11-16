@@ -46,17 +46,33 @@ def ctx_for(data_period: str = "2026-Q1") -> Context:
 class TestF1Compute(IntegrationTestCase):
     """Pure: no books."""
 
-    def test_schedule_rows_round_to_whole_pesos_and_items_flow(self):
-        data = {"rows": [{"atc": "PT010", "taxable": "10016", "rate": "3.0"}, {"atc": "PT040", "taxable": "1000.00", "rate": "3"}], "i15": "100", "i20": "25", "over": ""}
+    def test_schedule_rows_keep_centavos_as_ebirforms_does_and_items_flow(self):
+        data = {"rows": [{"atc": "PT010", "taxable": "10016", "rate": "3.0"}, {"atc": "PT040", "taxable": "1000.00", "rate": "3"}], "i15": "100", "i16": "50", "i20": "25", "over": ""}
         lines = f2551q.compute(data, ctx_for())
         by = {ln["item"]: ln["amount"] for ln in lines}
-        self.assertEqual(by["S1.1 tax"], 300)  # 300.48 drops
+        self.assertEqual(str(by["S1.1 tax"]), "300.48")
         self.assertEqual(by["S1.2 tax"], 30)
-        self.assertEqual(by["14"], 330)
+        self.assertEqual(str(by["14"]), "330.48")
+        self.assertEqual(by["16"], 0)  # Item 16 counts only on an amended return
         self.assertEqual(by["18"], 100)
-        self.assertEqual(by["19"], 230)
+        self.assertEqual(str(by["19"]), "230.48")
         self.assertEqual(by["23"], 25)
-        self.assertEqual(by["24"], 255)
+        self.assertEqual(str(by["24"]), "255.48")
+
+    def test_atc_lines_follow_the_ebirforms_dropdown(self):
+        self.assertEqual(f2551q.atc_value("PT120", "2"), 15)
+        self.assertEqual(f2551q.atc_value("PT130", "4.0"), 16)
+        self.assertEqual(f2551q.atc_value("PT010", "1"), 23)  # the CREATE 1% line
+        self.assertEqual(f2551q.atc_value("PT040", "2"), 0)  # eBIRForms has PT040 at 3% only
+        data = {"rows": [{"atc": "PT040", "taxable": "500", "rate": "2"}]}
+        self.assertIn("data.rows.1.rate", [n.key for n in f2551q.needs(data, ctx_for())])
+
+    def test_an_individual_on_eight_percent_files_a_zero_return(self):
+        c = Context(spec("2551Q"), parse_period("2026-Q1", "quarter"), dict(TAXPAYER, name=TEST_COMPANY, company_name=TEST_COMPANY, ph_taxpayer_type="Individual"), return_name="T")
+        data = {"rows": [{"atc": "PT010", "taxable": "50000", "rate": "3"}], "i15": "100", "itRate": "eight"}
+        by = {ln["item"]: ln["amount"] for ln in f2551q.compute(data, c)}
+        self.assertEqual(by["14"], 0)
+        self.assertEqual(by["24"], 0)
 
     def test_needs_and_refusals(self):
         c = ctx_for()

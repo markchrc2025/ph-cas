@@ -44,7 +44,8 @@ def _side_inputs(side: str) -> list:
         (f"shareGovt{side}", f"Part VI.3 Less: share of other government agencies{who}", "money"),
         (f"excess{side}", f"Part VII.1 Prior year's excess credits{who}", "money"),
         (f"prevPaid{side}", f"Part VII.2 Tax payments for the first three quarters{who}", "money"),
-        (f"cwt{side}", f"Part VII creditable tax withheld per 2307{who}", "money"),
+        (f"cwtPrev{side}", f"Part VII.3 Creditable tax withheld per 2307, first three quarters{who}", "money"),
+        (f"cwt{side}", f"Part VII.4 Creditable tax withheld per 2307, fourth quarter{who}", "money"),
         (f"install{side}", f"25 Portion allowed for second installment{who}", "money"),
         (f"interest{side}", f"27 Interest{who}", "money"),
         (f"surcharge{side}", f"28 Surcharge{who}", "money"),
@@ -89,6 +90,11 @@ def feed(ctx: Context) -> dict:
     c = ctx.company
     p = ctx.period
     a = inc.annual(company, p.start, p.end)
+    from ph_cas.forms.period import quarter_range
+
+    q3_end = quarter_range(p.year, 3)[1]
+    through_q3 = inc._engine(company, p.start, q3_end, annual=False) if q3_end > p.start else {}
+    credits, credits_q3 = a.get("Credits 2307", ZERO), through_q3.get("Credits 2307", ZERO)
     eight = (c.get("ph_income_tax_option") or "") == "8% option (individual)"
     osd = (c.get("ph_deduction_method") or "Itemized") != "Itemized"
     figures = {
@@ -97,7 +103,8 @@ def feed(ctx: Context) -> dict:
         "salesA": inc.peso_text(inc.nonneg_peso(a.get("Sales"))),
         "cogsA": inc.peso_text(inc.nonneg_peso(a.get("COGS"))),
         "prevPaidA": inc.peso_text(a.get("Prior quarters", ZERO)),
-        "cwtA": inc.peso_text(a.get("Credits 2307", ZERO)),
+        "cwtPrevA": inc.peso_text(credits_q3),
+        "cwtA": inc.peso_text(credits - credits_q3),
     }
     if not osd and not eight:
         figures["deductA"] = inc.peso_text(inc.nonneg_peso(a.get("Deductions")))
@@ -106,12 +113,16 @@ def feed(ctx: Context) -> dict:
         inc.books_line("salesA", "Schedule 3 Item 8, sales/revenues/receipts/fees for the year", figures["salesA"], company, p.start, p.end),
         inc.books_line("cogsA", "Schedule 3 Item 11, cost of sales or services", figures["cogsA"], company, p.start, p.end, "purchase-invoice"),
         inc.books_line("prevPaidA", "Part VII Item 2, tax payments for the first three quarters (filed 1701Q returns)", figures["prevPaidA"], company, p.start, p.end, "ph-tax-return"),
-        inc.books_line("cwtA", "Part VII, creditable tax withheld per 2307 for the year", figures["cwtA"], company, p.start, p.end, "ph-2307-received"),
+        inc.books_line("cwtPrevA", "Part VII Item 3, creditable tax withheld per 2307, first three quarters", figures["cwtPrevA"], company, p.start, q3_end, "ph-2307-received"),
+        inc.books_line("cwtA", "Part VII Item 4, creditable tax withheld per 2307, fourth quarter", figures["cwtA"], company, p.start, p.end, "ph-2307-received"),
     ]
     if "deductA" in figures:
         lines.append(inc.books_line("deductA", "Schedule 3 Item 13, ordinary allowable itemized deductions", figures["deductA"], company, p.start, p.end, "purchase-invoice"))
     warnings = [f"Schedule 3 Item {i} is below zero in the books; it is shown as 0." for i, v in (("8", a.get("Sales", ZERO)), ("11", a.get("COGS", ZERO))) if v < 0]
     return {"figures": figures, "lines": lines, "warnings": warnings}
+
+
+EIGHT_ATCS = ("II015", "II017", "II016")  # eBIRForms: these put the taxpayer on 8%
 
 
 def _side(data: dict, s: str, year: int) -> dict:
@@ -120,13 +131,18 @@ def _side(data: dict, s: str, year: int) -> dict:
     o["comp"] = w("comp")
     o["sales"], o["returns"] = w("sales"), w("returns")
     o["netSales"] = o["sales"] - o["returns"]
-    o["cogs"] = w("cogs")
-    o["gross"] = o["netSales"] - o["cogs"]
     o["method"] = inc.s(data.get("method" + s)) or "osd"
+    atc = "".join(inc.s(data.get("atc" if s == "A" else "spouseAtc")).split()).upper()
+    # eBIRForms sets the rate from the ATC; without an ATC the typed rate stands
+    o["rate"] = ("eight" if atc in EIGHT_ATCS else "graduated") if atc else (inc.s(data.get("rate" + s)) or "graduated")
+    # eBIRForms: on 8% no method of deduction; under OSD (40% of net sales) cost of sales closes at 0
+    o["itemized"] = o["rate"] != "eight" and o["method"] != "osd"
+    o["cogs"] = w("cogs") if o["itemized"] else ZERO
+    o["gross"] = o["netSales"] - o["cogs"]
     sched4 = sum((inc.w(data, f"s4_{k}{s}") for k in S4), ZERO)
     special = (inc.w(data, "s5_1amt") + inc.w(data, "s5_2amt")) if s == "A" else (inc.w(data, "s5_4amt") + inc.w(data, "s5_5amt"))
     nolco_rows = (4, 5, 6, 7) if s == "A" else (9, 10, 11, 12)
-    itemized = o["method"] != "osd"
+    itemized = o["itemized"]
     o["nolco"] = sum((inc.w(data, f"nolco{r}D") for r in nolco_rows), ZERO) if itemized else ZERO
     o["sched4"] = sched4
     o["itemizedOrdinary"] = sched4 if sched4 > 0 else w("deduct")
@@ -135,25 +151,28 @@ def _side(data: dict, s: str, year: int) -> dict:
     o["netBiz"] = o["gross"] - o["deductions"]
     o["otherInc"] = w("other")
     o["netBizTotal"] = o["netBiz"] + o["otherInc"]
-    o["rate"] = inc.s(data.get("rate" + s)) or "graduated"
     eight = o["rate"] == "eight"
     o["gross8"] = o["netSales"] + o["otherInc"]
-    o["taxable8"] = max(ZERO, o["gross8"] - (inc.REDUCTION if s == "A" else ZERO))
+    # eBIRForms: no 250,000 reduction for a taxpayer who is also a compensation earner (mixed income)
+    mixed = o["comp"] > 0 or atc in ("II011", "II013", "II016")
+    o["taxable8"] = max(ZERO, o["gross8"] - (inc.REDUCTION if s == "A" and not mixed else ZERO))
     o["tax8biz"] = inc.whole_peso(o["taxable8"] * inc.EIGHT)
     o["taxableTotal"] = o["comp"] + (o["taxable8"] if eight else o["netBizTotal"])
-    o["compTaxFlat"] = inc.graduated_tax(o["comp"], year) if eight else ZERO
+    o["compTax"] = inc.graduated_tax(o["comp"], year)  # Schedule 2 Item 7, which eBIRForms always fills
+    o["compTaxFlat"] = o["compTax"] if eight else ZERO
     o["taxDueRegular"] = (o["compTaxFlat"] + o["tax8biz"]) if eight else inc.graduated_tax(o["comp"] + o["netBizTotal"], year)
     o["specialRate"], o["shareOtherGovt"] = w("specialRate"), w("shareGovt")
     o["netSpecial"] = o["specialRate"] - o["shareOtherGovt"]
     o["taxDue"] = o["taxDueRegular"] + o["netSpecial"]
-    o["prevPaid"], o["cwt"], o["excess"], o["taxWithheldComp"] = w("prevPaid"), w("cwt"), w("excess"), w("compCwt")
-    o["credits"] = o["prevPaid"] + o["cwt"] + o["excess"] + o["taxWithheldComp"]
+    o["prevPaid"], o["cwtPrev"], o["cwt"], o["excess"], o["taxWithheldComp"] = w("prevPaid"), w("cwtPrev"), w("cwt"), w("excess"), w("compCwt")
+    o["credits"] = o["prevPaid"] + o["cwtPrev"] + o["cwt"] + o["excess"] + o["taxWithheldComp"]
     o["payable"] = o["taxDue"] - o["credits"]
     o["installment"] = w("install")
     o["afterInstall"] = o["payable"] - o["installment"]
     o["interest"], o["surcharge"], o["compromise"] = w("interest"), w("surcharge"), w("compromise")
     o["penalties"] = o["interest"] + o["surcharge"] + o["compromise"]
-    o["totalPayable"] = o["afterInstall"] + o["penalties"]
+    # eBIRForms: an overpayment (26 below zero) does not absorb penalties; 31 is then 30 alone
+    o["totalPayable"] = o["penalties"] if o["afterInstall"] < 0 and o["penalties"] > 0 else o["afterInstall"] + o["penalties"]
     o["ixTotalAdd"] = sum((w(f"ix{n}") for n in (1, 2, 3, 4)), ZERO)
     o["ixTotalLess"] = sum((w(f"ix{n}") for n in (6, 7, 8, 9)), ZERO)
     o["ixNetTaxable"] = o["ixTotalAdd"] - o["ixTotalLess"]
@@ -167,7 +186,7 @@ LABELS = [
     ("deductions", "Sch 3.16/17", "Total Allowable Deductions (itemized, or OSD 40% of net sales)", None), ("netBiz", "Sch 3.18", "Net Income/(Loss) from Business or Profession", None), ("otherInc", "Sch 3.19", "Non-operating Income", "other"),
     ("netBizTotal", "Sch 3.23", "Total Taxable Income from Business or Profession", None), ("taxableTotal", "Sch 3.24", "Total Taxable Income (compensation and business)", None), ("taxable8", "Sch 3.30", "Taxable Income under the 8% Option", None),
     ("taxDueRegular", "Part VI.1", "Tax Due under the Regular or 8% Rate", None), ("specialRate", "Part VI.2", "Tax Due on Income under Special Rate", "specialRate"), ("shareOtherGovt", "Part VI.3", "Less: Share of Other Government Agencies", "shareGovt"),
-    ("taxDue", "22", "Total Income Tax Due", None), ("excess", "Part VII.1", "Prior Year's Excess Credits", "excess"), ("prevPaid", "Part VII.2", "Tax Payments for the First Three Quarters", "prevPaid"), ("cwt", "Part VII", "Creditable Tax Withheld per BIR Form 2307", "cwt"),
+    ("taxDue", "22", "Total Income Tax Due", None), ("excess", "Part VII.1", "Prior Year's Excess Credits", "excess"), ("prevPaid", "Part VII.2", "Tax Payments for the First Three Quarters", "prevPaid"), ("cwtPrev", "Part VII.3", "Creditable Tax Withheld per BIR Form 2307, First Three Quarters", "cwtPrev"), ("cwt", "Part VII.4", "Creditable Tax Withheld per BIR Form 2307, Fourth Quarter", "cwt"),
     ("credits", "23", "Less: Total Tax Credits/Payments", None), ("payable", "24", "Net Tax Payable/(Overpayment)", None), ("installment", "25", "Less: Portion Allowed for Second Installment", "install"), ("afterInstall", "26", "Amount Still Payable/(Overpayment)", None),
     ("interest", "27", "Interest", "interest"), ("surcharge", "28", "Surcharge", "surcharge"), ("compromise", "29", "Compromise", "compromise"), ("penalties", "30", "Total Penalties", None), ("totalPayable", "31", "Total Amount Payable/(Overpayment)", None),
 ]
@@ -231,7 +250,8 @@ def export_rows(data: dict, comp: list[dict], ctx: Context) -> tuple[list[tuple[
     r.b("rdoPg1I6TaxpayerTypeP", ttype == "prof")
     r.b("rdoPg1I6TaxpayerTypeE", False)
     r.b("rdoPg1I6TaxpayerTypeT", False)
-    r.b("rdoPg1I6TaxpayerTypeC", False)
+    # a compensation earner too (mixed income): eBIRForms opens II011, II013 and II016 only then
+    r.b("rdoPg1I6TaxpayerTypeC", A["comp"] > 0 or atc in ("II011", "II013", "II016"))
     for code in inc.ATC["1701"]:
         r.b(f"rdoPg1I7ATC_{code}", atc == code)
     r.enc("txtPg1I8TaxpayerName", inc.name_given(c))
@@ -321,7 +341,7 @@ def export_rows(data: dict, comp: list[dict], ctx: Context) -> tuple[list[tuple[
     r.b("rdoPg2I10IncomeExemptNo", sie == "no")
     r.b("rdoPg2I11IncomeSpecialYes", sis == "yes")
     r.b("rdoPg2I11IncomeSpecialNo", sis == "no")
-    srate = inc.s(data.get("rateB")) if spouse else ""
+    srate = B["rate"] if spouse else ""  # the rate as the spouse ATC sets it
     smethod = inc.s(data.get("methodB")) or "osd"
     r.b("rdoPg2I12TaxRateG", srate == "graduated")
     r.b("rdoPg2I12AMethodDeductionI", srate not in ("eight", "") and smethod == "itemized")
@@ -350,9 +370,9 @@ def export_rows(data: dict, comp: list[dict], ctx: Context) -> tuple[list[tuple[
         r.a(f"txtPg2IShed2_4{s}", o["comp"] if on else 0)
         r.z(f"txtPg2IShed2_5{s}")
         r.a(f"txtPg2IShed2_6{s}", o["comp"] if on else 0)
-        r.a(f"txtPg2IShed2_7{s}", o["compTaxFlat"] if on else 0)
+        r.a(f"txtPg2IShed2_7{s}", o["compTax"] if on else 0)
     grad = lambda o: o["rate"] != "eight"  # noqa: E731
-    itm = lambda o: o["method"] != "osd"  # noqa: E731
+    itm = lambda o: o["itemized"]  # noqa: E731
     s3a = {
         8: lambda o: o["sales"], 9: lambda o: o["returns"], 10: lambda o: o["netSales"], 11: lambda o: o["cogs"], 12: lambda o: o["gross"],
         13: lambda o: o["itemizedOrdinary"] if itm(o) else ZERO, 14: lambda o: o["itemizedSpecial"] if itm(o) else ZERO, 15: lambda o: o["nolco"] if itm(o) else ZERO,
@@ -419,7 +439,7 @@ def export_rows(data: dict, comp: list[dict], ctx: Context) -> tuple[list[tuple[
     for i in range(1, 6):
         r.a(f"txtPg4ISc6_{i}A", p6(A)[i - 1])
         r.a(f"txtPg4ISc6_{i}B", p6(B)[i - 1] if spouse else 0)
-    p7 = lambda o: {1: o["excess"], 2: o["prevPaid"], 5: o["taxWithheldComp"], 10: o["credits"]}  # noqa: E731
+    p7 = lambda o: {1: o["excess"], 2: o["prevPaid"], 3: o["cwtPrev"], 4: o["cwt"], 5: o["taxWithheldComp"], 10: o["credits"]}  # noqa: E731
     for i in range(1, 9):
         r.a(f"txtPg4IPart7_{i}A", p7(A).get(i, ZERO))
         r.a(f"txtPg4IPart7_{i}B", p7(B).get(i, ZERO) if spouse else 0)

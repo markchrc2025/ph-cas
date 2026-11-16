@@ -36,8 +36,8 @@ class FormSpec:
 FORMS: dict[str, FormSpec] = {
     f.code: f
     for f in (
-        FormSpec("2551Q", "2551Q", "2018-01", "quarter", "pesos", "export", "Quarterly Percentage Tax Return", "frm2551Qv2018", False, "DUE-2551Q"),
-        FormSpec("2550Q", "2550Q", "2024-04", "quarter", "pesos", "export", "Quarterly Value-Added Tax Return", "frm2550qv2024", True, "DUE-2550Q"),
+        FormSpec("2551Q", "2551Q", "2018-01", "quarter", "centavos", "export", "Quarterly Percentage Tax Return", "frm2551Qv2018", False, "DUE-2551Q"),
+        FormSpec("2550Q", "2550Q", "2024-04", "quarter", "centavos", "export", "Quarterly Value-Added Tax Return", "frm2550qv2024", True, "DUE-2550Q"),
         FormSpec("0619-E", "0619E", "2018-01", "month", "centavos", "print", "Monthly Remittance Form of Creditable Income Taxes Withheld (Expanded)", None, False, "DUE-0619E", "Withholding"),
         FormSpec("1601-EQ", "1601EQ", "2019-01", "quarter", "centavos", "print", "Quarterly Remittance Return of Creditable Income Taxes Withheld (Expanded)", None, False, "DUE-1601EQ", "Withholding"),
         FormSpec("1601-C", "1601C", "2018-01", "month", "centavos", "print", "Monthly Remittance Return of Income Taxes Withheld on Compensation", None, False, None, "Withholding"),

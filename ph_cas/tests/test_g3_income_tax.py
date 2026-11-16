@@ -75,7 +75,8 @@ class TestG3Pure(IntegrationTestCase):
         c = ctx("1701Q", "2026-Q1", INDIVIDUAL)
         data = {"atc": "II014", "salesA": "1000000", "cogsA": "200000", "methodA": "osd", "rateA": "graduated", "cwtA": "10000"}
         by = {ln["item"]: ln["amount"] for ln in f1701q.compute(data, c)}
-        self.assertEqual((by["38A"], by["39/40A"], by["45A"], by["46A"], by["26A"], by["28/63A"]), (800000, 400000, 400000, 22500, 22500, 12500))
+        # eBIRForms: OSD is 40% of gross sales, so cost of sales closes at 0
+        self.assertEqual((by["37A"], by["38A"], by["39/40A"], by["45A"], by["46A"], by["26A"], by["28/63A"]), (0, 1000000, 400000, 600000, 62500, 62500, 52500))
         rows = dict(f1701q.export_rows(data, f1701q.compute(data, c), c)[0])
         self.assertEqual(rows["frm1701q:txt40A"], "400,000.00")
         self.assertEqual(rows["frm1701q:txt39A"], "0.00")
@@ -83,7 +84,7 @@ class TestG3Pure(IntegrationTestCase):
         self.assertEqual(rows["frm1701q:optType_2"], "true")
         self.assertEqual(rows["frm1701q:txtTaxpayerName"], "DELA%20CRUZ%2C%20JUAN%2C%20M")
         self.assertEqual(rows["frm1701q:txtBirthYear"], "1980")
-        data = {"atc": "II012", "salesA": "1000000", "rateA": "eight", "prev8A": "500000"}
+        data = {"atc": "II015", "salesA": "1000000", "rateA": "eight", "prev8A": "500000"}
         by = {ln["item"]: ln["amount"] for ln in f1701q.compute(data, ctx("1701Q", "2026-Q2", INDIVIDUAL))}
         self.assertEqual((by["51A"], by["53A"], by["54A"], by["26A"]), (1500000, 1250000, 100000, 100000))
         with self.assertRaises(ExportRefusal):
@@ -100,10 +101,11 @@ class TestG3Pure(IntegrationTestCase):
         by = {ln["item"]: ln["amount"] for ln in f1702q.compute(data, c)}
         self.assertEqual((by["Sch 2.9"], by["Sch 2.11"], by["Sch 2.12"], by["Sch 2.13"], by["25"]), (700000, 175000, 12000, 175000, 170000))
         rows = dict(f1702q.export_rows(data, f1702q.compute(data, c), c)[0])
-        self.assertEqual(rows["frm1702q:optQtr:_3"], "true")
-        self.assertEqual(rows["txt3rdQtr"], "600,000.00")
-        self.assertEqual(rows["txtMinCorpIncomeTax"], "12,000.00")
-        self.assertEqual(rows["1702q:OptMethodDeduct_1"], "true")
+        self.assertEqual(rows["frm1702q:rbQuarter_3"], "true")
+        self.assertEqual(rows["frm1702q:Sched3:txtTax3"], "600,000.00")
+        self.assertEqual(rows["frm1702q:Sched2:txtTax12"], "12,000.00")
+        self.assertEqual(rows["frm1702q:rbMthdOfDdctns_1"], "true")
+        self.assertEqual((rows["frm1702q:rbATC_1"], rows["frm1702q:cbATC_2"]), ("true", "IC010_25%25"))
         data["mcit"] = "no"
         by = {ln["item"]: ln["amount"] for ln in f1702q.compute(data, c)}
         self.assertEqual(by["Sch 2.12"], 0)
@@ -134,9 +136,10 @@ class TestG3Pure(IntegrationTestCase):
         self.assertEqual(rows["frm1701:txtPg4IPart7_2A"], "20,000.00")
         self.assertEqual(rows["frm1701:txtPg1I33NumberOfAttachments"], "00")
         self.assertEqual(rows["frm1701:txtPg1I8TaxpayerName"], "DELA%20CRUZ%2C%20JUAN%20M")
-        data = {"atc": "II012", "salesA": "2000000", "compA": "600000", "rateA": "eight"}
+        data = {"atc": "II016", "salesA": "2000000", "compA": "600000", "rateA": "eight"}
         by = {ln["item"]: ln["amount"] for ln in f1701.compute(data, c)}
-        self.assertEqual((by["Sch 3.30A"], by["Part VI.1A"], by["22A"]), (1750000, 202500, 202500))
+        # eBIRForms: a mixed income earner on 8% gets no 250,000 reduction; compensation is taxed at the graduated rates
+        self.assertEqual((by["Sch 3.30A"], by["Part VI.1A"], by["22A"]), (2000000, 222500, 222500))
         needs = [n.key for n in f1701.needs(data, c)]
         self.assertIn("data.spouseIncome", needs)
         c = ctx("1701A", "2026", INDIVIDUAL)
@@ -188,7 +191,7 @@ class TestG3Books(IntegrationTestCase):
         q.set_inputs(json.dumps({"atc": "IC055"}))
         q.reload()
         url = q.export_for_ebirforms()
-        self.assertTrue(url.endswith(f"1702Q{self.qs.year}Q{self.q[-1]}.xml"))
+        self.assertTrue(url.endswith(f"-1702Qv2018C-{self.qs.year}Q{self.q[-1]}.xml"))
         content = frappe.get_doc("File", {"file_url": url}).get_content()
         text = content.decode("utf-8") if isinstance(content, bytes) else content
         self.assertTrue(text.startswith("<?xml version='1.0'?>\t\r\n"))
