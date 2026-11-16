@@ -199,3 +199,24 @@ class TestB55QAFixes(IntegrationTestCase):
 
         cols, rows = gj({"company": TEST_COMPANY, "from_date": today(), "to_date": today()})
         self.assertIn("Credit Note", {r.get("voucher_type") for r in rows})
+
+    # ---- compliance calendar ------------------------------------------------------------------
+    def test_calendar_flags_a_computed_return_past_due_and_skips_periods_before_the_books(self):
+        from unittest.mock import patch
+
+        from frappe.utils import add_days, get_last_day
+
+        from ph_cas.tax import calendar as cal
+        from ph_cas.tax.returns import get_or_create
+
+        start = cal.books_start(TEST_COMPANY)
+        earlier = [r for r in cal.calendar(TEST_COMPANY, start.year - 1) if not r.get("figures")]
+        self.assertEqual(earlier, [])  # a year before the books began lists nothing as overdue
+
+        ms = get_first_day(today())
+        get_or_create(TEST_COMPANY, "0619-E", ms, get_last_day(ms))
+        later = add_days(get_last_day(add_months(ms, 1)), 1)  # past the 10th of next month
+        with patch("frappe.utils.nowdate", return_value=str(later)):
+            rows = [r for r in cal.calendar(TEST_COMPANY, ms.year) if r["form"] == "0619-E" and getdate(r["period_start"]) == ms]
+        if ms.month % 3:  # months 1 and 2 of a quarter have a 0619-E
+            self.assertEqual(rows[0]["status"], "OVERDUE, computed, not filed")
