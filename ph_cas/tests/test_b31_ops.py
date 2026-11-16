@@ -57,8 +57,13 @@ class TestB31Ops(IntegrationTestCase):
         for k in ("backup_ok", "chain_ok", "disk_ok", "draft_rules_ok", "ok", "disk_free_gb", "draft_rules"):
             self.assertIn(k, st)
         self.assertTrue(st["draft_rules_ok"])  # not a production site
+        from ph_cas.tax.rules import apply_acceptance
+
+        apply_acceptance()
         frappe.conf.ph_cas_production = 1
         try:
-            self.assertFalse(status()["draft_rules_ok"])  # drafts exist; production refuses them
+            self.assertTrue(status()["draft_rules_ok"])  # every seeded rule is accepted (LDG-47)
+            frappe.get_doc({"doctype": "PH Tax Rule", "rule_id": "QA-DRAFT-OPS", "kind": "percentage", "title": "x", "atc": "PTQAO", "base": "gross", "rate": 1, "effective_from": "2026-01-01", "legal_basis": "test", "status": "draft"}).insert()
+            self.assertFalse(status()["draft_rules_ok"])  # a draft exists; production refuses it
         finally:
             frappe.conf.pop("ph_cas_production", None)

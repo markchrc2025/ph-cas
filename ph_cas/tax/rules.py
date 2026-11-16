@@ -124,6 +124,40 @@ def seed():
     return inserted
 
 
+def acceptance_path() -> str:
+    return os.path.join(os.path.dirname(os.path.dirname(__file__)), "setup", "data", "rules_acceptance.json")
+
+
+def apply_acceptance() -> list[str]:
+    """Confirm the rules the owner accepted (setup/data/rules_acceptance.json, LDG-47).
+    Run on install and migrate after the seed: every site gets the same confirmed
+    set. A rule not in the file stays draft. Recorded on each rule and in the event log."""
+    try:
+        with open(acceptance_path(), encoding="utf-8") as f:
+            acc = json.load(f)
+    except FileNotFoundError:
+        return []
+    label = f"Accepted by {acc.get('accepted_by')} on {acc.get('accepted_on')}"[:140]
+    confirmed = []
+    frappe.flags.ph_rule_signoff = True
+    try:
+        for rule_id in acc.get("rules") or []:
+            if frappe.db.get_value("PH Tax Rule", rule_id, "status") != "draft":
+                continue
+            doc = frappe.get_doc("PH Tax Rule", rule_id)
+            doc.status = "confirmed"
+            doc.signoff_file = label
+            doc.save(ignore_permissions=True)
+            confirmed.append(rule_id)
+    finally:
+        frappe.flags.ph_rule_signoff = False
+    if confirmed:
+        from ph_cas.audit.events import record
+
+        record("settings_change", "PH Tax Rule", "rules_acceptance.json", 0, {"confirmed": confirmed, "accepted_by": acc.get("accepted_by"), "accepted_on": acc.get("accepted_on")})
+    return confirmed
+
+
 def seed_count() -> int:
     with open(seed_path(), encoding="utf-8") as f:
         return len(json.load(f))
