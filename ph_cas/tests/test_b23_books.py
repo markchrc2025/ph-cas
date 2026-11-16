@@ -1,6 +1,8 @@
 """B23: General Journal, General Ledger, Cash Receipts and Cash Disbursements books."""
 
 import frappe
+
+from ph_cas.audit.header import software_name
 from frappe.tests import IntegrationTestCase
 from frappe.utils import flt, get_first_day, get_last_day, today
 
@@ -83,5 +85,5 @@ class TestB23Books(IntegrationTestCase):
     def test_export_carries_the_header(self):
         cols, rows = gj(self.f)
         data = csv_with_header([c["label"] for c in cols], [[r.get(c["fieldname"]) for c in cols] for r in rows], TEST_COMPANY).decode("utf-8-sig")
-        self.assertIn("Software: PH CAS", data.split("\r\n")[3])
+        self.assertIn(f"Software: {software_name()}", data.split("\r\n")[3])
         self.assertIn("Date,Reference,Document,Particulars,Account,Debit,Credit", data)

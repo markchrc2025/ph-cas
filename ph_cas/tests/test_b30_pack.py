@@ -1,6 +1,8 @@
 """B30: the registration pack."""
 
 import frappe
+
+from ph_cas.audit.header import software_name
 from frappe.tests import IntegrationTestCase
 
 from ph_cas.registration.pack import build, conformance_rows
@@ -43,7 +45,7 @@ class TestB30Pack(IntegrationTestCase):
         self.assertIn("6", out["manifest"]["annex_b_gaps"])
         c1 = out["files"]["01_Annex_C1_System_Description.txt"].decode()
         self.assertIn("ANNEX C-1", c1)
-        self.assertIn("PH CAS version", c1)
+        self.assertIn(f"{software_name()} version", c1)
 
     def test_specimen_render_does_not_count_as_a_print(self):
         from ph_cas.invoicing.printing import print_status

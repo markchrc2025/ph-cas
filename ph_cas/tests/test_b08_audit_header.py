@@ -21,7 +21,7 @@ class TestB08AuditHeader(IntegrationTestCase):
         text = "\n".join(lines)
         self.assertIn(TEST_COMPANY, text)
         self.assertIn("REG TIN 000-000-000-00000", text)
-        self.assertIn("Software: PH CAS version", text)
+        self.assertIn(f"Software: {software_name()} version", text)
         self.assertNotIn("ERPNext", text)
         self.assertNotIn("Frappe", text)
         self.assertIn("Printed by: Administrator", text)
@@ -41,19 +41,20 @@ class TestB08AuditHeader(IntegrationTestCase):
 
     def test_product_name_setting_feeds_the_header(self):
         s = frappe.get_doc("PH CAS Settings")
+        before = s.product_name
         s.product_name = "Tala Books"
         s.save()
         try:
             self.assertEqual(software_name(), "Tala Books")
             self.assertIn("Software: Tala Books", "\n".join(ph_header_lines(TEST_COMPANY)))
         finally:
-            s.product_name = "PH CAS"
+            s.product_name = before
             s.save()
 
     def test_csv_and_xlsx_exports_start_with_the_header(self):
         data = csv_with_header(["a", "b"], [[1, 2]], TEST_COMPANY).decode("utf-8-sig")
         lines = data.split("\r\n")
-        self.assertIn("Software: PH CAS", lines[3])
+        self.assertIn(f"Software: {software_name()}", lines[3])
         self.assertEqual(lines[7], "a,b")
         self.assertEqual(lines[8], "1,2")
         xlsx = xlsx_with_header(["a", "b"], [[1, 2]], TEST_COMPANY)

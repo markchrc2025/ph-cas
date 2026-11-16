@@ -104,6 +104,7 @@ def ensure_user(email: str, roles: list[str]) -> str:
         user.flags.ignore_permissions = True
         user.insert()
     user = frappe.get_doc("User", email)
+    user.enabled = 1  # an earlier run may have left it deactivated (failed sign-ins, user limits)
     existing = {r.role for r in user.roles}
     for role in roles:
         if role not in existing:

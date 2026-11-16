@@ -1,6 +1,8 @@
 """B25: year-end e-books pack (CSV until the RR 16-2006 format arrives)."""
 
 import frappe
+
+from ph_cas.audit.header import software_name
 from frappe.tests import IntegrationTestCase
 from frappe.utils import getdate, today
 
@@ -24,7 +26,7 @@ class TestB25Ebooks(IntegrationTestCase):
         self.assertEqual(len(names), len(BOOKS) + 3)  # manifest, transmittal, file layout
         gj = [n for n in names if n.endswith("_GJ.csv")][0]
         text = out["files"][gj].decode("utf-8-sig")
-        self.assertIn("Software: PH CAS", text)
+        self.assertIn(f"Software: {software_name()}", text)
         self.assertIn("TIES TO THE LEDGER", text)
         self.assertTrue(verify_pack(out["files"])["ok"])
         t = out["files"]["TRANSMITTAL.txt"].decode("utf-8")

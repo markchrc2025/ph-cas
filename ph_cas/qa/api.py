@@ -135,6 +135,9 @@ def _supplier(name, **f):
 
 
 def _sales(company, customer, lines, posting_date, manual_no):
+    done = frappe.db.get_value("Sales Invoice", {"company": company, "ph_manual_invoice_no": manual_no, "docstatus": 1}, "name")
+    if done:
+        return done  # the scenario ran before: it adds nothing twice
     a = _abbr(company)
     si = frappe.get_doc({
         "doctype": "Sales Invoice", "company": company, "customer": customer, "posting_date": posting_date, "set_posting_time": int(str(posting_date) != today()),
@@ -147,6 +150,9 @@ def _sales(company, customer, lines, posting_date, manual_no):
 
 
 def _bill(company, supplier, lines, posting_date, bill_no):
+    done = frappe.db.get_value("Purchase Invoice", {"company": company, "supplier": supplier, "bill_no": bill_no, "docstatus": 1}, "name")
+    if done:
+        return done
     a = _abbr(company)
     pi = frappe.get_doc({
         "doctype": "Purchase Invoice", "company": company, "supplier": supplier, "posting_date": posting_date, "set_posting_time": int(str(posting_date) != today()),

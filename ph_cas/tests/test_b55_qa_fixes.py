@@ -291,6 +291,8 @@ class TestB56Exports(IntegrationTestCase):
         from ph_cas.dat.sawt import build
 
         frappe.set_user("Administrator")
+        frappe.db.set_value("Company", TEST_COMPANY, {"tax_id": "123-456-789", "ph_branch_code": "00000", "ph_rdo": "045", "ph_registered_name": "SAMPLE TAXPAYER CORP"}, update_modified=False)
+        frappe.clear_document_cache("Company", TEST_COMPANY)
         name, content, n = build(TEST_COMPANY, "1702-RT", "2026-01-01", "2026-12-31")
         self.assertIn(b"H1702RT", content)
         self.assertTrue(name.endswith("1702RT.DAT"))
