@@ -6,7 +6,7 @@ import frappe
 from frappe import _
 from frappe.utils import flt
 
-from ph_cas.books.common import cash_accounts, gl_rows, party_name, party_tin, tie_row, voucher_serial
+from ph_cas.books.common import cash_accounts, gl_rows, net_by_account, party_name, party_tin, tie_row, voucher_serial
 
 
 def execute(filters=None):
@@ -40,8 +40,9 @@ def execute(filters=None):
             chk = frappe.db.get_value("Payment Entry", vn, "reference_no")
             if chk:
                 ref = f"{vn} / {chk}"
-        debits = [l for l in lines if l.account not in cash and flt(l.debit) > 0]
-        others = [l for l in lines if l.account not in cash and flt(l.credit) > 0]  # e.g. tax withheld on the payment
+        netted = net_by_account(lines, skip=cash)
+        debits = [l for l in netted if flt(l.debit) > 0]
+        others = [l for l in netted if flt(l.credit) > 0]  # e.g. tax withheld on the payment
         for i in range(max(len(debits), len(others))):
             first = i == 0
             d = debits[i] if i < len(debits) else None

@@ -296,3 +296,19 @@ class TestB56Exports(IntegrationTestCase):
         name, content, n = build(TEST_COMPANY, "1702-RT", "2026-01-01", "2026-12-31")
         self.assertIn(b"H1702RT", content)
         self.assertTrue(name.endswith("1702RT.DAT"))
+
+
+class TestB57CashBooksNet(IntegrationTestCase):
+    def test_a_receivable_raised_and_settled_in_one_voucher_drops_out(self):
+        from ph_cas.books.common import net_by_account
+
+        L = frappe._dict
+        lines = [  # a cash sale: the receivable is raised and settled in the same invoice
+            L(account="Debtors", debit=1620, credit=0), L(account="Sales", debit=0, credit=1500), L(account="Output VAT", debit=0, credit=120),
+            L(account="Cash", debit=1620, credit=0), L(account="Debtors", debit=0, credit=1620),
+        ]
+        out = net_by_account(lines, skip={"Cash"})
+        self.assertEqual([(r.account, r.debit, r.credit) for r in out], [("Sales", 0.0, 1500.0), ("Output VAT", 0.0, 120.0)])
+        collection = [L(account="Cash", debit=34470, credit=0), L(account="CWT", debit=630, credit=0), L(account="Debtors", debit=0, credit=35100)]
+        out = net_by_account(collection, skip={"Cash"})
+        self.assertEqual([(r.account, r.debit, r.credit) for r in out], [("CWT", 630.0, 0.0), ("Debtors", 0.0, 35100.0)])

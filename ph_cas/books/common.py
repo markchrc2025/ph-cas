@@ -101,3 +101,23 @@ def standard_filters():
         {"fieldname": "from_date", "label": "From", "fieldtype": "Date", "reqd": 1},
         {"fieldname": "to_date", "label": "To", "fieldtype": "Date", "reqd": 1},
     ]
+
+
+def net_by_account(lines, skip=()) -> list:
+    """One line per account with its net for the voucher (debit less credit), in the
+    order the accounts first appear. A receivable that is raised and settled in the
+    same voucher (a cash sale) nets to nothing and drops out of the cash books."""
+    order, net = [], {}
+    for l in lines:
+        if l.account in skip:
+            continue
+        if l.account not in net:
+            order.append(l.account)
+            net[l.account] = 0.0
+        net[l.account] += flt(l.debit) - flt(l.credit)
+    out = []
+    for a in order:
+        v = flt(net[a], 2)
+        if v:
+            out.append(frappe._dict(account=a, debit=v if v > 0 else 0.0, credit=-v if v < 0 else 0.0))
+    return out

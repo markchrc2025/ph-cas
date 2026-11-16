@@ -7,7 +7,7 @@ import frappe
 from frappe import _
 from frappe.utils import flt
 
-from ph_cas.books.common import cash_accounts, gl_rows, party_name, party_tin, tie_row, voucher_serial
+from ph_cas.books.common import cash_accounts, gl_rows, net_by_account, party_name, party_tin, tie_row, voucher_serial
 
 
 def execute(filters=None):
@@ -36,8 +36,9 @@ def execute(filters=None):
         if cash_dr <= 0:
             continue
         party_line = next((l for l in lines if l.party), None)
-        credits = [l for l in lines if l.account not in cash and flt(l.credit) > 0]
-        others = [l for l in lines if l.account not in cash and flt(l.debit) > 0]
+        netted = net_by_account(lines, skip=cash)
+        credits = [l for l in netted if flt(l.credit) > 0]
+        others = [l for l in netted if flt(l.debit) > 0]
         for i in range(max(len(credits), len(others))):
             first = i == 0
             c = credits[i] if i < len(credits) else None
