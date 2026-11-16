@@ -2,6 +2,13 @@
 
 One entry per bundle, newest first. Counts are the test totals on main after the merge.
 
+## B57 Cash books net each account within a voucher (16 Nov 2026)
+- PR: (filled in at merge)
+- Built: found on staging with a POS cash sale: the Cash Receipts Book showed the receivable raised and settled inside the same invoice as both an other debit and a credit (Debtors 1,620.00 each way). The cash books now net each account within the voucher (books.common.net_by_account), so a cash sale reads cash 1,620.00 against sales 1,500.00 and output VAT 120.00, and a collection reads cash and withheld tax against the receivable.
+- Tests: +1 (test_b55_qa_fixes).
+- Assumed: nothing new.
+- Left out: nothing in scope.
+
 ## B56 Fixes from the second staging QA pass (16 Nov 2026)
 - PR: (filled in at merge)
 - Built: LDG-112: output VAT and input VAT sit only on the lines they belong to. ERPNext rebuilds each line's tax map from its Item Tax Template on every save, so ph_cas.tax.line_scope gives each company its own templates ("PH No VAT", "PH Input VAT goods", "services", "capital") marking the VAT accounts a line does not carry as not applicable, and the tax engine puts one on each line by its VAT class and kind; a template a person chose is left alone. LDG-115: recording an event asks for the commit, so downloads and exports (GET requests) keep their audit row. LDG-116: a PH Approval Chain left blank for every company is no longer filled with the saving user's default company. LDG-117: the 1604-E takes item 8A from Company > Top withholding agent; BIR Returns gains Generate SAWT (.dat) on the 2550Q, 2551Q, 1701Q, 1702Q, 1701 and 1702-RT, and the SAWT accepts the 1702-RT name; the demo company has a contact number and email. The QA scenarios add nothing twice when run again. Tests no longer depend on the bench's product name, user state or the QA scenario's commits.
