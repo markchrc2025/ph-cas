@@ -3,14 +3,14 @@
 One entry per bundle, newest first. Counts are the test totals on main after the merge.
 
 ## B63 Staging scenarios for income tax QA (QA pass 3) (16 Nov 2026)
-- PR: #72
+- PR: #73
 - Built: two staging scenarios for the income tax returns. income_year: every month of the year before the current quarter on the QA company, with VATable sales of 250,000, cost of sales 150,000, office expenses 50,000 and representation 5,000 a month (journal entries; a Representation and Entertainment account with its EAR tax class), a 3,000 income tax 2307 from the customer each quarter, and MCIT in force (operations from 2020). individual_year: QA Sole Proprietor, an individual on graduated rates with OSD, sales of 100,000 a month over the same months. Both add nothing twice. The QA connector lists them.
 - Tests: +1 (test_b63_qa_income: the 1702Q and 1701Q figures worked out by hand); B54 lists the new scenarios.
 - Assumed: nothing new.
 - Left out: nothing in scope.
 
 ## B62 Alphalist files verified against the BIR's own module 7.4 (LDG-48, LDG-51) (16 Nov 2026)
-- PR: (filled in at merge)
+- PR: #72
 - Built: installed the BIR Alphalist Data Entry and Validation module 7.4 under Wine, typed an invented withholding agent and payees into its Data Entry module, and kept the files it generated as golden files (ph_cas/tests/golden/alphalist/: QAP July and September 2026, 1604-E 2026, SAWT for the 2550Q, MAP for the 1600-VT); all pass its Validation module. The writers now match them byte for byte. What the module showed and the writers now do:
   - Branch code: 4 digits. The validator rejects the 5-digit code B48 wrote on every line ("Invalid Length in Branch of Withholding Agent", "Invalid length of Payees Branch Code"), so dat_branch drops the leading zero and refuses a code that does not start with 0. This supersedes owner answer 8b (DECISIONS.md).
   - QAP: one file per month of the quarter, each with that month's rows, as the module writes it; no file for a month without payees (the validator rejects a header with no detail). Schedule 2 lines only when there are exempt payees. The PH Tax Return's "Generate QAP" writes up to three PH Alphalist Files and links the last.
