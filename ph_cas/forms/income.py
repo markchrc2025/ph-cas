@@ -220,7 +220,7 @@ def missing_quarters_warning(form_q: str, year: int, missing: list[int], where: 
     if not missing:
         return []
     qs = ", ".join(f"Q{q}" for q in missing)
-    return [f"No filed {form_q} in Ledger for {qs} {year}: {where} leaves out what was paid for {'that quarter' if len(missing) == 1 else 'those quarters'}. Type the payment if the return was filed outside Ledger."]
+    return [f"No filed {form_q} in Ledger for {qs} {year}, so {where} does not include what was paid for {'that quarter' if len(missing) == 1 else 'those quarters'}. Type the payment if the return was filed outside Ledger."]
 
 
 def peso_text(d) -> str:

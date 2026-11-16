@@ -124,7 +124,7 @@ def feed(ctx: Context) -> dict:
     if "i34" in figures:
         lines.append(inc.books_line("i34", "Item 34, ordinary allowable itemized deductions", figures["i34"], company, p.start, p.end, "purchase-invoice"))
     warnings = [f"Item {i} is below zero in the books; it is shown as 0." for i, v in (("27", a.get("Sales", ZERO)), ("30", a.get("COGS", ZERO))) if v < 0]
-    warnings += inc.missing_quarters_warning("1702Q", p.year, missing, "Items 45 and 46")
+    warnings += inc.missing_quarters_warning("1702Q", p.year, missing, "Items 45 and 46 together")
     return {"figures": figures, "lines": lines, "warnings": warnings}
 
 

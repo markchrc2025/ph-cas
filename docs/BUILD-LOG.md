@@ -3,7 +3,7 @@
 One entry per bundle, newest first. Counts are the test totals on main after the merge.
 
 ## B65 Demo signups followed up within 24 hours (LDG-57) (16 Nov 2026)
-- PR: (filled in at merge)
+- PR: #75
 - Built: the owner's answer to LDG-57 is the Sentire Helpdesk with Mark following up; the Helpdesk is not built yet, so this is the stand-in. Each demo signup is mailed to DEMO_LEADS_OWNER (site config demo_leads_owner, else the Administrator's address) with Reply-To set to the lead, a subject that says to follow up within 24 hours, and a signed "mark as contacted" link (ph_cas.hosting.demo_access.mark_contacted, HMAC with the site's encryption key). The hourly job remind_uncontacted_leads sends one reminder for a signup not marked contacted after 20 hours. Follow-up state is private/files/demo-followup.csv, outside the database, so the nightly demo reset keeps it. DEMO_LEADS_WEBHOOK stays for the Helpdesk once it exists.
 - Tests: +2 (test_b65_demo_leads: listed, reminded once, marked contacted by the signed link, a forged link refused; the owner address).
 - Assumed: one reminder is enough; the CSV is the lead list until the Helpdesk.

@@ -114,7 +114,7 @@ def feed(ctx: Context) -> dict:
         lines.append({"key": "sch4_2", "label": "Schedule 4 Item 2, tax paid in earlier quarters (filed 1702Q returns)", "amount": figures["sch4_2"], "records": ctx.period.quarter_no - 1 - len(missing), "filter": rets})
         lines.append({"key": "sch4_3", "label": "Schedule 4 Item 3, MCIT paid in earlier quarters (filed 1702Q returns)", "amount": figures["sch4_3"], "records": ctx.period.quarter_no - 1 - len(missing), "filter": rets})
     warnings = [f"Schedule 2 Item {i} ({v}) is below zero in the books; it is shown as 0." for i, v in (("1", this.get("Sales", ZERO)), ("2", this.get("COGS", ZERO))) if v < 0]
-    warnings += inc.missing_quarters_warning("1702Q", year, missing, "Schedule 4 Items 2 and 3")
+    warnings += inc.missing_quarters_warning("1702Q", year, missing, "Schedule 4 Items 2 and 3 together")
     return {"figures": figures, "lines": lines, "warnings": warnings}
 
 
