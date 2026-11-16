@@ -2,6 +2,13 @@
 
 One entry per bundle, newest first. Counts are the test totals on main after the merge.
 
+## B58 The owner accepted the tax rules (16 Nov 2026)
+- PR: (filled in at merge)
+- Built: LDG-47. The owner, MCRC Tax and Accounting Services, accepted all 74 rules in the tax rules catalogue without a signed document. ph_cas/setup/data/rules_acceptance.json lists every rule_id with who accepted them and when; ph_cas.tax.rules.apply_acceptance() runs on install and migrate after seed() and moves each listed rule still in draft to confirmed, with "Accepted by ... on ..." as its sign-off reference and one audit event. A new rule added to tax_rules.json later stays draft until the owner adds it to the acceptance list, so production keeps refusing unaccepted rules.
+- Tests: 344 on main (+1; the draft-rule tests in test_b11 and test_b31 now use rules of their own).
+- Assumed: nothing new.
+- Left out: nothing in scope.
+
 ## B57 Cash books net each account within a voucher (16 Nov 2026)
 - PR: (filled in at merge)
 - Built: found on staging with a POS cash sale: the Cash Receipts Book showed the receivable raised and settled inside the same invoice as both an other debit and a credit (Debtors 1,620.00 each way). The cash books now net each account within the voucher (books.common.net_by_account), so a cash sale reads cash 1,620.00 against sales 1,500.00 and output VAT 120.00, and a collection reads cash and withheld tax against the receivable.

@@ -39,6 +39,7 @@ def setup_all():
     from ph_cas.tax import rules
 
     rules.seed()  # B11
+    rules.apply_acceptance()  # LDG-47: the owner accepted the rules
     from ph_cas.tax import vat
 
     vat.setup()  # B12
