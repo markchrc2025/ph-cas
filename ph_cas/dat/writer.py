@@ -9,8 +9,9 @@ A layout is a list of record specs; each spec is a list of (field, kind):
   qn quoted, or an empty field with no quotes when blank (RELIEF detail rows)
   nz amount, 2 decimals, but a bare 0 when zero (RELIEF detail rows)
 
-Verification status per layout is kept in docs/dat/VERIFICATION.md: only the
-1601-EQ layout is confirmed against the BIR Validation module (gate G5).
+Verification status per layout is kept in docs/dat/VERIFICATION.md: since B62 every
+alphalist layout (QAP, 1604-E, MAP, SAWT) matches the BIR Alphalist module 7.4 byte
+for byte, and the RELIEF files match RELIEF 2.3 (B47).
 """
 
 import re
@@ -63,6 +64,19 @@ def file_bytes(lines: list[str], trailing_crlf: bool = True) -> bytes:
     return body.encode("ascii", errors="replace")
 
 
+def clean_name(text) -> str:
+    """A name as the BIR Alphalist Validation module 7.4 accepts it. Its validator rejects
+    ' & , and Ñ in a name ("Invalid character on field Registered Name", run on 16 Nov
+    2026) and accepts . - / ( ) # and digits. So: upper case, & becomes AND, Ñ becomes N
+    (accents dropped), apostrophes and quotes go, a comma becomes a space, single spaces."""
+    import unicodedata
+
+    t = str(text or "").upper().replace("&", " AND ")
+    t = unicodedata.normalize("NFKD", t).encode("ascii", "ignore").decode("ascii")
+    t = re.sub(r"['\"`]", "", t).replace(",", " ")
+    return re.sub(r"\s+", " ", t).strip()
+
+
 def tin9(tin: str) -> str:
     digits = re.sub(r"\D", "", tin or "")
     if len(digits) != 9:
@@ -71,7 +85,7 @@ def tin9(tin: str) -> str:
 
 
 def branch4(branch: str) -> str:
-    """The DAT branch code: now the full 5 digits (RDO answer 8b); the name is kept for the callers."""
+    """The DAT branch code: 4 digits, as the BIR Alphalist module 7.4 writes and validates it."""
     from ph_cas.setup.master_data import dat_branch
 
     return dat_branch(branch or "00000")
@@ -88,13 +102,15 @@ def file_name(tin: str, branch: str, period_end, form_code: str, kind: str = "al
 
 def agent(company: str) -> dict:
     c = frappe.get_cached_doc("Company", company)
+    individual = (c.get("ph_taxpayer_type") or "Non-individual") == "Individual"
     return {
         "tin": tin9(c.get("tax_id")),
         "branch": branch4(c.get("ph_branch_code")),
-        "name": (c.get("ph_registered_name") or c.company_name).upper(),
+        "name": clean_name(c.get("ph_registered_name") or c.company_name),
         "rdo": c.get("ph_rdo") or "",
-        "individual": (c.get("ph_taxpayer_type") or "Non-individual") == "Individual",
-        "last": "", "first": "", "middle": "",
+        "individual": individual,
+        # an individual files under his own name (the SAWT header's last, first and middle name)
+        **{k: (clean_name(c.get(f"ph_{k}_name")) if individual else "") for k in ("last", "first", "middle")},
     }
 
 
@@ -104,7 +120,7 @@ def party_fields(party_type: str, party: str) -> dict:
     d = frappe.get_cached_doc(party_type, party)
     parts = payee_name_parts(party_type, party)
     tin = d.get("ph_tin") or d.get("tax_id") or ""
-    return {"tin": tin9(tin), "branch": branch4(d.get("ph_branch_code")), **{k: (v or "").upper() for k, v in parts.items()}}
+    return {"tin": tin9(tin), "branch": branch4(d.get("ph_branch_code")), **{k: clean_name(v) for k, v in parts.items()}}
 
 
 def store(company: str, form_code: str, period_start, period_end, filename: str, content: bytes, layout_status: str, rows: int) -> str:

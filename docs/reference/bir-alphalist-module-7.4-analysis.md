@@ -2,6 +2,15 @@
 
 Prepared by Claude at the owner's request: a structural analysis of the BIR's Alphalist Data Entry and Validation Module, version 7.4, and the issuances that came with it, and what they mean for the firm's CAS. Read it with `claude/ph-cas-build-plan-2026-10-24.md` (unit CAS-9) and `claude/ph-tax-rules-catalogue-2026-10-26.md`.
 
+## Update, 16 Nov 2026 (B62): the module was run
+The module was installed under Wine and run (docs/dat/VERIFICATION.md, ph_cas/tests/golden/alphalist/). That settles several open points below:
+- **Record format:** comma-separated, CR LF line ends including the last line, amounts with two decimals, names quoted when they have a value and empty unquoted fields when blank.
+- **Branch code:** 4 digits. The validator rejects 5.
+- **SAWT for the 2550Q:** form code 2550Q (the module lists 1700, 1701, 1701Q, 1702, 1702Q, 2550M, 2550Q, 2551Q, 2553).
+- **QAP:** one file per month of the quarter, named for that month; a file with no detail fails validation.
+- **Names:** the validator rejects ' & , and Ñ.
+- **Codes after 7.4:** WV080 fails the unpatched module ("ATC is invalid"); the BIR publishes an ATC patch for 7.4 on its Downloadables page.
+
 ## What was reviewed
 | File | What it is |
 |---|---|
