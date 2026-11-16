@@ -37,7 +37,7 @@ class TestB54StagingSite(IntegrationTestCase):
             out = api.status()
             for k in ("site", "versions", "companies", "modules_on", "counts", "tax_rules", "scenarios"):
                 self.assertIn(k, out)
-            self.assertEqual(out["scenarios"], ["non_vat_company", "vat_quarter"])
+            self.assertEqual(out["scenarios"], ["income_year", "individual_year", "non_vat_company", "vat_quarter"])
             made = api.seed_scenario("vat_quarter", TEST_COMPANY)
             self.assertTrue(made["sales_invoices"])
             for name in made["sales_invoices"]:

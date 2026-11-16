@@ -89,8 +89,8 @@ TOOLS = [
     },
     {
         "name": "seed_scenario",
-        "description": "Add test data: vat_quarter (three months of VATable, zero-rated and exempt sales and EWT bills in the current quarter) or non_vat_company (a second, non-VAT company with sales for the 2551Q).",
-        "inputSchema": {"type": "object", "required": ["scenario"], "properties": {"scenario": {"type": "string", "enum": ["vat_quarter", "non_vat_company"]}, "company": {"type": "string"}}},
+        "description": "Add test data: vat_quarter (three months of VATable, zero-rated and exempt sales and EWT bills in the current quarter), non_vat_company (a second, non-VAT company with sales for the 2551Q), income_year (every month of the year before the current quarter: sales, cost of sales, expenses, representation and quarterly 2307s, for the 1702Q and 1702-RT) or individual_year (a sole proprietor on graduated rates with OSD and a year of sales, for the 1701Q).",
+        "inputSchema": {"type": "object", "required": ["scenario"], "properties": {"scenario": {"type": "string", "enum": ["vat_quarter", "non_vat_company", "income_year", "individual_year"]}, "company": {"type": "string"}}},
     },
     {
         "name": "api_request",
