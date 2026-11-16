@@ -237,5 +237,5 @@ class TestG3Books(IntegrationTestCase):
         self.assertEqual(by["27"][1], "books")
         self.assertEqual(by["43"][1], "derived")
         needs = [n["key"] for n in json.loads(a.needs)]
-        self.assertIn("data.atc", needs)
+        self.assertNotIn("data.atc", needs)  # Item 5 follows the higher of MCIT and the regular tax
         self.assertIn("data.presTitle", needs)

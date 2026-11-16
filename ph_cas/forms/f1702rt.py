@@ -30,7 +30,6 @@ S1 = [
 ]
 INPUTS = (
     [
-        ("atc", "5 ATC", "select:IC055"),
         ("atcChoice", "5 ATC chosen (blank: the higher of MCIT and the regular tax)", "select:mcit,regular"),
         ("regularAtc", "5 Other ATC at the regular rate (blank: IC010, corporation in general)", "select:IC010,IC020,IC040,IC041,IC070"),
         ("rate", "Income tax rate % (25, or 20 for small corporations)", "text"),
