@@ -97,28 +97,32 @@ def feed(ctx: Context) -> dict:
     credits, credits_q3 = a.get("Credits 2307", ZERO), through_q3.get("Credits 2307", ZERO)
     eight = (c.get("ph_income_tax_option") or "") == "8% option (individual)"
     osd = (c.get("ph_deduction_method") or "Itemized") != "Itemized"
+    paid, _mcit, missing = inc.quarter_payments(company, "1701Q", p.year, (1, 2, 3))
     figures = {
         "rateA": "eight" if eight else "graduated",
         "methodA": "osd" if osd else "itemized",
         "salesA": inc.peso_text(inc.nonneg_peso(a.get("Sales"))),
         "cogsA": inc.peso_text(inc.nonneg_peso(a.get("COGS"))),
-        "prevPaidA": inc.peso_text(a.get("Prior quarters", ZERO)),
+        "prevPaidA": inc.peso_text(paid),
         "cwtPrevA": inc.peso_text(credits_q3),
         "cwtA": inc.peso_text(credits - credits_q3),
     }
+    if inc.individual_atc(c):
+        figures["atc"] = inc.individual_atc(c)
     if not osd and not eight:
         figures["deductA"] = inc.peso_text(inc.nonneg_peso(a.get("Deductions")))
         figures["nolco4D"] = inc.peso_text(inc.nonneg_peso(a.get("NOLCO")))
     lines = [
         inc.books_line("salesA", "Schedule 3 Item 8, sales/revenues/receipts/fees for the year", figures["salesA"], company, p.start, p.end),
         inc.books_line("cogsA", "Schedule 3 Item 11, cost of sales or services", figures["cogsA"], company, p.start, p.end, "purchase-invoice"),
-        inc.books_line("prevPaidA", "Part VII Item 2, tax payments for the first three quarters (filed 1701Q returns)", figures["prevPaidA"], company, p.start, p.end, "ph-tax-return"),
+        {"key": "prevPaidA", "label": "Part VII Item 2, tax payments for the first three quarters (filed 1701Q returns)", "amount": figures["prevPaidA"], "records": 3 - len(missing), "filter": f"/app/ph-tax-return?company={company}&form=1701Q&docstatus=1"},
         inc.books_line("cwtPrevA", "Part VII Item 3, creditable tax withheld per 2307, first three quarters", figures["cwtPrevA"], company, p.start, q3_end, "ph-2307-received"),
         inc.books_line("cwtA", "Part VII Item 4, creditable tax withheld per 2307, fourth quarter", figures["cwtA"], company, p.start, p.end, "ph-2307-received"),
     ]
     if "deductA" in figures:
         lines.append(inc.books_line("deductA", "Schedule 3 Item 13, ordinary allowable itemized deductions", figures["deductA"], company, p.start, p.end, "purchase-invoice"))
     warnings = [f"Schedule 3 Item {i} is below zero in the books; it is shown as 0." for i, v in (("8", a.get("Sales", ZERO)), ("11", a.get("COGS", ZERO))) if v < 0]
+    warnings += inc.missing_quarters_warning("1701Q", p.year, missing, "Part VII Item 2")
     return {"figures": figures, "lines": lines, "warnings": warnings}
 
 

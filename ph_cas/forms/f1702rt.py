@@ -94,13 +94,15 @@ def feed(ctx: Context) -> dict:
     start_year = c.get("ph_operations_start_year")
     credits = a.get("Credits 2307", ZERO)
     credits_q3 = through_q3.get("Credits 2307", ZERO)
+    paid_regular, paid_mcit, missing = inc.quarter_payments(company, "1702Q", p.year, (1, 2, 3), c.get("ph_fiscal_year_start") if p.fiscal else None)
     figures = {
         "rate": "20" if c.get("ph_corp_small") else "25",
         "method": "osd" if osd else "itemized",
         "mcit": "yes" if start_year and p.year >= int(start_year) + 4 else "no",
         "i27": inc.peso_text(inc.nonneg_peso(a.get("Sales"))),
         "i30": inc.peso_text(inc.nonneg_peso(a.get("COGS"))),
-        "i46": inc.peso_text(a.get("Prior quarters", ZERO)),
+        "i45": inc.peso_text(paid_mcit),
+        "i46": inc.peso_text(paid_regular),
         "i48": inc.peso_text(credits_q3),
         "i49": inc.peso_text(credits - credits_q3),
     }
@@ -115,12 +117,14 @@ def feed(ctx: Context) -> dict:
     lines = [
         inc.books_line("i27", "Item 27, sales/revenues/receipts/fees for the year", figures["i27"], company, p.start, p.end),
         inc.books_line("i30", "Item 30, cost of sales or services", figures["i30"], company, p.start, p.end, "purchase-invoice"),
-        inc.books_line("i46", "Item 46, income tax paid for the first three quarters (filed 1702Q returns)", figures["i46"], company, p.start, p.end, "ph-tax-return"),
+        {"key": "i45", "label": "Item 45, MCIT paid in the first three quarters (filed 1702Q returns)", "amount": figures["i45"], "records": 3 - len(missing), "filter": f"/app/ph-tax-return?company={company}&form=1702Q&docstatus=1"},
+        {"key": "i46", "label": "Item 46, income tax paid at the regular rate in the first three quarters (filed 1702Q returns)", "amount": figures["i46"], "records": 3 - len(missing), "filter": f"/app/ph-tax-return?company={company}&form=1702Q&docstatus=1"},
         inc.books_line("i49", "Item 49, creditable tax withheld per 2307 for the fourth quarter", figures["i49"], company, p.start, p.end, "ph-2307-received"),
     ]
     if "i34" in figures:
         lines.append(inc.books_line("i34", "Item 34, ordinary allowable itemized deductions", figures["i34"], company, p.start, p.end, "purchase-invoice"))
     warnings = [f"Item {i} is below zero in the books; it is shown as 0." for i, v in (("27", a.get("Sales", ZERO)), ("30", a.get("COGS", ZERO))) if v < 0]
+    warnings += inc.missing_quarters_warning("1702Q", p.year, missing, "Items 45 and 46")
     return {"figures": figures, "lines": lines, "warnings": warnings}
 
 
