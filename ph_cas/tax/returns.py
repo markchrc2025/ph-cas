@@ -305,8 +305,11 @@ def compute_1601eq(company: str, start, end) -> list:
     s = getdate(start)
     m1_start, m1_end = get_first_day(s), get_last_day(s)
     m2_start, m2_end = get_first_day(add_months(s, 1)), get_last_day(add_months(s, 1))
-    m1 = flt(sum(v["tax"] for v in _ewt_rows(company, m1_start, m1_end).values()), 2)
-    m2 = flt(sum(v["tax"] for v in _ewt_rows(company, m2_start, m2_end).values()), 2)
+    # remittances actually made: the filed 0619-E of each month, not the books' withholding
+    from ph_cas.forms.withholding import remitted_0619e
+
+    m1 = flt(remitted_0619e(company, m1_start)[0], 2)
+    m2 = flt(remitted_0619e(company, m2_start)[0], 2)
     prev_over = previous_period_figure(company, "1601-EQ", start, "26")
     carry = -prev_over if prev_over < 0 and getdate(start).year == _prev_year(company, start) else 0.0
     remitted = flt(m1 + m2 + carry, 2)

@@ -145,6 +145,8 @@ def _branding():
     provider = _env("PROVIDER_NAME")
     if not product and not provider:
         return ""
+    if product and frappe.conf.get("ph_staging_site") and "(staging)" not in product:
+        product = f"{product} (staging)"  # every screen and test print says it is not the live site
     s = frappe.get_single("PH CAS Settings")
     changed = False
     if product and s.get("product_name") != product:

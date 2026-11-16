@@ -212,7 +212,7 @@ def scenario_non_vat_company(company):
     name = "QA Corner Store"
     if not frappe.db.exists("Company", name):
         frappe.get_doc({"doctype": "Company", "company_name": name, "abbr": "QACS", "default_currency": "PHP", "country": "Philippines", "chart_of_accounts": "Standard"}).insert(ignore_permissions=True)
-    frappe.db.set_value("Company", name, {"tax_id": "000-903-001", "ph_branch_code": "00000", "ph_rdo": "045", "ph_vat_status": "Non-VAT", "ph_registered_name": "QA CORNER STORE", "ph_incorporation_date": "2022-01-10", "ph_taxpayer_class": "Micro"}, update_modified=False)
+    frappe.db.set_value("Company", name, {"tax_id": "000-903-001", "ph_branch_code": "00000", "ph_rdo": "045", "ph_vat_status": "Non-VAT", "ph_registered_name": "QA CORNER STORE", "ph_registered_address": "12 Mabini Street\nBarangay Poblacion, Makati City", "ph_zip": "1210", "ph_incorporation_date": "2022-01-10", "ph_taxpayer_class": "Micro"}, update_modified=False)
     frappe.clear_document_cache("Company", name)
     setup_philippine_company(name)
     c = _customer("QA Walk-in Customer", ph_vat_status="Non-VAT")

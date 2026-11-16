@@ -1,6 +1,7 @@
 """Cash Receipts Book: every receipt of cash or bank, with the receipt number
-(Collection Receipt serial), payor, TIN, particulars, the cash debit and the
-accounts credited."""
+(Collection Receipt serial), payor, TIN, particulars, the cash debit, the accounts credited and any other account
+debited with the cash (the tax a customer withheld, a bank charge), so each
+receipt balances on its face."""
 
 import frappe
 from frappe import _
@@ -20,6 +21,8 @@ def execute(filters=None):
         {"fieldname": "cash_debit", "label": _("Cash / Bank (Dr)"), "fieldtype": "Currency", "width": 140},
         {"fieldname": "credit_account", "label": _("Account credited"), "fieldtype": "Link", "options": "Account", "width": 220},
         {"fieldname": "credit", "label": _("Credit"), "fieldtype": "Currency", "width": 130},
+        {"fieldname": "other_debit_account", "label": _("Other account debited"), "fieldtype": "Link", "options": "Account", "width": 220},
+        {"fieldname": "other_debit", "label": _("Other debit"), "fieldtype": "Currency", "width": 130},
     ]
     cash = cash_accounts(f.company)
     entries = gl_rows(f.company, f.from_date, f.to_date)
@@ -27,16 +30,18 @@ def execute(filters=None):
     for g in entries:
         by_voucher.setdefault((g.voucher_type, g.voucher_no, g.posting_date), []).append(g)
     cache, pcache, rows = {}, {}, []
-    total_cash, total_credit = 0.0, 0.0
+    total_cash, total_credit, total_other = 0.0, 0.0, 0.0
     for (vt, vn, date), lines in sorted(by_voucher.items(), key=lambda kv: (kv[0][2], kv[0][1])):
         cash_dr = sum(flt(l.debit) for l in lines if l.account in cash)
         if cash_dr <= 0:
             continue
         party_line = next((l for l in lines if l.party), None)
-        first = True
-        for l in lines:
-            if l.account in cash or flt(l.credit) <= 0:
-                continue
+        credits = [l for l in lines if l.account not in cash and flt(l.credit) > 0]
+        others = [l for l in lines if l.account not in cash and flt(l.debit) > 0]
+        for i in range(max(len(credits), len(others))):
+            first = i == 0
+            c = credits[i] if i < len(credits) else None
+            o = others[i] if i < len(others) else None
             rows.append({
                 "posting_date": date if first else None,
                 "reference": voucher_serial(vt, vn, cache) if first else None,
@@ -44,12 +49,13 @@ def execute(filters=None):
                 "tin": party_tin(party_line.party_type, party_line.party, pcache) if (first and party_line) else None,
                 "particulars": (lines[0].remarks or vt).replace("\n", " ")[:120] if first else None,
                 "cash_debit": flt(cash_dr, 2) if first else None,
-                "credit_account": l.account, "credit": flt(l.credit),
+                "credit_account": c.account if c else None, "credit": flt(c.credit) if c else None,
+                "other_debit_account": o.account if o else None, "other_debit": flt(o.debit) if o else None,
             })
-            total_credit += flt(l.credit)
-            first = False
+            total_credit += flt(c.credit) if c else 0
+            total_other += flt(o.debit) if o else 0
         total_cash += cash_dr
-    rows.append({"reference": _("TOTAL"), "cash_debit": flt(total_cash, 2), "credit": flt(total_credit, 2), "is_total_row": 1})
+    rows.append({"reference": _("TOTAL"), "cash_debit": flt(total_cash, 2), "credit": flt(total_credit, 2), "other_debit": flt(total_other, 2), "is_total_row": 1})
     ledger_cash = frappe.db.sql(
         """select coalesce(sum(g.debit), 0) from `tabGL Entry` g join `tabAccount` a on a.name = g.account
            where g.company = %s and g.is_cancelled = 0 and g.posting_date between %s and %s and a.account_type in ('Cash', 'Bank')""",

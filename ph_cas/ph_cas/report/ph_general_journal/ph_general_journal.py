@@ -5,7 +5,7 @@ import frappe
 from frappe import _
 from frappe.utils import flt
 
-from ph_cas.books.common import gl_rows, party_name, tie_out, tie_row, voucher_serial
+from ph_cas.books.common import gl_rows, party_name, tie_out, tie_row, voucher_kind, voucher_serial
 
 
 def execute(filters=None):
@@ -25,7 +25,7 @@ def execute(filters=None):
         rows.append({
             "posting_date": g.posting_date,
             "reference": voucher_serial(g.voucher_type, g.voucher_no, cache),
-            "voucher_type": g.voucher_type,
+            "voucher_type": voucher_kind(g.voucher_type, g.voucher_no, cache),
             "particulars": " ".join(x for x in [party_name(g.party_type, g.party, pcache), (g.remarks or "").replace("\n", " ")[:120]] if x),
             "account": g.account,
             "debit": flt(g.debit), "credit": flt(g.credit),

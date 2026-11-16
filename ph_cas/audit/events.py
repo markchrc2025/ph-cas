@@ -207,8 +207,14 @@ def on_trash(doc, method=None):
 
 
 def on_before_print(doc, method=None, *args, **kwargs):
-    if doc.doctype in POSTED_VOUCHER_TYPES:
-        record("print", doc.doctype, doc.name, doc.docstatus, {"bir_serial": doc.get("bir_serial")})
+    if doc.doctype not in POSTED_VOUCHER_TYPES:
+        return
+    from ph_cas.invoicing.printing import is_screen_preview
+
+    if is_screen_preview():  # the desk preview is not a print (printing.py)
+        return
+    record("print", doc.doctype, doc.name, doc.docstatus, {"bir_serial": doc.get("bir_serial")})
+    frappe.local.flags.commit = True  # the print page and PDF are GET requests
 
 
 def on_access_log(doc, method=None):
