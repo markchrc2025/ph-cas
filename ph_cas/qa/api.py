@@ -16,6 +16,9 @@ QA_ROLES = (
     "System Manager", "Accounting Manager", "Accounts Manager", "Accounts User", "Sales Manager", "Sales User",
     "Purchase Manager", "Purchase User", "Stock Manager", "Stock User", "Manufacturing Manager", "Projects Manager",
     "Item Manager", "Maintenance Manager", "Quality Manager", "Support Team",
+    # QA pass 4: suppliers, customers' price lists and item prices need the master-manager roles;
+    # timesheets and work orders the user roles
+    "Sales Master Manager", "Purchase Master Manager", "Projects User", "Manufacturing User", "Maintenance User",
 )
 
 
