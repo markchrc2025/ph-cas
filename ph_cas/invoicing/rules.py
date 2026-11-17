@@ -123,7 +123,7 @@ def validate_manual_invoice_no(doc, method=None):
     """doc_events['Sales Invoice'].before_submit, after the serial: the user types the
     manual invoice number (RDO answer 2); it is unique per company and document type.
 
-    Under the test runner an empty number is filled from the serial so the many
+    Under the test runner an empty number is filled from the branch and serial so the many
     tests that submit invoices need not type one; tests of this rule set
     frappe.flags.ph_strict_manual_invoice_no."""
     from ph_cas.controls.serial import SERIAL_FIELD, document_type_of
@@ -132,7 +132,8 @@ def validate_manual_invoice_no(doc, method=None):
         return
     no = (doc.get("ph_manual_invoice_no") or "").strip()
     if not no and frappe.flags.in_test and not frappe.flags.ph_strict_manual_invoice_no:
-        no = f"T-{doc.get(SERIAL_FIELD) or doc.name}"
+        # the branch too: every branch's series starts at 1 (D4)
+        no = f"T-{doc.get('ph_branch_code') or ''}-{doc.get(SERIAL_FIELD) or doc.name}"
     if not no:
         frappe.throw(_("Type the manual invoice number before submitting {0}.").format(_(document_type_of(doc) or "Sales Invoice")), title=_("Manual invoice number"))
     doc.ph_manual_invoice_no = no
