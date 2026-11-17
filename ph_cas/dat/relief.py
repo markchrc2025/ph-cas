@@ -206,11 +206,21 @@ def build_purchases(company, start, end):
         m["vat"] += flt(r.vs) + flt(r.vc) + flt(r.vg)
     _require_addresses("Supplier", merged, parties)
     # non-creditable input VAT: the ratable share attributable to exempt sales (2550Q item 53), from the quarter's figures when computed
-    noncred = 0.0
-    fig = frappe.db.get_value("PH Tax Return Figures", {"company": company, "form": "2550Q", "period_start": start, "period_end": end}, "name")
-    if fig:
-        noncred = frappe.get_doc("PH Tax Return Figures", fig).figure("53B")
+    noncred = _input_vat_on_exempt(company, start, end)
     return _fname(company, "P", end), purchases_file(o, merged, end, noncred), len(merged)
+
+
+def _input_vat_on_exempt(company, start, end) -> float:
+    """2550Q item 53 for the period: from the 2550Q return (filed, else the draft), else the older
+    PH Tax Return Figures (53B). QA pass 4: the figures record could be stale beside the return."""
+    ret = frappe.get_all("PH Tax Return", filters={"company": company, "form": "2550Q", "period_start": start, "period_end": end, "docstatus": ("<", 2)},
+                         fields=["name"], order_by="docstatus desc, modified desc", limit=1)
+    if ret:
+        amt = frappe.db.get_value("PH Tax Return Line", {"parenttype": "PH Tax Return", "parent": ret[0].name, "item": "53"}, "amount")
+        if amt is not None:
+            return flt(amt)
+    fig = frappe.db.get_value("PH Tax Return Figures", {"company": company, "form": "2550Q", "period_start": start, "period_end": end}, "name")
+    return flt(frappe.get_doc("PH Tax Return Figures", fig).figure("53B")) if fig else 0.0
 
 
 def build_importations(company, start, end):

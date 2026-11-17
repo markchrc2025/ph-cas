@@ -100,6 +100,9 @@ def calendar(company: str, year: int) -> list[dict]:
         for d in due_dates(form, year):
             label = d["period_label"]
             fig = frappe.db.get_value("PH Tax Return Figures", {"company": company, "form": form, "period_label": label}, ["name", "filed", "computed_on"], as_dict=True)
+            draft = None if fig else frappe.db.get_value("PH Tax Return", {"company": company, "form": form, "period_start": d["period_start"], "period_end": d["period_end"], "docstatus": 0}, "name")
+            if draft:  # a return in progress counts as computed (QA pass 4)
+                fig = frappe._dict(name=draft, filed=0)
             if not fig and getdate(d["period_end"]) < start:
                 continue  # before the books in this system began
             if fig and fig.filed:
