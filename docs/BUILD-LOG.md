@@ -3,7 +3,7 @@
 One entry per bundle, newest first. Counts are the test totals on main after the merge.
 
 ## B68 QA pass 4 on staging: return-first SLSP and calendar, asset from its bill (17 Nov 2026)
-- PR: (filled in at merge)
+- PR: #79
 - Built: the full pass ran on staging section by section (165 steps). Two more defects, both from the older PH Tax Return Figures record standing beside the 2550Q return: (1) the SLSP purchases file took the input tax attributable to exempt sales from that record (53B), which can be stale; it now reads item 53 of the 2550Q return (filed, else the draft) and falls back to the record; (2) the compliance calendar counted only that record, so a return in progress showed "nothing computed"; a draft return now counts as computed. Runner: the capital-good purchase now creates its Asset from the bill (auto-create, naming series, location), and the stock check reads the Stock Ledger (Stock Balance is a background prepared report).
 - Tests: +1 (test_b67: the SLSP and the calendar read the 2550Q return).
 - Left out: owner questions in the QA pass 4 report.
