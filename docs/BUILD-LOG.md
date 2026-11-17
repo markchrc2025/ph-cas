@@ -2,6 +2,12 @@
 
 One entry per bundle, newest first. Counts are the test totals on main after the merge.
 
+## B68 QA pass 4 on staging: return-first SLSP and calendar, asset from its bill (17 Nov 2026)
+- PR: (filled in at merge)
+- Built: the full pass ran on staging section by section (165 steps). Two more defects, both from the older PH Tax Return Figures record standing beside the 2550Q return: (1) the SLSP purchases file took the input tax attributable to exempt sales from that record (53B), which can be stale; it now reads item 53 of the 2550Q return (filed, else the draft) and falls back to the record; (2) the compliance calendar counted only that record, so a return in progress showed "nothing computed"; a draft return now counts as computed. Runner: the capital-good purchase now creates its Asset from the bill (auto-create, naming series, location), and the stock check reads the Stock Ledger (Stock Balance is a background prepared report).
+- Tests: +1 (test_b67: the SLSP and the calendar read the 2550Q return).
+- Left out: owner questions in the QA pass 4 report.
+
 ## B67 QA pass 4: every function on staging, and the fixes it found (17 Nov 2026)
 - PR: #78
 - Built: ph_cas.qa.fullpass, a staging-only runner (call_method ph_cas.qa.fullpass.run, section by section) that drives every function as the signed-in user with no ignore_permissions: four taxpayer companies set up from scratch (VAT and non-VAT sole proprietors, VAT and non-VAT corporations), purchasing (PO, receipt, bill, EWT on goods, professional fees and rent, payment, 2307s), sales (invoice, serial continuity, manual number, the Annex B refusals, credit and debit notes, collections, SC/PWD, government sale, 2307 received, the six books, audit trail), tasks and assignments, inventory (receipt, transfer, stock sale, delivery note, count, D7), projects (tasks, timesheet billing, progress billing, costing), assets (category, capital-good purchase, depreciation schedule, opening asset, register), quality (procedure, goal, inspection gate on a receipt, non-conformance, action, meeting, review), CRM (lead to invoice), support (issue lifecycle, warranty claim, maintenance visit), the seven industry presets and an industry transaction each, and every BIR form with its SLSP, SAWT, QAP and alphalist files.

@@ -63,3 +63,27 @@ class TestB67Draft2307(IntegrationTestCase):
         fullpass.purchase_invoice(co, s_prof, [(svc, 1, 20000)])
         self.assertIn(name, generate_quarter(co, str(qs)))
         self.assertEqual(frappe.db.get_value("PH 2307 Issued", name, "total_tax"), before + 1000)
+
+
+class TestB67ReturnFirst(IntegrationTestCase):
+    def test_slsp_and_calendar_read_the_2550q_return(self):
+        from ph_cas.dat.relief import _input_vat_on_exempt
+        from ph_cas.ph_cas.doctype.ph_tax_return.ph_tax_return import new_return
+        from ph_cas.tax.calendar import calendar
+        from ph_cas.tax.returns import quarter_bounds
+
+        frappe.set_user("Administrator")
+        for section in ("companies", "purchasing", "sales"):
+            fullpass.run(section)
+        co = fullpass.VAT_CORP
+        qs, qe = quarter_bounds(today())
+        q = (qs.month - 1) // 3 + 1
+        name = new_return(co, "2550Q", f"{qs.year}-Q{q}")
+        doc = frappe.get_doc("PH Tax Return", name)
+        doc.refresh_from_books()
+        line = frappe.db.get_value("PH Tax Return Line", {"parenttype": "PH Tax Return", "parent": name, "item": "53"}, "amount")
+        self.assertIsNotNone(line)
+        self.assertEqual(_input_vat_on_exempt(co, qs, qe), line)
+        row = next(r for r in calendar(co, qs.year) if r["form"] == "2550Q" and r["period_label"] == f"{qs.year}-Q{q}")
+        self.assertEqual(row["figures"], name)
+        self.assertNotIn("nothing computed", row["status"])

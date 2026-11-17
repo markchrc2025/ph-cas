@@ -581,10 +581,12 @@ def s_inventory(r: Runner):
     def reports():
         from frappe.desk.query_report import run
 
-        bal = run("Stock Balance", filters={"company": co, "from_date": f"{getdate(today()).year}-01-01", "to_date": today()})
+        led = run("Stock Ledger", filters={"company": co, "from_date": f"{getdate(today()).year}-01-01", "to_date": today(), "valuation_field_type": "Currency"})
         inv = run("PH Inventory Book", filters={"company": co, "from_date": f"{getdate(today()).year}-01-01", "to_date": today()})
-        return f"stock balance {len(bal.get('result') or [])} rows; inventory book {len(inv.get('result') or [])} rows"
-    r.step("stock balance and inventory book", reports)
+        n_led, n_inv = len(led.get("result") or []), len(inv.get("result") or [])
+        r.expect(n_led and n_inv, f"stock ledger {n_led}, inventory book {n_inv}")
+        return f"stock ledger {n_led} rows; inventory book {n_inv} rows"
+    r.step("stock ledger and inventory book", reports)
 
 
 # ---- section: projects --------------------------------------------------------------------------
@@ -658,21 +660,24 @@ def s_assets(r: Runner):
     cat = r.step("asset category with accounts and straight-line depreciation", category)
 
     def buy_asset():
-        code = item("QA4 Concrete Mixer", group="Products", is_fixed_asset=1, asset_category=cat, ph_is_capital_good=1)
-        pi = purchase_invoice(co, _p[0], [(code, 1, 1200000, {"expense_account": _fixed_asset_account(co)})])
+        code = item("QA4 Concrete Mixer", group="Products", is_fixed_asset=1, asset_category=cat, ph_is_capital_good=1, auto_create_assets=1, asset_naming_series="ACC-ASS-.YYYY.-", is_stock_item=0)
+        it = frappe.get_doc("Item", code)
+        if not it.auto_create_assets or not it.get("asset_naming_series"):
+            it.auto_create_assets = 1
+            it.asset_naming_series = "ACC-ASS-.YYYY.-"
+            it.save()
+        pi = purchase_invoice(co, _p[0], [(code, 1, 1200000, {"asset_location": _location(), "expense_account": _fixed_asset_account(co)})], update_stock=1)
         t = tax_rows(pi)
+        r.expect(abs(t.get("Input VAT - Capital Goods", 0) - 144000) < 0.01, f"input VAT on capital goods {t}")
         assets = frappe.get_all("Asset", filters={"purchase_invoice": pi.name}, pluck="name")
+        r.expect(assets, "the bill made no asset")
         return {"pi": pi.name, "taxes": t, "assets": assets}
     bought = r.step("buy a capital good (input VAT on capital goods)", buy_asset)
 
     def submit_asset():
         names = (bought or {}).get("assets") or []
-        if names:
-            a = frappe.get_doc("Asset", names[0])
-        else:
-            a = frappe.get_doc({"doctype": "Asset", "company": co, "item_code": "QA4 Concrete Mixer", "asset_name": "QA4 Concrete Mixer", "location": _location(),
-                                "is_existing_asset": 1, "gross_purchase_amount": 1200000, "net_purchase_amount": 1200000, "purchase_date": today()})
-            a.insert()
+        r.expect(names, "no asset from the purchase")
+        a = frappe.get_doc("Asset", names[0])
         a.location = a.location or _location()
         a.available_for_use_date = today()
         a.calculate_depreciation = 1
