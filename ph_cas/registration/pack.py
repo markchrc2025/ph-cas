@@ -94,7 +94,7 @@ def joint_sworn_statement(company: str) -> str:
     return "\r\n".join([
         "JOINT SWORN STATEMENT (RMC 5-2021 Annex E / RMO 9-2021)",
         "",
-        f"We, {s.get('provider_signatory') or '[PROVIDER SIGNATORY, decision D10]'}, {s.get('provider_signatory_position') or '[position]'} of {s.get('provider_name') or '[PROVIDER]'} (TIN {s.get('provider_tin') or '[TIN]'}), the software provider,",
+        f"We, {s.get('provider_signatory') or '[PROVIDER SIGNATORY]'}, {s.get('provider_signatory_position') or '[position]'} of {s.get('provider_name') or '[PROVIDER]'} (TIN {s.get('provider_tin') or '[TIN]'}), the software provider,",
         f"and [CLIENT SIGNATORY, position] of {f['name']} (TIN {f['tin']}-{f['branch']}), the taxpayer-user,",
         "after having been duly sworn in accordance with law, hereby depose and state:",
         "",

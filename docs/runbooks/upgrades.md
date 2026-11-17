@@ -25,7 +25,7 @@ All client sites in one container share one codebase, so each major version runs
 3. Bump `ph_cas/__init__.py`, record it in docs/BUILD-LOG.md, merge; the version's container redeploys.
 
 ## Quarterly notice
-In the first two weeks after each quarter (the firm's policy; RMO 9-2021 sets no deadline), for each client: Company > PH CAS > Quarterly notice of minor enhancements, pick the quarter, have both parties sign, and send it to the client's RDO. A quarter without a minor release needs no notice (the button says so). Keep the signed copy with the client's registration file.
+In the first two weeks after each quarter (the firm's policy; RMO 9-2021 sets no deadline), for each client: Company > Sentire Ledger > Quarterly notice of minor enhancements, pick the quarter, have both parties sign, and send it to the client's RDO. A quarter without a minor release needs no notice (the button says so). Keep the signed copy with the client's registration file.
 
 ## Major release, step by step
 1. Build on a new branch `release/<n>`; full suite, the owner's paper print check, the BIR golden files re-run (RELIEF, Alphalist).

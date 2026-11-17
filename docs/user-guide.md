@@ -1,4 +1,4 @@
-# PH CAS user guide (short)
+# Sentire Ledger user guide (short)
 
 - **Invoices.** Make a Sales Invoice; the VAT class comes from the item and can be changed per line; VAT and the customer's withholding are computed. Submit to issue: the BIR serial is taken at submit and the posting date is today. Print gives ORIGINAL and DUPLICATE; the second print says REPRINT. Corrections: a Credit Note (decrease) or a new invoice (increase); an issued invoice is never edited or cancelled.
 - **Collections.** A Payment Entry of type Receive is the Collection Receipt. If the customer paid net of withholding, enter the amount received; the withheld part is booked automatically. Record the 2307 the customer sends as a PH 2307 Received.
@@ -23,7 +23,7 @@ Settings > Modules has one switch per optional module: Selling (quotations and s
 
 ## Loose-leaf books (B50)
 
-For a client that keeps loose-leaf books instead of registering the CAS. On the Company, fill in "Loose-leaf books permit to use no." and its date. Then Company > PH CAS > Loose-leaf books (Excel / PDF): choose the period (usually the calendar or fiscal year) and the format. The download holds the six books (Sales, Purchase, Cash Receipt, Disbursement, General Journal, General Ledger) and PAGES.txt with each book's page count. Print every page as it is (legal size, landscape), bind each book, and use the page counts in the sworn statement. The Excel and PDF files have the same pages; the Excel file keeps real numbers so it can be checked with formulas.
+For a client that keeps loose-leaf books instead of registering the CAS. On the Company, fill in "Loose-leaf books permit to use no." and its date. Then Company > Sentire Ledger > Loose-leaf books (Excel / PDF): choose the period (usually the calendar or fiscal year) and the format. The download holds the six books (Sales, Purchase, Cash Receipt, Disbursement, General Journal, General Ledger) and PAGES.txt with each book's page count. Print every page as it is (legal size, landscape), bind each book, and use the page counts in the sworn statement. The Excel and PDF files have the same pages; the Excel file keeps real numbers so it can be checked with formulas.
 
 ## Approval chains (B45)
 
