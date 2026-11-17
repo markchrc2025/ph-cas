@@ -985,7 +985,7 @@ def s_forms(r: Runner):
             doc = frappe.get_doc("PH Tax Return", name)
             doc.refresh_from_books()
             doc.reload()
-            lines = frappe.get_all("PH Tax Return Line", filters={"parent": name}, fields=["item", "amount"], order_by="idx")
+            lines = frappe.get_all("PH Tax Return Line", filters={"parenttype": "PH Tax Return", "parent": name}, fields=["item", "amount"], order_by="idx")
             top = [f"{l.item}={flt(l.amount):,.2f}" for l in lines if flt(l.amount)][:5]
             needs = (doc.needs or "").strip()
             out = f"{name} [{doc.status}] {'; '.join(top)}"
