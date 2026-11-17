@@ -3,7 +3,7 @@
 One entry per bundle, newest first. Counts are the test totals on main after the merge.
 
 ## B66 Owner's decisions D1 to D11, POS and payroll (LDG-46) (17 Nov 2026)
-- PR: (filled in at merge)
+- PR: #77
 - Built: docs/DECISIONS.md updated with the owner's answers of 17 Nov 2026. Confirmed: D1, D2, D4, D5, D6, D8, D9 (Sentire Ledger), D10 (Christian R. Canlubo, Owner), D11 (EIS after launch, LDG-58), payroll from Sentire Payroll (LDG-119); POS confirmed by answer 10 of 14 Nov. D3 (waits on LDG-54) and D7 stay recommended. D10 in the app: the branding pass on every start fills the PH CAS Settings signatory and position where blank, so every client's joint sworn statement names him; an edited value stays. D9 in the app: the Company form's action menu carries the product name instead of "PH CAS"; the user guide, runbooks and CONFORMANCE row 4 follow. Internal code names (ph_cas, the PH CAS module, PH CAS Settings) stay, since renaming them renames database tables.
 - Tests: +3 (test_b66_decisions: signatory filled in and printed on the sworn statement, an edited signatory kept, no open decision left).
 - Assumed: position "Owner"; the signatory's TIN is left for the owner to fill in on the settings.
