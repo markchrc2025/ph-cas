@@ -22,8 +22,8 @@ class PH2307Issued(Document):
         if getdate(self.period_to) > qe or getdate(self.period_from) < qs:
             frappe.throw(_("A 2307 covers one quarter."))
         self.quarter = f"{qs.year}-Q{(qs.month - 1) // 3 + 1}"
-        if self.is_new() or not self.lines:
-            self.generate()
+        if self.docstatus == 0:
+            self.generate()  # a draft always shows the quarter's bills as they stand (QA pass 4)
         self.fill_payee()
         inc = tax = 0.0
         for r in self.lines:
@@ -95,7 +95,13 @@ def generate_quarter(company: str, quarter_start: str) -> list:
     out = []
     quarter = f"{qs.year}-Q{(qs.month - 1) // 3 + 1}"
     for s in sorted(suppliers):
-        if frappe.db.exists("PH 2307 Issued", {"company": company, "supplier": s, "quarter": quarter, "docstatus": ("<", 2)}):
+        if frappe.db.exists("PH 2307 Issued", {"company": company, "supplier": s, "quarter": quarter, "docstatus": 1}):
+            continue  # issued: a change goes through cancel and reissue
+        draft = frappe.db.get_value("PH 2307 Issued", {"company": company, "supplier": s, "quarter": quarter, "docstatus": 0}, "name")
+        if draft:
+            doc = frappe.get_doc("PH 2307 Issued", draft)
+            doc.save()  # brought up to date with the bills posted since it was made
+            out.append(doc.name)
             continue
         doc = frappe.get_doc({"doctype": "PH 2307 Issued", "company": company, "supplier": s, "period_from": qs, "period_to": qe}).insert()
         out.append(doc.name)

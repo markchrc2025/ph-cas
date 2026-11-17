@@ -67,12 +67,14 @@ class TestB26_2307(IntegrationTestCase):
         generate_quarter(TEST_COMPANY, str(self.qs))
         doc = frappe.get_doc("PH 2307 Issued", {"supplier": self.sup, "docstatus": 0})
         doc.submit()
-        self.assertEqual(generate_quarter(TEST_COMPANY, str(self.qs)), [])
+        # an issued certificate is not touched again (drafts of other payees may be refreshed)
+        self.assertNotIn(doc.name, generate_quarter(TEST_COMPANY, str(self.qs)))
         with self.assertRaises(frappe.ValidationError):
             frappe.get_doc({"doctype": "PH 2307 Issued", "company": TEST_COMPANY, "supplier": self.sup, "period_from": self.qs, "period_to": self.qe}).insert()
         doc.cancel()
-        names = generate_quarter(TEST_COMPANY, str(self.qs))
+        names = [n for n in generate_quarter(TEST_COMPANY, str(self.qs)) if frappe.db.get_value("PH 2307 Issued", n, "supplier") == self.sup]
         self.assertEqual(len(names), 1)
+        self.assertNotEqual(names[0], doc.name)  # the reissue
 
     def test_nothing_withheld_refuses(self):
         other = ensure_supplier_profile("_Test PH NonVAT Supplier", ph_ewt_category="None (no withholding)")

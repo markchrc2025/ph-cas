@@ -13,6 +13,11 @@ SOURCES = ("Event Log", "Version", "Deleted Document", "Access Log", "Activity L
 
 def execute(filters=None):
     filters = frappe._dict(filters or {})
+    # a date without a time means the whole day (a "to" of 2026-11-17 is not midnight; QA pass 4)
+    if filters.get("from_date") and len(str(filters.from_date)) == 10:
+        filters.from_date = f"{filters.from_date} 00:00:00"
+    if filters.get("to_date") and len(str(filters.to_date)) == 10:
+        filters.to_date = f"{filters.to_date} 23:59:59.999999"
     columns = [
         {"fieldname": "timestamp", "label": _("Date and time"), "fieldtype": "Datetime", "width": 165},
         {"fieldname": "user", "label": _("User"), "fieldtype": "Data", "width": 160},

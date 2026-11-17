@@ -102,8 +102,10 @@ def refuse_insert(doc, method=None):
     )
 
 
-# Accounts Settings values the sworn statement depends on.
-FORCED_ACCOUNTS_SETTINGS = {"enable_immutable_ledger": 1, "delete_linked_ledger_entries": 0}
+# Accounts Settings values the sworn statement depends on. add_taxes_from_item_tax_template is off
+# because the tax engine books every VAT row itself; on, ERPNext added a zero row for each account
+# of the line-scope templates (Output VAT and four Input VAT rows on a non-VAT seller's invoice; QA pass 4).
+FORCED_ACCOUNTS_SETTINGS = {"enable_immutable_ledger": 1, "delete_linked_ledger_entries": 0, "add_taxes_from_item_tax_template": 0}
 
 
 def validate_accounts_settings(doc, method=None):

@@ -33,6 +33,10 @@ More data on demand, through the connector's `seed_scenario`:
 | `vat_quarter` | Three months of the current quarter: VATable, zero-rated and exempt sales (one customer a top withholding agent), and bills from a goods supplier and a law office with expanded withholding. The scenario lifts the posting-date lock for its own inserts only, on staging only, to write the history. |
 | `non_vat_company` | A second company, QA Corner Store, non-VAT, with two sales (for the 2551Q). |
 
+## Full pass (QA pass 4)
+
+`call_method` with `ph_cas.qa.fullpass.run` and `{"section": ...}` runs one section of the whole-product pass as the QA admin and returns each step with ok or FAIL: companies, purchasing, sales, tasks, inventory, projects, assets, quality, crm, support, industries, forms (in that order; later sections use what earlier ones made). Seed `vat_quarter`, `income_year`, `non_vat_company` and `individual_year` first so the forms have history.
+
 ## The QA connector
 
 An MCP server inside the staging container (port 8010). It signs in as the QA admin and calls the site's own HTTP API, so validation, permissions, BIR serials, approval chains and every Annex B control apply as for a person. It has no database access of its own.
