@@ -86,6 +86,8 @@ override_doctype_class = {
 has_permission = {
     "Accounting Period": "ph_cas.controls.dates.manager_only_permission",
     "Stock Reconciliation": "ph_cas.controls.dates.manager_only_permission",
+    # B69: the Cashier profile stays at the counter
+    **{dt: "ph_cas.setup.roles.cashier_limit" for dt in ("Purchase Invoice", "Purchase Order", "Purchase Receipt", "Journal Entry", "Supplier", "Payment Entry")},
 }
 
 # ERPNext reads this when a new Accounting Period is opened in the form: every
