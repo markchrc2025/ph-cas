@@ -1,6 +1,6 @@
 """B66 (LDG-46): the owner's decisions of 17 Nov 2026. D10: Christian R. Canlubo signs every
 client's joint sworn statement; the branding pass fills him in where the setting is blank and
-leaves an edited value alone. DECISIONS.md carries no unconfirmed decision except D3 and D7."""
+leaves an edited value alone. DECISIONS.md carries no unconfirmed decision except D3 (waits on LDG-54)."""
 
 import os
 
@@ -48,5 +48,5 @@ class TestB66Decisions(IntegrationTestCase):
         with open(os.path.join(ROOT, "docs", "DECISIONS.md")) as f:
             rows = [l for l in f.read().split("## Loose-leaf")[0].splitlines() if l.startswith("| ") and not l.startswith("| #")]
         status = {r.split("|")[1].strip(): r.split("|")[4].strip() for r in rows}
-        self.assertEqual({k for k, v in status.items() if not v.startswith("confirmed")}, {"D3", "D7"})
+        self.assertEqual({k for k, v in status.items() if not v.startswith("confirmed")}, {"D3"})
         self.assertNotIn("open", status.values())
