@@ -1,6 +1,6 @@
 # Template: notice of minor enhancements (quarterly)
 
-Generated per client and quarter from the release log: Company > PH CAS > Quarterly notice of minor enhancements (ph_cas.ops.releases.quarterly_notice). The text below is the shape of that letter.
+Generated per client and quarter from the release log: Company > Sentire Ledger > Quarterly notice of minor enhancements (ph_cas.ops.releases.quarterly_notice). The text below is the shape of that letter.
 
 [Date]
 

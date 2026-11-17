@@ -102,7 +102,8 @@
   {
    "fieldname": "provider_signatory",
    "fieldtype": "Data",
-   "label": "Signatory (decision D10)"
+   "label": "Signatory",
+   "description": "The provider's officer who signs every client's joint sworn statement (decision D10: Christian R. Canlubo)."
   },
   {
    "fieldname": "provider_signatory_position",
@@ -196,7 +197,7 @@
  "index_web_pages_for_search": 0,
  "issingle": 1,
  "links": [],
- "modified": "2026-11-16 02:00:00.000000",
+ "modified": "2026-11-17 11:00:00.000000",
  "modified_by": "Administrator",
  "module": "PH CAS",
  "name": "PH CAS Settings",

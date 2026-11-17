@@ -4,23 +4,23 @@ Status: recommended (Claude's recommendation, not yet confirmed) or confirmed (t
 
 | # | Decision | Choice | Status |
 |---|---|---|---|
-| D1 | ERPNext version | Version 16, pinned (see VERSIONS.md) | recommended |
-| D2 | Delivery | The firm hosts it, one site per client; no copies on client servers | recommended |
-| D3 | Server location | Servers and backups in the Philippines | recommended |
-| D4 | Invoice numbers | 8 digits, continuous, no yearly reset; one series per document type per branch | recommended |
-| D5 | Dates | Invoices and receipts carry the day they are posted | recommended |
-| D6 | Corrections | Cancel and reissue, or an adjusting journal entry; never rewrite the ledger. Issued invoices, credit notes and debit notes are never cancelled: they are corrected by a credit or debit note (B21, B46) | recommended |
+| D1 | ERPNext version | Sentire Ledger is built on Frappe and ERPNext 16, pinned (see VERSIONS.md). The platform is never named to users (B38); moving to another platform version is a major version (answer 4) | confirmed 17 Nov 2026 |
+| D2 | Delivery | The firm hosts it, one site per client; no copies on client servers. Enterprise clients get a dedicated server pair that stays in MCRC's account | confirmed 17 Nov 2026 |
+| D3 | Server location | Servers and backups in the Philippines; the provider and place wait for LDG-54 (parked) | recommended |
+| D4 | Invoice numbers | 8 digits, continuous, no yearly reset; one series per document type per branch; plus the manual invoice number typed by the user (answer 2) | confirmed 17 Nov 2026 |
+| D5 | Dates | Invoices and receipts carry the day they are posted; a back-dated posting needs a reason | confirmed 17 Nov 2026 |
+| D6 | Corrections | Cancel and reissue, or an adjusting journal entry; never rewrite the ledger. Issued invoices, credit notes and debit notes are never cancelled: they are corrected by a credit or debit note (B21, B46) | confirmed 17 Nov 2026 |
 | D7 | Inventory | Perpetual inventory off at first; back-dated stock entries blocked | recommended |
-| D8 | First clients | Micro taxpayers, VAT and non-VAT; SC/PWD discounts and payroll later | recommended |
-| POS | Point of sale | ERPNext's point-of-sale screen out of release 1; invoices from the back office | recommended |
-| D9 | Product name | Owner's choice, without "ERPNext"; the code uses "PH CAS" until then | open |
-| D10 | Signatory | The officer who signs every client's joint sworn statement | open |
-| D11 | E-invoicing route | After the EIS spec spike | open |
-| Later | Payroll | In or out of the product | open |
+| D8 | First clients | Micro taxpayers, VAT and non-VAT, first; SC/PWD discounts are in (built) | confirmed 17 Nov 2026 |
+| POS | Point of sale | ERPNext's point-of-sale screen out of release 1; invoices from the back office | confirmed 14 Nov 2026 (answer 10) |
+| D9 | Product name | Sentire Ledger, everywhere a user looks (B38; the Company menu since B66). Internal code names (the ph_cas app, the PH CAS module, PH CAS Settings, PH reports) stay: renaming them renames database tables | confirmed 17 Nov 2026 |
+| D10 | Signatory | Christian R. Canlubo, Owner, signs every client's joint sworn statement for MCRC Tax and Accounting Services; prefilled in PH CAS Settings on every site where it is blank (B66) | confirmed 17 Nov 2026 |
+| D11 | E-invoicing route | After launch: EIS waits for the BIR's specs (LDG-58), not in release 1 | confirmed 17 Nov 2026 |
+| Payroll | Payroll | Not built into Ledger; compensation figures (1601-C, 1604-C, 2316) come from Sentire Payroll (LDG-119) | confirmed 17 Nov 2026 |
 
 ## Loose-leaf books (15 Nov 2026)
 
-A client that keeps loose-leaf books with the product (Form 1900 permit instead of a CAS registration) prints the six books from Company > PH CAS > Loose-leaf books, in Excel or PDF. The owner's instruction: the books follow the JuanTax export format supplied on 15 Nov 2026, the structure BIR has accepted before, so that either file is acceptable to BIR. The client submits the bound books within 15 days after the year ends (through ORUS, RMC 4-2026) with the sworn statement of volumes and pages; PAGES.txt in the download gives the page counts. The flaws of the JuanTax files listed in BUILD-LOG B50 are corrected, not copied.
+A client that keeps loose-leaf books with the product (Form 1900 permit instead of a CAS registration) prints the six books from Company > Sentire Ledger > Loose-leaf books, in Excel or PDF. The owner's instruction: the books follow the JuanTax export format supplied on 15 Nov 2026, the structure BIR has accepted before, so that either file is acceptable to BIR. The client submits the bound books within 15 days after the year ends (through ORUS, RMC 4-2026) with the sworn statement of volumes and pages; PAGES.txt in the download gives the page counts. The flaws of the JuanTax files listed in BUILD-LOG B50 are corrected, not copied.
 
 ## RDO questions answered by the owner (14 Nov 2026)
 

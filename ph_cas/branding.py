@@ -29,6 +29,10 @@ ASSETS = {
 }
 DEFAULT_PRODUCT = "Sentire Ledger"
 DEFAULT_PROVIDER = "MCRC Tax and Accounting Services"
+# Decision D10 (owner, 17 Nov 2026): the provider's officer who signs every client's joint
+# sworn statement. Filled in only where the setting is blank, so an edit on a site stays.
+DEFAULT_SIGNATORY = "Christian R. Canlubo"
+DEFAULT_SIGNATORY_POSITION = "Owner"
 HIDDEN_HELP_ITEMS = ("Frappe Support", "Documentation", "User Forum", "Report an Issue", "Keyboard Shortcuts")
 WORKSPACE = "Sentire Ledger"
 
@@ -79,6 +83,11 @@ def _ph_cas_settings(product: str, provider: str):
         changed = True
     if s.get("provider_name") != provider:
         s.provider_name = provider
+        changed = True
+    if not (s.get("provider_signatory") or "").strip():
+        s.provider_signatory = DEFAULT_SIGNATORY
+        if not (s.get("provider_signatory_position") or "").strip():
+            s.provider_signatory_position = DEFAULT_SIGNATORY_POSITION
         changed = True
     if changed:
         s.flags.ignore_permissions = True
