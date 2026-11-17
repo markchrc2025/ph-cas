@@ -190,6 +190,17 @@ def tax_rows(doc) -> dict:
     return out
 
 
+def gl_balance(company, account, from_date=None, to_date=None) -> float:
+    cond, args = "company = %s and account = %s and is_cancelled = 0", [company, account]
+    if from_date:
+        cond += " and posting_date >= %s"
+        args.append(from_date)
+    if to_date:
+        cond += " and posting_date <= %s"
+        args.append(to_date)
+    return flt(frappe.db.sql(f"select sum(debit) - sum(credit) from `tabGL Entry` where {cond}", args)[0][0], 2)
+
+
 def gl(voucher_type, voucher_no) -> dict:
     out = {}
     for r in frappe.get_all("GL Entry", filters={"voucher_type": voucher_type, "voucher_no": voucher_no, "is_cancelled": 0}, fields=["account", "debit", "credit"]):
@@ -564,6 +575,13 @@ def s_inventory(r: Runner):
         return sr.name
     r.step("stock count (reconciliation)", reconcile)
 
+
+    def method_locked():
+        c = frappe.get_doc("Company", co)
+        c.ph_inventory_method = "Perpetual"
+        return refused(c.save)
+    r.step("D7: the inventory method cannot change after stock moved", method_locked)
+
     def no_backdate():
         se = frappe.get_doc({"doctype": "Stock Entry", "stock_entry_type": "Material Receipt", "company": co, "posting_date": add_days(today(), -5), "set_posting_time": 1,
                              "items": [{"item_code": nails, "qty": 1, "basic_rate": 80, "t_warehouse": wh}]})
@@ -571,12 +589,12 @@ def s_inventory(r: Runner):
     r.step("D7: a back-dated stock entry is refused", no_backdate)
 
     def perpetual_off():
-        r.expect(not frappe.get_cached_value("Company", co, "enable_perpetual_inventory"), "perpetual inventory is on")
+        r.expect(not frappe.get_cached_value("Company", co, "enable_perpetual_inventory"), "perpetual inventory is on for a periodic company")
         se = frappe.get_all("Stock Entry", filters={"company": co, "docstatus": 1}, pluck="name", limit=1)
         g = gl("Stock Entry", se[0]) if se else {}
         r.expect(not g, f"stock entry posted to the ledger {g}")
         return "no GL rows for stock entries"
-    r.step("D7: perpetual inventory off (no stock GL)", perpetual_off)
+    r.step("periodic: stock entries post nothing to the ledger", perpetual_off)
 
     def reports():
         from frappe.desk.query_report import run
@@ -842,7 +860,7 @@ def s_support(r: Runner):
     _p = _parties()
 
     def issue():
-        iss = frappe.get_doc({"doctype": "Issue", "subject": "QA4 Invoice printed without the ATP", "raised_by": "qa4.customer@example.com", "customer": _p[3],
+        iss = frappe.get_doc({"doctype": "Issue", "subject": "QA4 Invoice printed without the ATP", "raised_by": "qa4.customer@example.com", "customer": _p[3], "company": VAT_CORP,
                               "priority": "High" if frappe.db.exists("Issue Priority", "High") else None, "description": "The duplicate copy had no ATP line."})
         iss.insert()
         iss.status = "Replied"
@@ -1020,10 +1038,454 @@ def s_forms(r: Runner):
         r.step(f"{form} {key} {co}", build)
 
 
+# ---- section: inventory tracking (periodic year-end, and perpetual) ------------------------------
+PERIODIC_CO = "QA4 Dagat Trading Corp."
+PERPETUAL_CO = "QA4 Mabuhay Trading Corp."
+
+
+def _trading_company(name, ab, method, tin):
+    from ph_cas.setup.chart import setup_philippine_company
+
+    if not frappe.db.exists("Company", name):
+        frappe.get_doc({"doctype": "Company", "company_name": name, "abbr": ab, "default_currency": "PHP", "country": "Philippines", "chart_of_accounts": "Standard",
+                        "ph_branch_code": "00000", "ph_rdo": "045", "ph_vat_status": "VAT", "ph_taxpayer_type": "Non-individual", "ph_inventory_method": method,
+                        "tax_id": tin, "ph_registered_name": name.upper(), "ph_registered_address": "3 Ilaya Street\nBarangay San Nicolas, Manila",
+                        "ph_zip": "1010", "ph_incorporation_date": "2021-03-01", "ph_contact_number": "0282001234", "ph_email": "qa.trading@example.com",
+                        "ph_income_tax_option": "Corporate", "ph_deduction_method": "Itemized", "ph_taxpayer_class": "Small", "ph_primary_business": "Goods",
+                        "ph_operations_start_year": 2021}).insert()
+    setup_philippine_company(name)
+    return frappe.get_doc("Company", name)
+
+
+def s_inventory_tracking(r: Runner):
+    from erpnext.buying.doctype.purchase_order.purchase_order import make_purchase_receipt
+    from erpnext.stock.doctype.purchase_receipt.purchase_receipt import make_purchase_invoice
+    from ph_cas.setup.chart import setup_philippine_company
+
+    _p0 = _parties()
+    tile = item("QA4-TILE", stock=1, item_name="Floor tile 60x60 (box)", valuation_rate=250)
+
+    def periodic_year():
+        from ph_cas.stock.periodic import book_value, counted_value, inventory_account, post_adjustment
+
+        if frappe.db.exists("Company", PERIODIC_CO) and frappe.db.exists("Stock Ledger Entry", {"company": PERIODIC_CO, "is_cancelled": 0}):
+            return "already run on this site (the hand figures hold for a fresh company only)"
+        c = _trading_company(PERIODIC_CO, "Q4DT", "Periodic", "000-905-006")
+        r.expect(not c.enable_perpetual_inventory, "periodic company has perpetual on")
+        co, wh = PERIODIC_CO, acc(PERIODIC_CO, "Stores")
+        cogs_acc = c.default_expense_account
+        po = frappe.get_doc({"doctype": "Purchase Order", "company": co, "supplier": _p0[0], "transaction_date": today(), "schedule_date": today(), "set_warehouse": wh,
+                             "items": [{"item_code": tile, "qty": 100, "rate": 250, "schedule_date": today(), "warehouse": wh}]})
+        po.insert()
+        po.submit()
+        submit_mapped(make_purchase_invoice(submit_mapped(make_purchase_receipt(po.name)).name))
+        r.expect(gl_balance(co, cogs_acc) == 25000, f"purchases to cost of sales {gl_balance(co, cogs_acc)}")
+        sales_invoice(co, _p0[3], [(tile, 30, 400, {"warehouse": wh})], update_stock=1)
+        # the year-end count: 68 boxes (2 broken)
+        sr = frappe.get_doc({"doctype": "Stock Reconciliation", "company": co, "purpose": "Stock Reconciliation", "items": [{"item_code": tile, "warehouse": wh, "qty": 68, "valuation_rate": 250}]})
+        sr.insert()
+        sr.submit()
+        out = post_adjustment(co, today())
+        r.expect(out["counted"] == 17000 and out["adjustment"] == 17000 and out["journal_entry"], f"adjustment {out}")
+        r.expect(book_value(co, inventory_account(co), today()) == 17000, "inventory account is not the count")
+        cogs = gl_balance(co, cogs_acc)
+        r.expect(cogs == 8000, f"cost of sales {cogs}, expected 0 + 25,000 - 17,000 = 8,000")
+        r.expect(post_adjustment(co, today())["journal_entry"] is None, "a second run posted again")
+        from ph_cas.ph_cas.doctype.ph_tax_return.ph_tax_return import new_return
+
+        name = new_return(co, "1702-RT", str(getdate(today()).year))
+        frappe.get_doc("PH Tax Return", name).refresh_from_books()
+        rt = frappe.db.get_value("PH Tax Return Line", {"parenttype": "PH Tax Return", "parent": name, "item": "30"}, "amount")
+        r.expect(flt(rt) == 8000, f"1702-RT item 30 cost of sales {rt}")
+        return f"bought 100 x 250, sold 30, counted 68: {out['journal_entry']} Dr inventory 17,000 / Cr cost of sales; cost of sales 8,000 = 1702-RT item 30"
+    r.step("periodic: year-end count, inventory adjustment, cost of sales on the 1702-RT", periodic_year)
+
+    co = PERPETUAL_CO
+    _p = _parties()
+    rice = item("QA4-RICE25", stock=1, item_name="Rice 25kg sack", valuation_rate=1200)
+
+    def company():
+        if not frappe.db.exists("Company", co):
+            frappe.get_doc({"doctype": "Company", "company_name": co, "abbr": "Q4MT", "default_currency": "PHP", "country": "Philippines", "chart_of_accounts": "Standard",
+                            "ph_branch_code": "00000", "ph_rdo": "045", "ph_vat_status": "VAT", "ph_taxpayer_type": "Non-individual", "ph_inventory_method": "Perpetual",
+                            "tax_id": "000-905-005", "ph_registered_name": "QA4 MABUHAY TRADING CORP.", "ph_registered_address": "3 Ilaya Street\nBarangay San Nicolas, Manila",
+                            "ph_zip": "1010", "ph_incorporation_date": "2021-03-01", "ph_contact_number": "0282001234", "ph_email": "qa.mabuhay@example.com",
+                            "ph_income_tax_option": "Corporate", "ph_deduction_method": "Itemized", "ph_taxpayer_class": "Small", "ph_primary_business": "Goods",
+                            "ph_operations_start_year": 2021}).insert()
+        setup_philippine_company(co)
+        c = frappe.get_doc("Company", co)
+        r.expect(c.enable_perpetual_inventory and c.ph_inventory_method == "Perpetual", "perpetual not on")
+        r.expect(c.default_inventory_account and c.stock_received_but_not_billed and c.stock_adjustment_account,
+                 f"accounts: inventory {c.default_inventory_account}, SRBNB {c.stock_received_but_not_billed}, adjustment {c.stock_adjustment_account}")
+        return f"perpetual; inventory {c.default_inventory_account}"
+    if not r.step("company with perpetual inventory (tracked)", company):
+        return
+    wh = acc(co, "Stores")
+    inv_acc = frappe.get_cached_value("Company", co, "default_inventory_account")
+
+    def receive_and_bill():
+        po = frappe.get_doc({"doctype": "Purchase Order", "company": co, "supplier": _p[0], "transaction_date": today(), "schedule_date": today(), "set_warehouse": wh,
+                             "items": [{"item_code": rice, "qty": 50, "rate": 1200, "schedule_date": today(), "warehouse": wh}]})
+        po.insert()
+        po.submit()
+        pr = submit_mapped(make_purchase_receipt(po.name))
+        g = gl("Purchase Receipt", pr.name)
+        r.expect(g.get(inv_acc.rsplit(" - ", 1)[0]) == 60000, f"receipt GL {g}")
+        pi = submit_mapped(make_purchase_invoice(pr.name))
+        gp = gl("Purchase Invoice", pi.name)
+        return f"{pr.name} GL {g}; {pi.name} GL {gp}"
+    r.step("receipt posts stock in hand; the bill clears stock received not billed", receive_and_bill)
+
+    def sell():
+        si = sales_invoice(co, _p[3], [(rice, 10, 1500, {"warehouse": wh})], update_stock=1)
+        g = gl("Sales Invoice", si.name)
+        r.expect(g.get("Cost of Goods Sold") == 12000 and g.get(inv_acc.rsplit(" - ", 1)[0]) == -12000, f"sale GL {g}")
+        return f"{si.name} GL {g}"
+    r.step("a sale from stock posts cost of sales at valuation", sell)
+
+    def year_end_count():
+        q = flt(frappe.db.get_value("Bin", {"item_code": rice, "warehouse": wh}, "actual_qty"))
+        sr = frappe.get_doc({"doctype": "Stock Reconciliation", "company": co, "purpose": "Stock Reconciliation",
+                             "items": [{"item_code": rice, "warehouse": wh, "qty": q - 2, "valuation_rate": 1200}]})
+        sr.insert()
+        sr.submit()
+        g = gl("Stock Reconciliation", sr.name)
+        r.expect(g.get("Stock Adjustment") == 2400 and g.get(inv_acc.rsplit(" - ", 1)[0]) == -2400, f"count GL {g}")
+        return f"{sr.name}: 2 sacks short, GL {g}"
+    r.step("year-end count posts the shortage to stock adjustment", year_end_count)
+
+    def ties():
+        from ph_cas.stock.periodic import counted_value
+
+        books, stock = gl_balance(co, inv_acc), counted_value(co, today())
+        r.expect(abs(books - stock) < 0.01, f"stock in hand {books} vs stock value {stock}")
+        from frappe.desk.query_report import run
+
+        res = run("Stock and Account Value Comparison", filters={"company": co, "as_on_date": today()})
+        rows = [x for x in (res.get("result") or []) if isinstance(x, dict) and abs(flt(x.get("difference_value"))) > 0.01]
+        r.expect(not rows, f"value comparison differences {rows[:2]}")
+        return f"stock in hand {books:,.2f} = stock value {stock:,.2f}"
+    r.step("stock in hand equals the stock ledger value", ties)
+
+    def periodic_tool_refuses():
+        from ph_cas.stock.periodic import post_adjustment
+
+        return refused(post_adjustment, co, today())
+    r.step("the periodic year-end tool refuses a perpetual company", periodic_tool_refuses)
+
+    def locked():
+        c = frappe.get_doc("Company", co)
+        c.ph_inventory_method = "Periodic"
+        return refused(c.save)
+    r.step("D7: perpetual cannot switch back after stock moved", locked)
+
+
+# ---- section: roles ------------------------------------------------------------------------------
+def s_roles(r: Runner):
+    from ph_cas.setup import roles as R
+
+    me = frappe.session.user
+    users = {}
+    for profile in (R.OWNER, R.BOOKKEEPER, R.CASHIER):
+        def make_user(profile=profile):
+            email = f"qa4.{profile.lower()}@example.com"
+            if not frappe.db.exists("User", email):
+                u = frappe.get_doc({"doctype": "User", "email": email, "first_name": f"QA4 {profile}", "send_welcome_email": 0, "user_type": "System User",
+                                    "role_profiles": [{"role_profile": profile}]})
+                u.insert()
+            u = frappe.get_doc("User", email)
+            have = {x.role for x in u.roles}
+            want = set(R.PROFILES[profile]) & set(frappe.get_all("Role", pluck="name"))
+            r.expect(want <= have, f"missing {sorted(want - have)}")
+            users[profile] = email
+            return f"{email}: {len(have)} roles"
+        r.step(f"user with the {profile} profile", make_user)
+
+    _p = _parties()
+
+    def as_user(profile, fn):
+        def run():
+            frappe.set_user(users[profile])
+            try:
+                return fn()
+            finally:
+                frappe.set_user(me)
+        return run
+
+    def owner_masters():
+        s = supplier(f"QA4 Owner Supplier {frappe.generate_hash(length=4)}", ph_tin="000-908-001", ph_branch_code="00000", ph_vat_status="VAT", ph_payee_type="Non-individual",
+                     ph_ewt_category="services", ph_registered_name="QA4 OWNER SUPPLIER", ph_address_line1="1 Owner St, Pasig City", ph_zip="1600")
+        ip = frappe.get_doc({"doctype": "Item Price", "item_code": item(f"QA4 Owner Item {frappe.generate_hash(length=4)}"), "price_list": "Standard Selling", "price_list_rate": 5600})
+        ip.insert()
+        return f"{s}, {ip.name}"
+    r.step("Owner: adds a supplier and an item price", as_user(R.OWNER, owner_masters))
+
+    def bookkeeper_work():
+        s = supplier(f"QA4 Bookkeeper Supplier {frappe.generate_hash(length=4)}", ph_tin="000-908-002", ph_branch_code="00000", ph_vat_status="VAT", ph_payee_type="Non-individual",
+                     ph_ewt_category="services", ph_registered_name="QA4 BOOKKEEPER SUPPLIER", ph_address_line1="2 Book St, Pasig City", ph_zip="1600")
+        pi = purchase_invoice(VAT_CORP, s, [(item("QA4 Janitorial Services"), 1, 20000)])
+        from ph_cas.ph_cas.doctype.ph_tax_return.ph_tax_return import new_return
+        from ph_cas.tax.returns import quarter_bounds
+
+        qs, _ = quarter_bounds(today())
+        name = new_return(VAT_CORP, "2550Q", f"{qs.year}-Q{(qs.month - 1) // 3 + 1}")
+        frappe.get_doc("PH Tax Return", name).refresh_from_books()
+        return f"{s}; bill {pi.name}; {name} refreshed"
+    r.step("Bookkeeper: supplier, bill with EWT, 2550Q from the books", as_user(R.BOOKKEEPER, bookkeeper_work))
+
+    def bookkeeper_no_users():
+        return refused(frappe.get_doc({"doctype": "User", "email": "qa4.nope@example.com", "first_name": "Nope", "send_welcome_email": 0}).insert)
+    r.step("Bookkeeper: cannot add users", as_user(R.BOOKKEEPER, bookkeeper_no_users))
+
+    def cashier_sale():
+        from erpnext.accounts.doctype.payment_entry.payment_entry import get_payment_entry
+
+        si = sales_invoice(VAT_CO, _p[4], [("QA4-HAMMER", 1, 450, {"warehouse": acc(VAT_CO, "Stores")})], update_stock=1)
+        pe = get_payment_entry("Sales Invoice", si.name)
+        pe.reference_no, pe.reference_date = "QA4-CASH", today()
+        pe.insert()
+        pe.submit()
+        return f"{si.name} serial {si.bir_serial}; collected {pe.name}"
+    r.step("Cashier: invoices and collects at the counter", as_user(R.CASHIER, cashier_sale))
+
+    def cashier_limits():
+        a = refused(supplier, f"QA4 Cashier Supplier {frappe.generate_hash(length=4)}")
+        b = refused(purchase_invoice, VAT_CO, _p[0], [("QA4 Repair Service", 1, 100)])
+        c = refused(lambda: frappe.get_doc({"doctype": "Journal Entry", "company": VAT_CO, "posting_date": today(), "accounts": [
+            {"account": acc(VAT_CO, "Cash"), "debit_in_account_currency": 100, "cost_center": acc(VAT_CO, "Main")},
+            {"account": acc(VAT_CO, "Sales"), "credit_in_account_currency": 100, "cost_center": acc(VAT_CO, "Main")}]}).insert())
+        return f"supplier: {a} | bill: {b} | journal: {c}"
+    r.step("Cashier: cannot add suppliers, post bills or journal entries", as_user(R.CASHIER, cashier_limits))
+
+
+# ---- section: reports ----------------------------------------------------------------------------
+def _report(name, filters):
+    from frappe.desk.query_report import run
+
+    res = run(name, filters=filters)
+    cols = [(c.get("fieldname") if isinstance(c, dict) else str(c).split(":")[0].lower().replace(" ", "_")) for c in (res.get("columns") or [])]
+    rows = []
+    for x in res.get("result") or []:
+        rows.append(x if isinstance(x, dict) else dict(zip(cols, x)))
+    return rows
+
+
+def _is_summary(x) -> bool:
+    """A report's own total, tie-out or closing row (they repeat the detail, so a sum skips them)."""
+    if x.get("is_tie_row") or x.get("is_closing") or x.get("is_total_row"):
+        return True
+    texts = [v for v in x.values() if isinstance(v, str)]
+    if any(v.strip().strip("'").upper() == "TOTAL" for v in texts):
+        return True
+    has_date = any(hasattr(v, "year") for v in x.values())
+    return not has_date and not any(v.strip() for v in texts)  # an unlabelled sum row
+
+
+def _col(rows, field):
+    return flt(sum(flt(x.get(field)) for x in rows if not _is_summary(x)), 2)
+
+
+_REFRESHED: set = set()
+
+
+def _ret_line(company, form, key, item):
+    from ph_cas.ph_cas.doctype.ph_tax_return.ph_tax_return import new_return
+
+    name = new_return(company, form, key)
+    if (company, form, key) not in _REFRESHED:
+        doc = frappe.get_doc("PH Tax Return", name)
+        if doc.docstatus == 0:
+            doc.refresh_from_books()
+        _REFRESHED.add((company, form, key))
+    v = frappe.db.get_value("PH Tax Return Line", {"parenttype": "PH Tax Return", "parent": name, "item": item}, "amount")
+    return None if v is None else flt(v, 2)
+
+
+def s_reports(r: Runner):
+    _REFRESHED.clear()
+    co = VAT_CORP
+    y = getdate(today()).year
+    ys, ye = f"{y}-01-01", f"{y}-12-31"
+    from ph_cas.tax.returns import quarter_bounds
+
+    qs, qe = quarter_bounds(today())
+    qkey = f"{qs.year}-Q{(qs.month - 1) // 3 + 1}"
+    base = {"company": co, "from_date": ys, "to_date": ye}
+    fy = frappe.db.get_value("Fiscal Year", {"year_start_date": ("<=", today()), "year_end_date": (">=", today())}, "name")
+    si_f = {"company": co, "docstatus": 1, "posting_date": ("between", [ys, ye])}
+
+    def books_tie():
+        out = []
+        for rep in ("PH Sales Journal", "PH Purchase Journal", "PH Cash Receipts Book", "PH Cash Disbursements Book", "PH General Journal", "PH General Ledger Book"):
+            rows = _report(rep, base)
+            ties = [x for x in rows if x.get("is_tie_row") or x.get("is_closing")]
+            bad = [x.get("particulars") for x in ties if "TIES" not in str(x.get("particulars") or "").upper() and "(ties)" not in str(x.get("particulars") or "")]
+            r.expect(not bad, f"{rep}: {bad}")
+            out.append(f"{rep.replace('PH ', '')} {len(rows)} rows, {len(ties)} ties")
+        return "; ".join(out)
+    r.step("the six books tie to the ledger", books_tie)
+
+    def sales_journal_vs_invoices():
+        rows = _report("PH Sales Journal", base)
+        sj = _col(rows, "ph_vatable_sales") + _col(rows, "ph_exempt_sales") + _col(rows, "ph_zero_rated_sales")
+        db = flt(sum(frappe.get_all("Sales Invoice", filters=si_f, pluck="base_net_total")), 2)
+        vat = _col(rows, "ph_vat_amount")
+        led = -gl_balance(co, acc(co, "Output VAT"), ys, ye)
+        r.expect(abs(sj - db) < 0.01, f"journal sales {sj:,.2f} vs invoices {db:,.2f}")
+        r.expect(abs(vat - led) < 0.01, f"journal VAT {vat:,.2f} vs ledger {led:,.2f}")
+        reg = _report("Sales Register", base)
+        reg_net = _col(reg, "net_total")
+        r.expect(abs(reg_net - db) < 0.01, f"sales register net {reg_net:,.2f} vs invoices {db:,.2f}")
+        return f"sales {sj:,.2f} = invoices = register; output VAT {vat:,.2f} = ledger"
+    r.step("Sales Journal and Sales Register = the invoices; VAT = the ledger", sales_journal_vs_invoices)
+
+    def purchase_journal_vs_bills():
+        rows = _report("PH Purchase Journal", base)
+        ewt = _col(rows, "ph_ewt_amount")
+        led = -gl_balance(co, acc(co, "Withholding Tax Payable - Expanded"), ys, ye)
+        db = flt(sum(frappe.get_all("Purchase Invoice", filters=si_f, pluck="base_net_total")), 2)
+        reg = _col(_report("Purchase Register", base), "net_total")
+        r.expect(abs(ewt - led) < 0.01, f"journal EWT {ewt:,.2f} vs ledger {led:,.2f}")
+        r.expect(abs(reg - db) < 0.01, f"purchase register {reg:,.2f} vs bills {db:,.2f}")
+        return f"EWT {ewt:,.2f} = ledger; purchases {db:,.2f} = register"
+    r.step("Purchase Journal and Purchase Register = the bills; EWT = the ledger", purchase_journal_vs_bills)
+
+    def receivables():
+        rows = _report("Accounts Receivable", {"company": co, "report_date": ye, "ageing_based_on": "Due Date", "range": "30, 60, 90, 120"})
+        rep = _col([x for x in rows if x.get("voucher_no")], "outstanding")
+        db = flt(sum(frappe.get_all("Sales Invoice", filters={"company": co, "docstatus": 1}, pluck="outstanding_amount")), 2)
+        led = gl_balance(co, acc(co, "Debtors"), None, ye)
+        r.expect(abs(rep - db) < 0.01 and abs(rep - led) < 0.01, f"AR report {rep:,.2f}, invoices {db:,.2f}, ledger {led:,.2f}")
+        return f"AR {rep:,.2f} = invoices' outstanding = Debtors"
+    r.step("Accounts Receivable = open invoices = the Debtors account", receivables)
+
+    def payables():
+        rows = _report("Accounts Payable", {"company": co, "report_date": ye, "ageing_based_on": "Due Date", "range": "30, 60, 90, 120"})
+        rep = _col([x for x in rows if x.get("voucher_no")], "outstanding")
+        db = flt(sum(frappe.get_all("Purchase Invoice", filters={"company": co, "docstatus": 1}, pluck="outstanding_amount")), 2)
+        led = -gl_balance(co, acc(co, "Creditors"), None, ye)
+        r.expect(abs(rep - db) < 0.01 and abs(rep - led) < 0.01, f"AP report {rep:,.2f}, bills {db:,.2f}, ledger {led:,.2f}")
+        return f"AP {rep:,.2f} = open bills = Creditors"
+    r.step("Accounts Payable = open bills = the Creditors account", payables)
+
+    def statements():
+        tb = _report("Trial Balance", {"company": co, "fiscal_year": fy, "from_date": ys, "to_date": ye})
+        tot = next(x for x in tb if "Total" in str(x.get("account")))
+        r.expect(abs(flt(tot.get("closing_debit")) - flt(tot.get("closing_credit"))) < 0.01, f"trial balance {tot}")
+        flt_ = {"company": co, "filter_based_on": "Date Range", "period_start_date": ys, "period_end_date": ye, "periodicity": "Yearly", "from_fiscal_year": fy, "to_fiscal_year": fy}
+        pl = _report("Profit and Loss Statement", flt_)
+        profit = flt(next(x for x in pl if "Profit for the year" in str(x.get("account"))).get("total"), 2)
+        led = -flt(frappe.db.sql("""select sum(g.debit) - sum(g.credit) from `tabGL Entry` g join `tabAccount` a on a.name = g.account
+            where g.company = %s and g.is_cancelled = 0 and a.report_type = 'Profit and Loss' and g.posting_date between %s and %s""", (co, ys, ye))[0][0], 2)
+        r.expect(abs(profit - led) < 0.01, f"P&L profit {profit:,.2f} vs ledger {led:,.2f}")
+        bs = _report("Balance Sheet", flt_)
+        assets = flt(next(x for x in bs if "Total Asset" in str(x.get("account"))).get("total"), 2)
+        other = flt(next(x for x in bs if str(x.get("account")).strip("'") == "Total (Credit)").get("total"), 2)
+        r.expect(abs(assets - other) < 0.01, f"assets {assets:,.2f} vs liabilities, equity and profit {other:,.2f}")
+        return f"trial balance {flt(tot.get('closing_debit')):,.2f} both sides; profit {profit:,.2f} = ledger; assets {assets:,.2f} = liabilities + equity + profit"
+    r.step("Trial Balance, Profit and Loss, Balance Sheet", statements)
+
+    def vat_return_vs_books():
+        rows = _report("PH Sales Journal", {"company": co, "from_date": str(qs), "to_date": str(qe)})
+        checks = {"31A": _col(rows, "ph_vatable_sales"), "32A": _col(rows, "ph_zero_rated_sales"), "33A": _col(rows, "ph_exempt_sales"),
+                  "31B": -gl_balance(co, acc(co, "Output VAT"), str(qs), str(qe))}
+        bad = {k: (v, _ret_line(co, "2550Q", qkey, k)) for k, v in checks.items() if _ret_line(co, "2550Q", qkey, k) is None or abs(v - _ret_line(co, "2550Q", qkey, k)) > 0.01}
+        r.expect(not bad, f"2550Q vs books (books, return): {bad}")
+        return "; ".join(f"{k} {v:,.2f}" for k, v in checks.items())
+    r.step(f"2550Q {qkey} = the Sales Journal and the Output VAT account", vat_return_vs_books)
+
+    def ewt_return_vs_books():
+        rows = _report("PH Purchase Journal", {"company": co, "from_date": str(qs), "to_date": str(qe)})
+        ewt = _col(rows, "ph_ewt_amount")
+        ret = _ret_line(co, "1601-EQ", qkey, "19")
+        r.expect(ret is not None and abs(ewt - ret) < 0.01, f"1601-EQ item 19 {ret} vs journal {ewt:,.2f}")
+        return f"EWT {ewt:,.2f} = 1601-EQ item 19"
+    r.step(f"1601-EQ {qkey} = the Purchase Journal", ewt_return_vs_books)
+
+    def income_return_vs_books():
+        sales = -gl_balance(co, acc(co, "Sales"), ys, ye)
+        ret = _ret_line(co, "1702-RT", str(y), "27")
+        r.expect(ret is not None and abs(sales - ret) < 1, f"1702-RT item 27 {ret} vs Sales account {sales:,.2f}")
+        rec = _report("PH Book to Tax Reconciliation", base)
+        unexplained = next((flt(x.get("amount")) for x in rec if "Unexplained" in str(x.get("line"))), None)
+        r.expect(unexplained is not None and abs(unexplained) < 0.01, f"book-to-tax unexplained {unexplained}")
+        return f"1702-RT sales {ret:,.2f} = Sales account; book-to-tax unexplained 0"
+    r.step("1702-RT = the ledger; book-to-tax reconciliation explains everything", income_return_vs_books)
+
+    def sc_pwd_and_2307():
+        sc = _col(_report("PH SC PWD Sales", base), "ph_sc_pwd_discount")
+        db = flt(sum(frappe.get_all("Sales Invoice", filters=si_f, pluck="ph_sc_pwd_discount")), 2)
+        r.expect(abs(sc - db) < 0.01, f"SC/PWD report {sc} vs invoices {db}")
+        rec = _report("PH 2307 Received Reconciliation", base)
+        cert = _col(rec, "certified")
+        db2 = flt(sum(frappe.get_all("PH 2307 Received", filters={"company": co, "docstatus": 1}, pluck="total_tax")), 2)
+        r.expect(abs(cert - db2) < 0.01, f"2307 report {cert} vs certificates {db2}")
+        return f"SC/PWD discounts {sc:,.2f}; 2307 certified {cert:,.2f}"
+    r.step("SC/PWD Sales and 2307 Received reports = the documents", sc_pwd_and_2307)
+
+    def calendar():
+        rows = _report("PH Compliance Calendar", {"company": co, "year": y})
+        row = next((x for x in rows if x.get("form") == "2550Q" and x.get("period_label") == qkey), None)
+        r.expect(row and row.get("figures"), f"2550Q {qkey} row {row}")
+        return f"{len(rows)} rows; 2550Q {qkey}: {row['status']}"
+    r.step("compliance calendar shows the returns in progress", calendar)
+
+    def modules():
+        out = []
+        far = _report("Fixed Asset Register", {"company": co, "status": "In Location", "filter_based_on": "Date Range", "from_date": "2000-01-01", "to_date": ye})
+        fa = _col([x for x in far if x.get("asset_id") and x.get("asset_id") != "Total"], "net_purchase_amount")
+        db = flt(sum(frappe.get_all("Asset", filters={"company": co, "docstatus": 1}, pluck="net_purchase_amount")), 2)
+        r.expect(abs(fa - db) < 0.01, f"asset register {fa} vs assets {db}")
+        out.append(f"assets {fa:,.0f}")
+        ps = _report("Project Summary", {"company": co})
+        r.expect(any(x.get("project_name") == "QA4 Warehouse Build" and x.get("total_tasks") == 3 for x in ps), "project missing from Project Summary")
+        out.append(f"projects {len(ps)}")
+        ld = _report("Lead Details", base)
+        r.expect(any(x.get("email_id") == "qa4.lead@example.com" for x in ld), "lead missing from Lead Details")
+        iss = _report("Issue Summary", {**base, "based_on": "Customer"})
+        r.expect(sum(flt(x.get("total_issues")) for x in iss) >= 1, "issue missing from Issue Summary")
+        out.append(f"leads {len(ld)}, issue rows {len(iss)}")
+        gp = _report("Gross Profit", {"company": VAT_CO, "from_date": ys, "to_date": ye, "group_by": "Invoice"})
+        out.append(f"gross profit rows {len(gp)}")
+        for rep, f in (("Item-wise Sales Register", base), ("Cash Flow", {"company": co, "filter_based_on": "Date Range", "period_start_date": ys, "period_end_date": ye, "periodicity": "Yearly", "from_fiscal_year": fy, "to_fiscal_year": fy}),
+                       ("Stock Ledger", {"company": VAT_CO, "from_date": ys, "to_date": ye}), ("Stock Projected Qty", {"company": VAT_CO}),
+                       ("Work Order Summary", {"company": VAT_CO, "from_date": ys, "to_date": ye, "age": 0, "charts_based_on": "Status"}),
+                       ("Quality Inspection Summary", {"company": co, "from_date": ys, "to_date": ye}),
+                       ("Asset Depreciations and Balances", {"company": co, "from_date": ys, "to_date": ye, "group_by": "Asset Category"}),
+                       ("Daily Timesheet Summary", {"from_date": ys, "to_date": ye}), ("Delayed Tasks Summary", {}),
+                       ("Opportunity Summary by Sales Stage", {"company": co, "from_date": ys, "to_date": ye, "based_on": "Opportunity Owner", "data_based_on": "Number", "opportunity_source": ""})):
+            out.append(f"{rep} {len(_report(rep, f))}")
+        return "; ".join(out)
+    r.step("module reports carry the module's documents", modules)
+
+    def slsp_walk_in():
+        from frappe.utils import get_first_day, get_last_day
+
+        from ph_cas.dat.relief import GENERIC_NAME, GENERIC_TIN, build_sales
+
+        first, last = str(get_first_day(today())), str(get_last_day(today()))
+        _name, content, n = build_sales(VAT_CO, first, last)
+        text = content.decode("utf-8", "replace") if isinstance(content, bytes) else content
+        lines = [ln for ln in text.splitlines() if GENERIC_TIN in ln]
+        r.expect(len(lines) == 1 and GENERIC_NAME in lines[0] and "MARIKINA CITY" in lines[0], f"generic rows {lines}")
+        walk_in = flt(frappe.db.sql("""select sum(si.ph_vatable_sales) from `tabSales Invoice` si join `tabCustomer` c on c.name = si.customer
+            where si.company = %s and si.docstatus = 1 and si.posting_date between %s and %s and ifnull(c.ph_tin, '') = '' and ifnull(c.tax_id, '') = ''""", (VAT_CO, first, last))[0][0], 2)
+        r.expect(f"{walk_in:.2f}" in lines[0], f"walk-in VATable {walk_in:.2f} not on the row: {lines[0]}")
+        return f"{n} rows; {lines[0][:150]}"
+    r.step("SLSP: walk-in sales on one Generic Customer row", slsp_walk_in)
+
+    def audit_by_document():
+        si = frappe.get_all("Sales Invoice", filters={"company": co, "docstatus": 1}, pluck="name", limit=1)[0]
+        rows = _report("BIR Audit Trail", {"from_date": ys, "to_date": ye, "ref_doctype": "Sales Invoice", "ref_name": si})
+        r.expect(rows, f"no audit rows for {si}")
+        return f"{si}: {len(rows)} audit rows"
+    r.step("audit trail finds a document's history", audit_by_document)
+
+
 SECTIONS = {
     "companies": s_companies, "purchasing": s_purchasing, "sales": s_sales, "tasks": s_tasks, "inventory": s_inventory,
     "projects": s_projects, "assets": s_assets, "quality": s_quality, "crm": s_crm, "support": s_support,
-    "industries": s_industries, "forms": s_forms,
+    "industries": s_industries, "forms": s_forms, "inventory_tracking": s_inventory_tracking, "roles": s_roles, "reports": s_reports,
 }
 
 

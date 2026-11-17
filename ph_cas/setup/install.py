@@ -85,4 +85,7 @@ def setup_all():
     from ph_cas import branding
 
     branding.apply()  # B38
+    from ph_cas.setup import roles
+
+    roles.setup()  # B69
     frappe.db.commit()

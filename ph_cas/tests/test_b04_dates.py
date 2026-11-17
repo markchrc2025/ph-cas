@@ -182,12 +182,18 @@ class TestB04Dates(IntegrationTestCase):
 
     # D7: inventory
 
-    def test_perpetual_inventory_is_off_and_cannot_be_enabled(self):
+    def test_inventory_method_decides_perpetual(self):
+        # D7 (revised 17 Nov 2026): the checkbox follows the company's inventory method
         self.assertEqual(frappe.db.get_value("Company", TEST_COMPANY, "enable_perpetual_inventory"), 0)
         company = frappe.get_doc("Company", TEST_COMPANY)
-        company.enable_perpetual_inventory = 1
-        with self.assertRaises(PHLockError):
-            company.save()
+        if not frappe.db.exists("Stock Ledger Entry", {"company": TEST_COMPANY, "is_cancelled": 0}):
+            company.enable_perpetual_inventory = 1
+            company.save()  # Periodic method: forced back off
+            self.assertEqual(frappe.db.get_value("Company", TEST_COMPANY, "enable_perpetual_inventory"), 0)
+        else:
+            company.ph_inventory_method = "Perpetual"
+            with self.assertRaises(PHLockError):
+                company.save()
 
     def test_stock_entry_dated_last_week_is_refused(self):
         se = frappe.get_doc(

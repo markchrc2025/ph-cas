@@ -45,3 +45,11 @@ Tax returns > BIR Returns is where a return is made, previewed, exported, filed 
 - **After filing** nothing changes. A manager opens an amendment (Open amendment, with a reason): a new draft with the same figures, the Amended Return box ticked, linked to the original, which stays filed and readable.
 
 Until a form's engine is built, its return says so under needs and cannot be filed.
+
+## Inventory method and the year-end count
+
+Each company chooses Periodic or Perpetual (Company, Inventory method) before its first stock movement; the choice is locked after. Perpetual: receipts, sales and stock counts post to the ledger as they happen. Periodic: purchases go to cost of sales; at year-end enter the count (Stock Reconciliation on the count day), then Company > Sentire Ledger > Year-end inventory adjustment. It shows the counted value and the inventory account and posts the difference to cost of sales, so the income tax returns carry beginning inventory plus purchases less ending inventory.
+
+## User roles
+
+Give each user one profile (User, Role Profiles): Owner (everything, including users, settings, stock counts and earlier posting dates), Bookkeeper (books, bills, invoices, masters, stock and the BIR returns), or Cashier (sales invoices and collections at the counter only).

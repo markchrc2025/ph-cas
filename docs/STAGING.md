@@ -35,7 +35,7 @@ More data on demand, through the connector's `seed_scenario`:
 
 ## Full pass (QA pass 4)
 
-`call_method` with `ph_cas.qa.fullpass.run` and `{"section": ...}` runs one section of the whole-product pass as the QA admin and returns each step with ok or FAIL: companies, purchasing, sales, tasks, inventory, projects, assets, quality, crm, support, industries, forms (in that order; later sections use what earlier ones made). Seed `vat_quarter`, `income_year`, `non_vat_company` and `individual_year` first so the forms have history.
+`call_method` with `ph_cas.qa.fullpass.run` and `{"section": ...}` runs one section of the whole-product pass as the QA admin and returns each step with ok or FAIL: companies, purchasing, sales, tasks, inventory, inventory_tracking, projects, assets, quality, crm, support, industries, roles, forms, reports (in that order; later sections use what earlier ones made). Seed `vat_quarter`, `income_year`, `non_vat_company` and `individual_year` first so the forms have history.
 
 ## The QA connector
 

@@ -166,18 +166,35 @@ def manager_only_permission(doc, ptype=None, user=None):
     return MANAGER_ROLE in frappe.get_roles(user)
 
 
+INVENTORY_METHOD = "ph_inventory_method"
+
+
 def validate_company_inventory(doc, method=None):
-    """doc_events['Company'].validate (D7)."""
+    """doc_events['Company'].validate (D7, revised 17 Nov 2026 after QA pass 4).
+
+    Each company chooses its inventory method: Periodic (the default; purchases go to cost of
+    sales and the year-end count posts the inventory adjustment, ph_cas.stock.periodic) or
+    Perpetual (tracked: every receipt, sale and count posts to the ledger). The choice is made
+    before the company's first stock movement and cannot change after it, since switching
+    would leave the stock already moved valued under the other method."""
     if not locks_active():
         return
+    method = doc.get(INVENTORY_METHOD) or "Periodic"
+    want = 1 if method == "Perpetual" else 0
     if doc.is_new():
-        doc.enable_perpetual_inventory = 0  # ERPNext's default is on; D7 says off
+        doc.set(INVENTORY_METHOD, method)
+        doc.enable_perpetual_inventory = want  # ERPNext's own default is on
         return
-    if doc.get("enable_perpetual_inventory"):
-        frappe.throw(
-            _("Perpetual inventory stays off in this system (decision D7). Stock is valued periodically."),
-            PHLockError,
-        )
+    before = doc.get_doc_before_save()
+    was = int(before.get("enable_perpetual_inventory") or 0) if before else want
+    if want != was or int(doc.get("enable_perpetual_inventory") or 0) != want:
+        if frappe.db.exists("Stock Ledger Entry", {"company": doc.name, "is_cancelled": 0}):
+            frappe.throw(
+                _("{0} already has stock movements, so its inventory method stays {1} (decision D7). The method is chosen before the first stock movement.").format(
+                    doc.name, "Perpetual" if was else "Periodic"),
+                PHLockError,
+            )
+    doc.enable_perpetual_inventory = want
 
 
 def setup():
@@ -213,8 +230,19 @@ def setup():
     if frappe.db.get_single_value("System Settings", "time_zone") != "Asia/Manila":
         frappe.db.set_single_value("System Settings", "time_zone", "Asia/Manila")
 
-    # Perpetual inventory off where no stock ledger exists yet (D7)
-    for company in frappe.get_all("Company", filters={"enable_perpetual_inventory": 1}, pluck="name"):
-        if not frappe.db.exists("Stock Ledger Entry", {"company": company, "is_cancelled": 0}):
-            frappe.db.set_value("Company", company, "enable_perpetual_inventory", 0, update_modified=False)
+    create_custom_fields({"Company": [{
+        "fieldname": INVENTORY_METHOD, "fieldtype": "Select", "label": "Inventory method (D7)", "options": "Periodic\nPerpetual", "default": "Periodic",
+        "insert_after": "enable_perpetual_inventory",
+        "description": "Periodic: purchases go to cost of sales and the year-end count posts the inventory adjustment. Perpetual: every receipt, sale and count posts to the ledger. Chosen before the first stock movement.",
+    }]}, ignore_validate=True, update=True)
+    # A company's method follows its ledger: perpetual stays on where stock already moved under it,
+    # and goes off where nothing has moved and Periodic was never changed (D7)
+    for c in frappe.get_all("Company", fields=["name", "enable_perpetual_inventory", INVENTORY_METHOD]):
+        moved = frappe.db.exists("Stock Ledger Entry", {"company": c.name, "is_cancelled": 0})
+        if c.enable_perpetual_inventory and moved:
+            frappe.db.set_value("Company", c.name, INVENTORY_METHOD, "Perpetual", update_modified=False)
+        elif c.enable_perpetual_inventory and (c.get(INVENTORY_METHOD) or "Periodic") == "Periodic":
+            frappe.db.set_value("Company", c.name, "enable_perpetual_inventory", 0, update_modified=False)
+        elif not c.get(INVENTORY_METHOD):
+            frappe.db.set_value("Company", c.name, INVENTORY_METHOD, "Periodic", update_modified=False)
     frappe.clear_cache()

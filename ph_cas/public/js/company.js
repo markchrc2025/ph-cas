@@ -50,6 +50,22 @@ frappe.ui.form.on("Company", {
                     window.open(`/api/method/ph_cas.ops.releases.download_quarterly_notice?company=${encodeURIComponent(frm.doc.name)}&year=${v.year}&quarter=${v.quarter}`);
                 }, __("Notice of minor enhancements (RMO 9-2021 V.9)"));
             }, ph_cas_menu());
+            if (!frm.doc.enable_perpetual_inventory) {
+                // B69: periodic method; the year-end count becomes the inventory adjustment
+                frm.add_custom_button(__("Year-end inventory adjustment"), () => {
+                    frappe.prompt({ fieldname: "as_of", fieldtype: "Date", label: __("Count date"), default: frappe.datetime.get_today(), reqd: 1,
+                        description: __("Enter the year-end count first (Stock Reconciliation on the count day).") }, (v) => {
+                        frappe.call({ method: "ph_cas.stock.periodic.preview", args: { company: frm.doc.name, as_of: v.as_of } }).then((r) => {
+                            const p = r.message;
+                            frappe.confirm(__("Counted stock {0}, inventory in the books {1}: post {2} to cost of sales?", [
+                                format_currency(p.counted), format_currency(p.books), format_currency(p.adjustment)]), () => {
+                                frappe.call({ method: "ph_cas.stock.periodic.post_adjustment", args: { company: frm.doc.name, as_of: v.as_of }, freeze: true })
+                                    .then((x) => frappe.msgprint(x.message.journal_entry ? __("Posted {0}.", [x.message.journal_entry]) : __("Nothing to adjust.")));
+                            });
+                        });
+                    }, __("Year-end inventory adjustment"));
+                }, ph_cas_menu());
+            }
             frm.add_custom_button(__("Year-end e-books (zip)"), () => {
                 frappe.prompt({ fieldname: "year", fieldtype: "Int", label: __("Year"), default: new Date().getFullYear() - 1, reqd: 1 }, (v) => {
                     window.open(`/api/method/ph_cas.books.yearend.download_pack?company=${encodeURIComponent(frm.doc.name)}&year=${v.year}`);

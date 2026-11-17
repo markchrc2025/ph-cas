@@ -10,7 +10,7 @@ Status: recommended (Claude's recommendation, not yet confirmed) or confirmed (t
 | D4 | Invoice numbers | 8 digits, continuous, no yearly reset; one series per document type per branch; plus the manual invoice number typed by the user (answer 2) | confirmed 17 Nov 2026 |
 | D5 | Dates | Invoices and receipts carry the day they are posted; a back-dated posting needs a reason | confirmed 17 Nov 2026 |
 | D6 | Corrections | Cancel and reissue, or an adjusting journal entry; never rewrite the ledger. Issued invoices, credit notes and debit notes are never cancelled: they are corrected by a credit or debit note (B21, B46) | confirmed 17 Nov 2026 |
-| D7 | Inventory | Perpetual inventory off at first; back-dated stock entries blocked | recommended |
+| D7 | Inventory | Each company chooses its inventory method before its first stock movement, and it cannot change after: Periodic (default; purchases go to cost of sales and the year-end count posts the inventory adjustment, Company > Sentire Ledger > Year-end inventory adjustment) or Perpetual (tracked: receipts, sales and counts post to the ledger). Back-dated stock entries blocked | changed 17 Nov 2026 after QA pass 4 (owner: inventory tracking and the year-end count are part of the product) |
 | D8 | First clients | Micro taxpayers, VAT and non-VAT, first; SC/PWD discounts are in (built) | confirmed 17 Nov 2026 |
 | POS | Point of sale | ERPNext's point-of-sale screen out of release 1; invoices from the back office | confirmed 14 Nov 2026 (answer 10) |
 | D9 | Product name | Sentire Ledger, everywhere a user looks (B38; the Company menu since B66). Internal code names (the ph_cas app, the PH CAS module, PH CAS Settings, PH reports) stay: renaming them renames database tables | confirmed 17 Nov 2026 |
@@ -42,3 +42,5 @@ No letter to the RDO: the owner answered the questions directly. Numbers follow 
 | 9 | Collection receipts | A per-company switch, covered by an ATP. Clients may still use other supplementary receipts. Without an ATP the receipt prints THIS DOCUMENT IS NOT VALID FOR CLAIM OF INPUT TAX. | Company: Collection Receipt ATP number and date; the print shows the ATP or the phrase. |
 | 10 | Point of sale | Parked for later. | POS row above stays out of release 1. |
 | 11 | SLSP files | One file per month: three files per quarterly submission. | ph_cas.dat.relief.months; PH Tax Return generate_slsp and the 2550Q tie-out. |
+| 12 | Walk-in buyers in the SLSP (17 Nov 2026) | Sales to buyers without a TIN go on one row: TIN 000-111-222, name GENERIC CUSTOMER, and the seller's own city as the address. | ph_cas.dat.relief.GENERIC_TIN, GENERIC_NAME, _seller_city. |
+| 13 | Client user roles (17 Nov 2026) | Ready role sets: Owner, Bookkeeper, Cashier. The Cashier stays at the counter (no bills, journal entries, suppliers or purchasing; collections only). | ph_cas.setup.roles (Role Profiles, cashier_limit). |

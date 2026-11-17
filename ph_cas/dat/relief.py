@@ -168,6 +168,20 @@ def _fname(company, letter, end):
     return f"{tin9(c.tax_id)}{letter}{d.month:02d}{d.year}.DAT"
 
 
+# Sales to buyers without a TIN (walk-in customers) go into the SLS as one row: TIN 000-111-222,
+# "GENERIC CUSTOMER", and the seller's own city as the address (the owner's instruction, 17 Nov 2026).
+GENERIC_TIN = "000111222"
+GENERIC_NAME = "GENERIC CUSTOMER"
+
+
+def _seller_city(company) -> str:
+    """The city (and ZIP) of the seller's registered address: the last comma part of its last line."""
+    c = frappe.get_cached_doc("Company", company)
+    lines = [x.strip() for x in (c.get("ph_registered_address") or "").splitlines() if x.strip()]
+    city = lines[-1].split(",")[-1].strip() if lines else ""
+    return _with_zip(_clean(city), c.get("ph_zip"))
+
+
 def build_sales(company, start, end):
     o = owner(company)
     rows = frappe.db.sql(
@@ -177,6 +191,8 @@ def build_sales(company, start, end):
     merged, parties = {}, {}
     for r in rows:
         tin, names, a1, a2 = _party("Customer", r.customer)
+        if tin == "000000000":  # walk-in buyer without a TIN: one Generic Customer row (owner's practice, 17 Nov 2026)
+            tin, names, a1, a2 = GENERIC_TIN, [GENERIC_NAME, "", "", ""], "", _seller_city(company)
         parties.setdefault(tin, r.customer)
         m = merged.setdefault(tin, {"names": names, "a1": a1, "a2": a2, "exempt": 0.0, "zero": 0.0, "taxable": 0.0, "vat": 0.0})
         for k in ("exempt", "zero", "taxable", "vat"):
