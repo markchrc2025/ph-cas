@@ -11,7 +11,7 @@ permissions:
   packages: write
 jobs:
   image:
-    runs-on: [self-hosted, sentire]
+    runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4

@@ -5,7 +5,7 @@ on:
     branches: [main]
 jobs:
   docs:
-    runs-on: [self-hosted, sentire]
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: No em or en dashes under docs/
@@ -13,7 +13,7 @@ jobs:
           if grep -rnP '[\x{2013}\x{2014}]' docs/ README.md VERSIONS.md; then
             echo "Em or en dash found"; exit 1; fi
   test:
-    runs-on: [self-hosted, sentire]
+    runs-on: ubuntu-latest
     timeout-minutes: 60
     services:
       mariadb:
