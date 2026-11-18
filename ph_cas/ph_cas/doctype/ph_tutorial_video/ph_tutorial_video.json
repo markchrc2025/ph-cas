@@ -10,6 +10,9 @@
   "title",
   "length",
   "summary",
+  "section",
+  "menu_path",
+  "ends_on",
   "where_section",
   "steps",
   "help_for",
@@ -55,6 +58,28 @@
    "fieldname": "summary",
    "fieldtype": "Small Text",
    "label": "What the viewer learns"
+  },
+  {
+   "fieldname": "section",
+   "fieldtype": "Data",
+   "label": "Section",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "menu_path",
+   "fieldtype": "Data",
+   "label": "Menu path (on screen)",
+   "read_only": 1,
+   "description": "Shown on screen as the video's menu path (beat 2 of the script)."
+  },
+  {
+   "fieldname": "ends_on",
+   "fieldtype": "Small Text",
+   "label": "Ends on",
+   "read_only": 1,
+   "description": "The report or document the video must end on, proving the step worked (beat 5)."
   },
   {
    "fieldname": "where_section",
@@ -125,7 +150,7 @@
  "show_title_field_in_link": 1,
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-11-15 23:30:00.000000",
+ "modified": "2026-11-19 01:40:00.000000",
  "modified_by": "Administrator",
  "module": "PH CAS",
  "name": "PH Tutorial Video",

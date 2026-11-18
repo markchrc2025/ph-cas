@@ -46,6 +46,10 @@ jobs:
       - name: Bootstrap bench
         env: { SKIP_ASSETS: "1", DB_ROOT_PASSWORD: root }
         run: |
+          # the self-hosted runner keeps its home between jobs, while the MariaDB service is new
+          # each time: a bench left by the last job holds a site whose database user no longer
+          # exists ("Access denied for user ..."), so always start from a clean bench
+          rm -rf "$HOME/bench"
           export PATH="$HOME/.local/bin:$PATH"
           bash ph_cas/scripts/bootstrap.sh "$HOME/bench"
       - name: Run tests

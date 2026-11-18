@@ -114,7 +114,7 @@ frappe.provide("ph_cas.tutorials");
 
 // ---- 4. Upload (System Manager) ---------------------------------------------------------------
 // Drop the whole set (each video's .mp4, .srt and .png/.jpg); the code in each file name
-// (SL-V35-...) says which video it belongs to. The files go to the private video server in
+// (SL-V50-...) says which video it belongs to. The files go to the private video server in
 // 8 MB pieces through this site; nothing is kept here.
 ph_cas.tutorials.kind_of = function (name) {
 	const ext = (name.split(".").pop() || "").toLowerCase();
@@ -198,7 +198,7 @@ ph_cas.tutorials.upload_dialog = function (only_code) {
 				options: `<div class="ph-tut-drop" style="border:2px dashed var(--border-color);border-radius:8px;padding:28px;text-align:center;cursor:pointer">
 					<p style="margin:0 0 6px"><b>${__("Drop the video files here, or click to choose them")}</b></p>
 					<p class="text-muted small" style="margin:0">${__(
-						"Each video's .mp4, its .srt captions and its thumbnail (.png or .jpg). The code in the file name (V01 to V38) says which video it belongs to. You can drop a whole folder's files at once."
+						"Each video's .mp4, its .srt captions and its thumbnail (.png or .jpg). The code in the file name (V01, V02, ...) says which video it belongs to. You can drop a whole folder's files at once."
 					)}</p>
 					<input type="file" multiple accept=".mp4,.srt,.vtt,.png,.jpg,.jpeg" style="display:none">
 				</div>`,

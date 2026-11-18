@@ -1,23 +1,70 @@
 {
- "_comment": "Sentire Ledger tutorial videos, V01 to V38. Seeded into PH Tutorial Video on install and migrate. The files live in the private video bucket under tutorials/<code>/ (video.mp4, captions.vtt, poster.jpg); upload them from the Tutorial Videos list. steps: the onboarding steps whose card plays the video. help_for: the forms that offer it under the Help button.",
+ "_comment": "Sentire Ledger tutorial videos, V01 to V57, in learning order (setup, records, opening balances, daily work, checks, period close, BIR returns, administration; B70, benchmarked on ECOUNT's Basic playlist, see the project doc claude/ledger-tutorials-proposal-2026-11-19.md). Seeded into PH Tutorial Video on install and migrate. Every video follows the five-beat script: topic, menu path on screen (menu_path), why, do it with the save on screen, and it ends on the report or document in ends_on. 60 to 90 seconds. The files live in the private video bucket under tutorials/<code>/ (video.mp4, captions.vtt, poster.jpg); upload them from the Tutorial Videos list. steps: the onboarding steps whose card plays the video. help_for: the forms that offer it under the Help button.",
  "videos": [
   {
    "code": "V01",
-   "title": "Set up your Philippine company",
-   "length": "2:00",
-   "summary": "COR details on the Company, then one click adds the PH accounts, account mapping and BIR Series",
+   "section": "Get started",
+   "title": "Add your team and give each a role",
+   "length": "1:15",
+   "summary": "Invite users and give each one role set: Owner, Bookkeeper or Cashier",
+   "menu_path": "Home > Users > User > Role Profiles",
+   "ends_on": "User list showing each person's role set",
    "steps": [
-    "PH Set Up Company"
+    "Invite Users"
    ],
+   "help_for": [
+    "User"
+   ]
+  },
+  {
+   "code": "V02",
+   "section": "Get started",
+   "title": "Enter your COR details",
+   "length": "1:15",
+   "summary": "Type the Company exactly as the COR reads: TIN, branch, RDO, registered name and address, VAT status, taxpayer type",
+   "menu_path": "Accounting > Company",
+   "ends_on": "An invoice print preview with the BIR header built from those details",
+   "steps": [],
    "help_for": [
     "Company"
    ]
   },
   {
-   "code": "V02",
-   "title": "Your tax rules, dated and confirmed",
-   "length": "2:00",
-   "summary": "Every rate is a dated rule; drafts until your accountant confirms; how rules fill invoices and bills",
+   "code": "V03",
+   "section": "Get started",
+   "title": "Run the Philippine setup",
+   "length": "1:00",
+   "summary": "One click adds the PH accounts, the account mapping and the four BIR Series",
+   "menu_path": "Company > Sentire Ledger > Set up Philippine company",
+   "ends_on": "BIR Series list: four series ready at 00000001",
+   "steps": [
+    "PH Set Up Company"
+   ],
+   "help_for": []
+  },
+  {
+   "code": "V04",
+   "section": "Get started",
+   "title": "Your chart of accounts",
+   "length": "1:15",
+   "summary": "The PH accounts the setup adds (Output VAT, Input VAT by kind, EWT payable, CWT receivable) and the account mapping",
+   "menu_path": "Accounting > Chart of Accounts",
+   "ends_on": "Chart of Accounts tree with the PH accounts opened",
+   "steps": [
+    "Chart of Accounts"
+   ],
+   "help_for": [
+    "Account"
+   ]
+  },
+  {
+   "code": "V05",
+   "section": "Get started",
+   "title": "Your tax rules",
+   "length": "1:30",
+   "summary": "Every rate is a dated rule; drafts until confirmed; how a rule fills an invoice and a bill",
+   "menu_path": "Taxes > PH Tax Rule",
+   "ends_on": "PH Tax Rule list filtered to Confirmed",
    "steps": [
     "PH Confirm Tax Rules",
     "Review Taxes"
@@ -27,79 +74,54 @@
    ]
   },
   {
-   "code": "V03",
-   "title": "Your first BIR invoice",
-   "length": "2:00",
-   "summary": "Serial from the BIR Series on submit, BIR header, original and duplicate, corrections by credit or debit note",
-   "steps": [
-    "PH First BIR Invoice",
-    "Create Sales Invoice"
-   ],
-   "help_for": [
-    "Sales Invoice"
-   ]
-  },
-  {
-   "code": "V04",
-   "title": "Compute and file a BIR return",
-   "length": "2:30",
-   "summary": "BIR Returns: figures from the books, what still needs you, DRAFT preview, eBIRForms export, filing with the confirmation",
-   "steps": [
-    "PH Run 2550Q"
-   ],
-   "help_for": [
-    "PH Tax Return"
-   ]
-  },
-  {
-   "code": "V05",
-   "title": "Export the books",
-   "length": "1:30",
-   "summary": "The seven books with BIR header and tie-outs; the year-end pack",
-   "steps": [
-    "PH Export Books"
-   ],
+   "code": "V06",
+   "section": "Get started",
+   "title": "Choose your inventory method",
+   "length": "1:00",
+   "summary": "Periodic or Perpetual, chosen before your first stock movement and locked after it",
+   "menu_path": "Accounting > Company > Inventory method",
+   "ends_on": "Company form saved, the method shown as locked once stock has moved",
+   "steps": [],
    "help_for": []
   },
   {
-   "code": "V06",
-   "title": "Build the registration pack",
-   "length": "1:30",
-   "summary": "Provider and signatory details, then one download for the RDO",
-   "steps": [
-    "PH Registration Pack"
-   ],
-   "help_for": [
-    "PH CAS Settings"
-   ]
-  },
-  {
    "code": "V07",
-   "title": "Your chart of accounts",
-   "length": "1:30",
-   "summary": "The PH accounts the setup adds (Output VAT, Input VAT by kind, EWT payable, CWT receivable) and the account mapping",
+   "section": "Get started",
+   "title": "Your warehouses",
+   "length": "1:00",
+   "summary": "Where stock is kept; one per branch or store",
+   "menu_path": "Stock > Warehouse",
+   "ends_on": "Warehouse tree",
    "steps": [
-    "Chart of Accounts"
+    "Setup Warehouse"
    ],
    "help_for": [
-    "Account"
+    "Warehouse"
    ]
   },
   {
    "code": "V08",
-   "title": "Trace every posting",
-   "length": "1:30",
-   "summary": "General Ledger, the BIR Audit Trail and the event log nobody can rewrite",
+   "section": "Get started",
+   "title": "Add your bank account",
+   "length": "1:00",
+   "summary": "The account customers pay into and you pay from, linked to its ledger account",
+   "menu_path": "Accounting > Bank Account",
+   "ends_on": "Chart of Accounts showing the bank's ledger account",
    "steps": [
-    "View General Ledger"
+    "Add Bank Account"
    ],
-   "help_for": []
+   "help_for": [
+    "Bank Account"
+   ]
   },
   {
    "code": "V09",
+   "section": "Your records",
    "title": "Add a customer",
    "length": "1:15",
    "summary": "TIN, registered name, address, top withholding agent and what it changes",
+   "menu_path": "Selling > Customer",
+   "ends_on": "Customer list showing the TIN column",
    "steps": [
     "Create Customer"
    ],
@@ -109,9 +131,12 @@
   },
   {
    "code": "V10",
+   "section": "Your records",
    "title": "Add a supplier",
-   "length": "1:30",
+   "length": "1:15",
    "summary": "TIN, payee type, VAT status and withholding category, the basis of every 2307",
+   "menu_path": "Buying > Supplier",
+   "ends_on": "Supplier list showing withholding category and TIN",
    "steps": [
     "Create Supplier"
    ],
@@ -121,14 +146,15 @@
   },
   {
    "code": "V11",
-   "title": "Add an item",
+   "section": "Your records",
+   "title": "Add an item you sell",
    "length": "1:15",
-   "summary": "VAT class (VATable, zero-rated, exempt), capital goods, stocked or not",
+   "summary": "A product or service you sell: its VAT class and its selling price",
+   "menu_path": "Stock > Item",
+   "ends_on": "Item Price list: the item at its selling price, VAT class shown on the item",
    "steps": [
     "Create Selling Item",
-    "Create Buying Item",
-    "Create Item",
-    "Create Raw Materials"
+    "Create Item"
    ],
    "help_for": [
     "Item"
@@ -136,79 +162,99 @@
   },
   {
    "code": "V12",
-   "title": "Get paid",
-   "length": "1:45",
-   "summary": "Payment Entry against the invoice, tax withheld by the customer, the 2307 you receive",
+   "section": "Your records",
+   "title": "Add an item you buy or stock",
+   "length": "1:15",
+   "summary": "Stocked or not, valuation, capital goods, and the input VAT kind it carries",
+   "menu_path": "Stock > Item",
+   "ends_on": "Item list filtered to stocked items",
    "steps": [
-    "Create Payment Entry"
+    "Create Buying Item",
+    "Create Raw Materials",
+    "Create Finished Goods"
    ],
-   "help_for": [
-    "Payment Entry"
-   ]
+   "help_for": []
   },
   {
    "code": "V13",
-   "title": "Enter a supplier's bill",
+   "section": "Your records",
+   "title": "Record an asset you own",
    "length": "1:30",
-   "summary": "Purchase Invoice: Input VAT and EWT worked out from the supplier profile",
+   "summary": "An asset category with its depreciation, then an asset you already own",
+   "menu_path": "Assets > Asset Category, then Asset",
+   "ends_on": "Fixed Asset Register with the asset and its value",
    "steps": [
-    "Create Accounting Purchase Invoice",
-    "Create Purchase Invoice"
+    "Create Asset Category",
+    "Create Asset Item",
+    "Create Existing Asset"
    ],
    "help_for": [
-    "Purchase Invoice"
+    "Asset",
+    "Asset Category"
    ]
   },
   {
    "code": "V14",
-   "title": "Pay your supplier and issue the 2307",
-   "length": "2:00",
-   "summary": "Payment net of EWT, the 2307 per quarter, where the 0619-E and 1601-EQ figures come from",
-   "steps": [
-    "Pay Supplier"
-   ],
-   "help_for": [
-    "Payment Entry",
-    "PH 2307 Issued"
-   ]
+   "section": "Opening balances",
+   "title": "Enter your opening balances",
+   "length": "1:30",
+   "summary": "Account balances as of the day before you go live, in one opening entry",
+   "menu_path": "Accounting > Journal Entry (Opening Entry)",
+   "ends_on": "Trial Balance on the go-live date",
+   "steps": [],
+   "help_for": []
   },
   {
    "code": "V15",
-   "title": "Post a journal entry",
-   "length": "1:30",
-   "summary": "Accruals and corrections; the posting-date lock and who may back-date",
-   "steps": [
-    "Create Journal Entry"
-   ],
+   "section": "Opening balances",
+   "title": "Enter unpaid invoices and bills from before",
+   "length": "1:15",
+   "summary": "Open receivables and payables from your old books, so collections and payments match",
+   "menu_path": "Accounting > Opening Invoice Creation Tool",
+   "ends_on": "Accounts Receivable and Accounts Payable showing the old balances",
+   "steps": [],
    "help_for": [
-    "Journal Entry"
+    "Opening Invoice Creation Tool"
    ]
   },
   {
    "code": "V16",
-   "title": "Check your profit",
-   "length": "1:30",
-   "summary": "P&L for any period and the book-to-tax reconciliation behind the income tax returns",
+   "section": "Opening balances",
+   "title": "Enter the stock you have today",
+   "length": "1:15",
+   "summary": "Opening quantities and values in one stock count",
+   "menu_path": "Stock > Stock Reconciliation",
+   "ends_on": "Stock Balance and the Inventory Book",
    "steps": [
-    "View Profit and Loss"
+    "Create Opening Stock"
    ],
-   "help_for": []
+   "help_for": [
+    "Stock Reconciliation"
+   ]
   },
   {
    "code": "V17",
-   "title": "Know what you own and owe",
+   "section": "Selling",
+   "title": "Quote a price",
    "length": "1:00",
-   "summary": "Balance Sheet on any date",
+   "summary": "A quotation the customer can accept; it turns into an order or an invoice",
+   "menu_path": "Selling > Quotation",
+   "ends_on": "Quotation list showing it Open, then the order made from it",
    "steps": [
-    "View Balance Sheet"
+    "Create Quotation"
    ],
-   "help_for": []
+   "help_for": [
+    "Quotation"
+   ]
   },
   {
    "code": "V18",
+   "section": "Selling",
    "title": "Confirm a sales order",
    "length": "1:15",
    "summary": "Order to delivery to invoice from one document",
+   "menu_path": "Selling > Sales Order",
+   "ends_on": "Sales Order Analysis report",
    "steps": [
     "Create Sales Order"
    ],
@@ -218,79 +264,50 @@
   },
   {
    "code": "V19",
-   "title": "Record a supplier's quote",
-   "length": "1:00",
-   "summary": "Compare suppliers before ordering",
+   "section": "Selling",
+   "title": "Issue a BIR invoice",
+   "length": "1:30",
+   "summary": "Serial from the BIR Series on submit, the BIR header, original and duplicate copies",
+   "menu_path": "Accounting > Sales Invoice",
+   "ends_on": "The printed invoice, then its row in the Sales Journal",
    "steps": [
-    "Create Supplier Quotation"
+    "PH First BIR Invoice",
+    "Create Sales Invoice"
    ],
    "help_for": [
-    "Supplier Quotation"
+    "Sales Invoice"
    ]
   },
   {
    "code": "V20",
-   "title": "Place a purchase order",
+   "section": "Selling",
+   "title": "Sell to a senior citizen or PWD",
    "length": "1:15",
-   "summary": "Order, receive and bill from one document; approval above an amount",
-   "steps": [
-    "Create Purchase Order"
-   ],
-   "help_for": [
-    "Purchase Order"
-   ]
+   "summary": "20% discount and VAT exemption on the eligible lines, with the ID on the invoice",
+   "menu_path": "Accounting > Sales Invoice > SC/PWD",
+   "ends_on": "PH SC PWD Sales report",
+   "steps": [],
+   "help_for": []
   },
   {
    "code": "V21",
-   "title": "Track your orders",
-   "length": "1:00",
-   "summary": "What was ordered, received and billed",
-   "steps": [
-    "View Purchase Order Analysis"
-   ],
+   "section": "Selling",
+   "title": "Correct an invoice",
+   "length": "1:15",
+   "summary": "Issued invoices are never cancelled: a credit or debit note against them",
+   "menu_path": "Sales Invoice > Create > Return / Debit Note",
+   "ends_on": "Sales Journal showing the invoice and its note",
+   "steps": [],
    "help_for": []
   },
   {
    "code": "V22",
-   "title": "Your warehouses",
-   "length": "1:00",
-   "summary": "Where stock is kept; one per branch or store",
-   "steps": [
-    "Setup Warehouse"
-   ],
-   "help_for": [
-    "Warehouse"
-   ]
-  },
-  {
-   "code": "V23",
-   "title": "Enter the stock you have today",
-   "length": "1:15",
-   "summary": "Opening quantities and values in one Stock Reconciliation",
-   "steps": [
-    "Create Opening Stock"
-   ],
-   "help_for": [
-    "Stock Reconciliation"
-   ]
-  },
-  {
-   "code": "V24",
-   "title": "Receive goods",
-   "length": "1:00",
-   "summary": "Stock goes up; the bill comes from the receipt",
-   "steps": [
-    "Create Purchase Receipt"
-   ],
-   "help_for": [
-    "Purchase Receipt"
-   ]
-  },
-  {
-   "code": "V25",
+   "section": "Selling",
    "title": "Ship to a customer",
    "length": "1:00",
    "summary": "Stock goes down; the invoice comes from the delivery",
+   "menu_path": "Stock > Delivery Note",
+   "ends_on": "Stock Ledger showing the item going out",
    "steps": [
     "Create Delivery Note"
    ],
@@ -299,10 +316,130 @@
    ]
   },
   {
+   "code": "V23",
+   "section": "Selling",
+   "title": "Get paid",
+   "length": "1:15",
+   "summary": "Payment against the invoice, with the collection receipt",
+   "menu_path": "Accounting > Payment Entry",
+   "ends_on": "Accounts Receivable with the invoice cleared",
+   "steps": [
+    "Create Payment Entry"
+   ],
+   "help_for": [
+    "Payment Entry"
+   ]
+  },
+  {
+   "code": "V24",
+   "section": "Selling",
+   "title": "Record a 2307 you receive",
+   "length": "1:15",
+   "summary": "Tax your customer withheld: the 2307 they gave you and your CWT receivable",
+   "menu_path": "Taxes > PH 2307 Received",
+   "ends_on": "PH 2307 Received Reconciliation report",
+   "steps": [],
+   "help_for": [
+    "PH 2307 Received"
+   ]
+  },
+  {
+   "code": "V25",
+   "section": "Buying",
+   "title": "Record a supplier's quote",
+   "length": "1:00",
+   "summary": "Compare suppliers before ordering",
+   "menu_path": "Buying > Supplier Quotation",
+   "ends_on": "Supplier Quotation Comparison report",
+   "steps": [
+    "Create Supplier Quotation"
+   ],
+   "help_for": [
+    "Supplier Quotation"
+   ]
+  },
+  {
    "code": "V26",
+   "section": "Buying",
+   "title": "Place a purchase order",
+   "length": "1:15",
+   "summary": "Order, receive and bill from one document; approval above an amount",
+   "menu_path": "Buying > Purchase Order",
+   "ends_on": "Purchase Order Analysis report",
+   "steps": [
+    "Create Purchase Order"
+   ],
+   "help_for": [
+    "Purchase Order"
+   ]
+  },
+  {
+   "code": "V27",
+   "section": "Buying",
+   "title": "Receive goods",
+   "length": "1:00",
+   "summary": "Stock goes up; the bill comes from the receipt",
+   "menu_path": "Stock > Purchase Receipt",
+   "ends_on": "Stock Ledger showing the item coming in",
+   "steps": [
+    "Create Purchase Receipt"
+   ],
+   "help_for": [
+    "Purchase Receipt"
+   ]
+  },
+  {
+   "code": "V28",
+   "section": "Buying",
+   "title": "Enter a supplier's bill",
+   "length": "1:30",
+   "summary": "Input VAT and EWT worked out from the supplier and the item",
+   "menu_path": "Accounting > Purchase Invoice",
+   "ends_on": "Purchase Journal row with the Input VAT and EWT columns",
+   "steps": [
+    "Create Accounting Purchase Invoice",
+    "Create Purchase Invoice"
+   ],
+   "help_for": [
+    "Purchase Invoice"
+   ]
+  },
+  {
+   "code": "V29",
+   "section": "Buying",
+   "title": "Pay your supplier",
+   "length": "1:15",
+   "summary": "Payment net of the tax you withheld",
+   "menu_path": "Accounting > Payment Entry",
+   "ends_on": "Accounts Payable with the bill cleared",
+   "steps": [
+    "Pay Supplier"
+   ],
+   "help_for": [
+    "Payment Entry"
+   ]
+  },
+  {
+   "code": "V30",
+   "section": "Buying",
+   "title": "Issue the quarter's 2307s",
+   "length": "1:15",
+   "summary": "One certificate per supplier per quarter, from the bills; print on the BIR face",
+   "menu_path": "Taxes > PH 2307 Issued > Generate",
+   "ends_on": "The 2307 printed on the BIR form",
+   "steps": [],
+   "help_for": [
+    "PH 2307 Issued"
+   ]
+  },
+  {
+   "code": "V31",
+   "section": "Stock and operations",
    "title": "Move stock",
    "length": "1:00",
    "summary": "Transfers between store, shop floor and branches",
+   "menu_path": "Stock > Stock Entry",
+   "ends_on": "Stock Ledger showing both warehouses",
    "steps": [
     "Move Stock"
    ],
@@ -311,44 +448,48 @@
    ]
   },
   {
-   "code": "V27",
-   "title": "Check your stock levels",
-   "length": "1:00",
-   "summary": "Stock Balance and the Inventory Book",
+   "code": "V32",
+   "section": "Stock and operations",
+   "title": "Make a product",
+   "length": "1:30",
+   "summary": "Its bill of materials, then a work order that uses up materials and adds the product",
+   "menu_path": "Manufacturing > BOM, then Work Order",
+   "ends_on": "Work Order Summary report",
    "steps": [
-    "View Stock Balance Report"
-   ],
-   "help_for": []
-  },
-  {
-   "code": "V28",
-   "title": "Plan a work order",
-   "length": "1:15",
-   "summary": "How many to make; materials from the BOM",
-   "steps": [
-    "Create Work Order"
+    "Create Bill of Materials",
+    "Create Work Order",
+    "Finish Work Order"
    ],
    "help_for": [
-    "Work Order"
+    "Work Order",
+    "BOM"
    ]
   },
   {
-   "code": "V29",
+   "code": "V33",
+   "section": "Stock and operations",
    "title": "Break a project into tasks",
    "length": "1:00",
    "summary": "Who does what, by when",
+   "menu_path": "Projects > Project > Task",
+   "ends_on": "Project Summary showing the tasks",
    "steps": [
+    "Create Project",
     "Create Tasks"
    ],
    "help_for": [
-    "Task"
+    "Task",
+    "Project"
    ]
   },
   {
-   "code": "V30",
-   "title": "Log time",
-   "length": "1:00",
-   "summary": "Timesheets for billing or costing",
+   "code": "V34",
+   "section": "Stock and operations",
+   "title": "Log time and bill it",
+   "length": "1:15",
+   "summary": "Timesheets for billing or costing, then the invoice from them",
+   "menu_path": "Projects > Timesheet",
+   "ends_on": "The invoice made from the timesheet, then Project Summary",
    "steps": [
     "Create Timesheet"
    ],
@@ -357,20 +498,13 @@
    ]
   },
   {
-   "code": "V31",
-   "title": "Track progress and costs",
-   "length": "1:00",
-   "summary": "Project Summary report",
-   "steps": [
-    "View Project Summary"
-   ],
-   "help_for": []
-  },
-  {
-   "code": "V32",
+   "code": "V35",
+   "section": "Stock and operations",
    "title": "Plan maintenance visits",
    "length": "1:00",
    "summary": "Service visits scheduled for the whole contract",
+   "menu_path": "Support > Maintenance Schedule",
+   "ends_on": "Maintenance Schedule with the visit dates",
    "steps": [
     "Create Maintenance Schedule"
    ],
@@ -379,64 +513,293 @@
    ]
   },
   {
-   "code": "V33",
-   "title": "Correct a filed return",
+   "code": "V36",
+   "section": "Stock and operations",
+   "title": "Post a journal entry",
+   "length": "1:15",
+   "summary": "Accruals and corrections; the posting-date lock and who may back-date",
+   "menu_path": "Accounting > Journal Entry",
+   "ends_on": "PH General Journal row",
+   "steps": [
+    "Create Journal Entry"
+   ],
+   "help_for": [
+    "Journal Entry"
+   ]
+  },
+  {
+   "code": "V37",
+   "section": "Checks",
+   "title": "Trace every posting",
+   "length": "1:00",
+   "summary": "Every posting from your documents, with its debit and credit",
+   "menu_path": "Accounting > General Ledger",
+   "ends_on": "General Ledger filtered to one document",
+   "steps": [
+    "View General Ledger"
+   ],
+   "help_for": []
+  },
+  {
+   "code": "V38",
+   "section": "Checks",
+   "title": "Read the audit trail",
+   "length": "1:15",
+   "summary": "Who did what and when, in an event log nobody can rewrite",
+   "menu_path": "Accounting > BIR Audit Trail",
+   "ends_on": "BIR Audit Trail filtered to one document",
+   "steps": [],
+   "help_for": []
+  },
+  {
+   "code": "V39",
+   "section": "Checks",
+   "title": "Check your profit",
    "length": "1:30",
-   "summary": "Filed returns are read-only; Request change, the manager approves, the amendment opens",
+   "summary": "P&L for any period and the book-to-tax reconciliation behind the income tax returns",
+   "menu_path": "Accounting > Profit and Loss Statement",
+   "ends_on": "PH Book to Tax Reconciliation",
+   "steps": [
+    "View Profit and Loss"
+   ],
+   "help_for": []
+  },
+  {
+   "code": "V40",
+   "section": "Checks",
+   "title": "Know what you own and owe",
+   "length": "1:00",
+   "summary": "Balance Sheet on any date",
+   "menu_path": "Accounting > Balance Sheet",
+   "ends_on": "Balance Sheet",
+   "steps": [
+    "View Balance Sheet"
+   ],
+   "help_for": []
+  },
+  {
+   "code": "V41",
+   "section": "Checks",
+   "title": "See who owes you and whom you owe",
+   "length": "1:00",
+   "summary": "Open invoices and bills by age",
+   "menu_path": "Accounting > Accounts Receivable / Payable",
+   "ends_on": "Accounts Receivable and Accounts Payable",
+   "steps": [
+    "View Accounts Receivable",
+    "View Accounts Payable"
+   ],
+   "help_for": []
+  },
+  {
+   "code": "V42",
+   "section": "Checks",
+   "title": "Check your stock levels",
+   "length": "1:00",
+   "summary": "What you have in each warehouse and what it is worth",
+   "menu_path": "Stock > Stock Balance",
+   "ends_on": "Stock Balance and the Inventory Book",
+   "steps": [
+    "View Stock Balance Report",
+    "View Stock Ledger"
+   ],
+   "help_for": []
+  },
+  {
+   "code": "V43",
+   "section": "Checks",
+   "title": "Track your orders",
+   "length": "1:00",
+   "summary": "What was ordered, received and billed",
+   "menu_path": "Buying > Purchase Order Analysis",
+   "ends_on": "Purchase Order Analysis",
+   "steps": [
+    "View Purchase Order Analysis"
+   ],
+   "help_for": []
+  },
+  {
+   "code": "V44",
+   "section": "Checks",
+   "title": "Track project progress and costs",
+   "length": "1:00",
+   "summary": "Progress, hours and costs for every project",
+   "menu_path": "Projects > Project Summary",
+   "ends_on": "Project Summary",
+   "steps": [
+    "View Project Summary",
+    "View Delayed Tasks"
+   ],
+   "help_for": []
+  },
+  {
+   "code": "V45",
+   "section": "Period close",
+   "title": "Close a month",
+   "length": "1:00",
+   "summary": "Lock a period so nothing more posts into it",
+   "menu_path": "Accounting > Accounting Period",
+   "ends_on": "A posting dated in the closed month, refused",
+   "steps": [],
+   "help_for": [
+    "Accounting Period"
+   ]
+  },
+  {
+   "code": "V46",
+   "section": "Period close",
+   "title": "Count stock at year-end and adjust",
+   "length": "1:30",
+   "summary": "Periodic method: the count becomes the inventory adjustment to cost of sales",
+   "menu_path": "Stock > Stock Reconciliation, then Company > Year-end inventory adjustment",
+   "ends_on": "Profit and Loss showing the new cost of sales",
+   "steps": [],
+   "help_for": []
+  },
+  {
+   "code": "V47",
+   "section": "Period close",
+   "title": "Export the books",
+   "length": "1:15",
+   "summary": "The seven books with BIR header and tie-outs; the year-end pack",
+   "menu_path": "Accounting > PH Sales Journal > Export",
+   "ends_on": "The year-end e-books zip, opened",
+   "steps": [
+    "PH Export Books"
+   ],
+   "help_for": []
+  },
+  {
+   "code": "V48",
+   "section": "BIR returns",
+   "title": "File your VAT return (2550Q)",
+   "length": "1:30",
+   "summary": "Figures from the books, what still needs you, the SLSP tie-out, the eBIRForms file",
+   "menu_path": "Taxes > PH Tax Return > New > 2550Q",
+   "ends_on": "The 2550Q preview, then the eBIRForms file",
+   "steps": [
+    "PH Run 2550Q"
+   ],
+   "help_for": [
+    "PH Tax Return"
+   ]
+  },
+  {
+   "code": "V49",
+   "section": "BIR returns",
+   "title": "File your percentage tax return (2551Q)",
+   "length": "1:15",
+   "summary": "For a non-VAT taxpayer, on the BIR's own form",
+   "menu_path": "Taxes > PH Tax Return > New > 2551Q",
+   "ends_on": "The 2551Q preview",
    "steps": [],
    "help_for": [
     "PH Tax Return"
    ]
   },
   {
-   "code": "V34",
-   "title": "Approval chains",
-   "length": "2:30",
-   "summary": "Steps, recipients, order, conditions; Request approval, Approve, Reject; the home card",
+   "code": "V50",
+   "section": "BIR returns",
+   "title": "File your withholding tax returns",
+   "length": "1:30",
+   "summary": "0619-E monthly, 1601-EQ quarterly with its QAP, on the BIR's own forms",
+   "menu_path": "Taxes > PH Tax Return > New > 1601-EQ",
+   "ends_on": "The 1601-EQ preview and its QAP file",
+   "steps": [],
+   "help_for": [
+    "PH Tax Return"
+   ]
+  },
+  {
+   "code": "V51",
+   "section": "BIR returns",
+   "title": "File your quarterly income tax return",
+   "length": "1:15",
+   "summary": "1701Q or 1702Q from the books, with earlier quarters' payments",
+   "menu_path": "Taxes > PH Tax Return > New > 1702Q",
+   "ends_on": "The 1702Q preview",
+   "steps": [],
+   "help_for": [
+    "PH Tax Return"
+   ]
+  },
+  {
+   "code": "V52",
+   "section": "BIR returns",
+   "title": "File your annual income tax return",
+   "length": "1:30",
+   "summary": "1701, 1701A or 1702-RT from the books",
+   "menu_path": "Taxes > PH Tax Return > New > 1702-RT",
+   "ends_on": "The 1702-RT preview",
+   "steps": [],
+   "help_for": [
+    "PH Tax Return"
+   ]
+  },
+  {
+   "code": "V53",
+   "section": "BIR returns",
+   "title": "Prepare your SLSP and BIR data files",
+   "length": "1:30",
+   "summary": "SLSP per month, SAWT, QAP and 1604-E files, kept under Alphalist Files",
+   "menu_path": "PH Tax Return > Generate SLSP / SAWT",
+   "ends_on": "PH Alphalist File list with the files",
+   "steps": [],
+   "help_for": [
+    "PH Alphalist File",
+    "PH Tax Return"
+   ]
+  },
+  {
+   "code": "V54",
+   "section": "BIR returns",
+   "title": "Correct a filed return",
+   "length": "1:30",
+   "summary": "Filed returns are read-only: request a change, the manager approves, the amendment opens",
+   "menu_path": "PH Tax Return > Request change",
+   "ends_on": "The amended return beside the original",
+   "steps": [],
+   "help_for": [
+    "PH Tax Return"
+   ]
+  },
+  {
+   "code": "V55",
+   "section": "Administration",
+   "title": "Set up an approval chain",
+   "length": "1:30",
+   "summary": "Steps, approvers, order and conditions for a document",
+   "menu_path": "Settings > PH Approval Chain",
+   "ends_on": "PH Approval Chain list showing it active",
    "steps": [],
    "help_for": [
     "PH Approval Chain"
    ]
   },
   {
-   "code": "V35",
-   "title": "File your withholding tax returns",
-   "length": "1:30",
-   "summary": "0619-E monthly, 1601-EQ quarterly with its QAP, on the BIR's own forms",
-   "steps": [],
-   "help_for": [
-    "PH Tax Return"
-   ]
-  },
-  {
-   "code": "V36",
-   "title": "File your income tax return",
-   "length": "1:30",
-   "summary": "1702Q and 1702-RT from the books, on the BIR's own forms",
-   "steps": [],
-   "help_for": [
-    "PH Tax Return"
-   ]
-  },
-  {
-   "code": "V37",
-   "title": "Prepare your SLSP and BIR data files",
-   "length": "1:30",
-   "summary": "SLSP per month, QAP and SAWT files, kept under Alphalist Files",
-   "steps": [],
-   "help_for": [
-    "PH Tax Return",
-    "PH Alphalist File"
-   ]
-  },
-  {
-   "code": "V38",
-   "title": "File your percentage tax return",
+   "code": "V56",
+   "section": "Administration",
+   "title": "Request and give approval",
    "length": "1:15",
-   "summary": "2551Q for a non-VAT taxpayer, on the BIR's own form",
+   "summary": "Request approval, approve or reject; the home card",
+   "menu_path": "A document > Request approval",
+   "ends_on": "The home card's approvals list",
    "steps": [],
+   "help_for": []
+  },
+  {
+   "code": "V57",
+   "section": "Administration",
+   "title": "Build the registration pack",
+   "length": "1:30",
+   "summary": "Provider and signatory details, then one download for the RDO",
+   "menu_path": "Settings > PH CAS Settings > Registration pack",
+   "ends_on": "The registration pack zip, opened",
+   "steps": [
+    "PH Registration Pack"
+   ],
    "help_for": [
-    "PH Tax Return"
+    "PH CAS Settings"
    ]
   }
  ]

@@ -42,14 +42,21 @@ def catalogue() -> list[dict]:
 
 
 def seed() -> dict:
-    """Create or refresh the records from data/tutorials.json. Upload state is left alone."""
-    made, updated = [], []
-    for row in catalogue():
+    """Create or refresh the records from data/tutorials.json. Upload state is left alone.
+
+    A record whose code is no longer in the file is removed when no video was uploaded for it;
+    one with a file is kept and reported, so an uploaded video is never lost (B70 renumbering)."""
+    made, updated, removed, kept = [], [], [], []
+    rows = catalogue()
+    for row in rows:
         steps = [s for s in row["steps"] if frappe.db.exists("Onboarding Step", s)]
         values = {
             "title": row["title"],
             "length": row["length"],
             "summary": row["summary"],
+            "section": row.get("section") or "",
+            "menu_path": row.get("menu_path") or "",
+            "ends_on": row.get("ends_on") or "",
             "help_for": "\n".join(row["help_for"]),
         }
         if frappe.db.exists(DOCTYPE, row["code"]):
@@ -65,7 +72,19 @@ def seed() -> dict:
             doc = frappe.get_doc({"doctype": DOCTYPE, "code": row["code"], **values, "steps": [{"step": s} for s in steps]})
             doc.insert(ignore_permissions=True)
             made.append(row["code"])
-    return {"made": made, "updated": updated}
+    codes = {r["code"] for r in rows}
+    for name in frappe.get_all(DOCTYPE, filters={"name": ("not in", list(codes))}, pluck="name"):
+        if frappe.db.get_value(DOCTYPE, name, "video_size"):
+            kept.append(name)
+            continue
+        frappe.delete_doc(DOCTYPE, name, ignore_permissions=True, force=True)
+        removed.append(name)
+    out = {"made": made, "updated": updated}
+    if removed:
+        out["removed"] = removed
+    if kept:
+        out["kept_with_video"] = kept
+    return out
 
 
 def step_map() -> dict:
