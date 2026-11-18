@@ -48,7 +48,9 @@ jobs:
         # cut off a large package (lucide-static, ESOCKETTIMEDOUT), so give it 10 minutes.
         env: { SKIP_ASSETS: "1", DB_ROOT_PASSWORD: root, YARN_NETWORK_TIMEOUT: "600000" }
         run: |
-          printf 'network-timeout 600000\nnetwork-concurrency 4\n' >> "$HOME/.yarnrc"
+          # the runner keeps its home between jobs: start from a clean bench and yarnrc
+          rm -rf "$HOME/bench"
+          printf 'network-timeout 600000\nnetwork-concurrency 4\n' > "$HOME/.yarnrc"
           export PATH="$HOME/.local/bin:$PATH"
           bash ph_cas/scripts/bootstrap.sh "$HOME/bench"
       - name: Run tests
