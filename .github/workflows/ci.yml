@@ -44,7 +44,9 @@ jobs:
         run: |
           mysql -h127.0.0.1 -uroot -proot -e "SET GLOBAL character_set_server='utf8mb4'; SET GLOBAL collation_server='utf8mb4_unicode_ci';"
       - name: Bootstrap bench
-        env: { SKIP_ASSETS: "1", DB_ROOT_PASSWORD: root }
+        # YARN_NETWORK_TIMEOUT: yarn v1 gives up on a download after 30s by default;
+        # the self-hosted runner shares its network with production, so allow 10 min.
+        env: { SKIP_ASSETS: "1", DB_ROOT_PASSWORD: root, YARN_NETWORK_TIMEOUT: "600000" }
         run: |
           export PATH="$HOME/.local/bin:$PATH"
           bash ph_cas/scripts/bootstrap.sh "$HOME/bench"
