@@ -75,20 +75,46 @@ class TestB51Tutorials(IntegrationTestCase):
         self.assertEqual(inner.presign("k", now=now), s3.presign("k", now=now))
 
     # the catalogue -----------------------------------------------------------------------------
-    def test_the_catalogue_has_the_38_videos_and_where_they_play(self):
-        self.assertEqual(frappe.db.count("PH Tutorial Video"), 38)
+    def test_the_catalogue_has_the_57_videos_and_where_they_play(self):
+        # B70: 57 videos in learning order, each with its section, on-screen menu path and the report it ends on
+        self.assertEqual(frappe.db.count("PH Tutorial Video"), 57)
         self.assertEqual(api.seed(), {"made": [], "updated": []})  # idempotent
         steps = api.step_map()
         self.assertEqual(steps["Create Customer"], "V09")
-        self.assertEqual(steps["PH Set Up Company"], "V01")
-        for s in ("Create Selling Item", "Create Buying Item", "Create Item", "Create Raw Materials"):
+        self.assertEqual(steps["PH Set Up Company"], "V03")
+        for s in ("Create Selling Item", "Create Item"):
             self.assertEqual(steps[s], "V11")
+        for s in ("Create Buying Item", "Create Raw Materials"):
+            self.assertEqual(steps[s], "V12")
         help_codes = [c for c, _ in api.help_map()["PH Tax Return"]]
-        self.assertEqual(help_codes, ["V04", "V33", "V35", "V36", "V37", "V38"])
-        self.assertEqual(frappe.db.get_value("PH Tutorial Video", "V35", "title"), "File your withholding tax returns")
+        self.assertEqual(help_codes, ["V48", "V49", "V50", "V51", "V52", "V53", "V54"])
+        self.assertEqual(frappe.db.get_value("PH Tutorial Video", "V50", "title"), "File your withholding tax returns")
+        v11 = frappe.get_doc("PH Tutorial Video", "V11")
+        self.assertEqual((v11.title, v11.section), ("Add an item you sell", "Your records"))
+        self.assertTrue(v11.menu_path and v11.ends_on)
+
+    def test_catalogue_rules(self):
+        rows = api.catalogue()
+        self.assertEqual([r["code"] for r in rows], [f"V{i:02d}" for i in range(1, len(rows) + 1)])
+        for r in rows:
+            m, s = r["length"].split(":")
+            self.assertLessEqual(int(m) * 60 + int(s), 90, r["code"])  # 60 to 90 s, long topics split
+            self.assertTrue(r["section"] and r["menu_path"] and r["ends_on"], r["code"])
+        steps = [s for r in rows for s in r["steps"]]
+        self.assertEqual(len(steps), len(set(steps)))  # one video per onboarding card
+
+    def test_retired_codes_go_unless_a_video_was_uploaded(self):
+        for code, size in (("V98", 0), ("V99", 1000)):
+            if not frappe.db.exists("PH Tutorial Video", code):
+                frappe.get_doc({"doctype": "PH Tutorial Video", "code": code, "title": "Old", "length": "1:00", "summary": "x", "video_size": size}).insert(ignore_permissions=True)
+        out = api.seed()
+        self.assertEqual(out.get("removed"), ["V98"])
+        self.assertEqual(out.get("kept_with_video"), ["V99"])
+        self.assertFalse(frappe.db.exists("PH Tutorial Video", "V98"))
+        frappe.delete_doc("PH Tutorial Video", "V99", force=True)
 
     def test_file_names_and_captions(self):
-        self.assertEqual(api.code_from_filename("SL-V35-file-your-withholding-tax-returns.mp4"), "V35")
+        self.assertEqual(api.code_from_filename("SL-V50-file-your-withholding-tax-returns.mp4"), "V50")
         self.assertEqual(api.code_from_filename("V01.srt"), "V01")
         self.assertIsNone(api.code_from_filename("SL-V350.mp4"))
         vtt = api.srt_to_vtt("﻿1\r\n00:00:01,500 --> 00:00:03,000\r\nHello\r\n")
