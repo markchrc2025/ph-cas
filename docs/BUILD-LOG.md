@@ -3,7 +3,7 @@
 One entry per bundle, newest first. Counts are the test totals on main after the merge.
 
 ## B70 Tutorials in learning order: 57 videos benchmarked on ECOUNT (19 Nov 2026)
-- PR: (filled in at merge)
+- PR: #86
 - Built: the owner-approved list from the project doc claude/ledger-tutorials-proposal-2026-11-19.md. tutorials.json now holds 57 videos (was 38) numbered V01 to V57 in learning order: Get started, Your records, Opening balances, Selling, Buying, Stock and operations, Checks, Period close, BIR returns, Administration. Every video is 90 s or less (the long ones split: COR details and the PH setup, invoice and correction, General Ledger and audit trail, collection and 2307 received, payment and 2307s issued, quarterly and annual income tax, approval setup and use, item you sell and item you buy). 17 new topics fill the gaps (role sets, inventory method, bank account, assets, opening balances, old invoices and bills, quotation, SC/PWD, credit and debit notes, 2307 received and issued, audit trail, AR/AP, month close, year-end count). Each video carries section, menu_path (shown on screen) and ends_on (the report or document it must end on); PH Tutorial Video shows them. seed() removes records whose code left the file unless a video was uploaded (none were). Every onboarding card and form Help link keeps a video.
 - Tests: test_b51 updated (57 videos, learning-order codes, 90 s cap, every row has section, menu path and ends_on, one video per card, retired codes removed unless uploaded); test_b34 unchanged.
 - Left out: recording the videos (LDG-45, parked); the ECOUNT features in the proposal doc wait for the owner's pick.
