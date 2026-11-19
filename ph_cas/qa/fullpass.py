@@ -1974,6 +1974,7 @@ def s_role_homes(r: Runner):
         branding._navbar_settings(branding.product_name())
         items = {x.item_label: x.action for x in frappe.get_single("Navbar Settings").help_dropdown if not x.hidden}
         r.expect(items.get("Get help") == "ph_cas.get_help()" and items.get("Your plan") == "ph_cas.show_plan()", f"{items}")
+        r.expect(not [k for k in items if "Frappe" in k], f"framework items still shown: {items}")
         return "Help menu: " + ", ".join(items)
     r.step("the Help menu carries Get help and Your plan", help_menu)
 
