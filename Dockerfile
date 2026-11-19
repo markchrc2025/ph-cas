@@ -62,6 +62,8 @@ WORKDIR /home/frappe/bench
 RUN for i in 1 2 3; do bench get-app erpnext https://github.com/frappe/erpnext --branch ${ERPNEXT_TAG} --skip-assets && break; rm -rf apps/erpnext; sed -i '/^erpnext$/d' sites/apps.txt; sleep 10; done; test -d apps/erpnext
 
 COPY --chown=frappe:frappe . /home/frappe/bench/apps/ph_cas
+# B77: the build stamp a UAT tester checks (ph_cas/buildstamp.py); same value as `buildstamp.py --git <commit>`
+RUN python3 apps/ph_cas/ph_cas/buildstamp.py > apps/ph_cas/ph_cas/BUILD && cat apps/ph_cas/ph_cas/BUILD
 RUN --mount=type=bind,from=prebuilt,target=/prebuilt \
     ./env/bin/pip install --no-cache-dir -e apps/ph_cas && sed -i -e "\$a\\" sites/apps.txt && echo ph_cas >> sites/apps.txt && cat sites/apps.txt \
     && if [ -f /prebuilt/assets.tar ]; then echo "using natively built assets"; tar -C /home/frappe/bench -xf /prebuilt/assets.tar; \

@@ -42,6 +42,7 @@ doc_events = {
         "after_delete": "ph_cas.audit.events.on_trash",
     },
     "Access Log": {"after_insert": "ph_cas.audit.events.on_access_log"},
+    "Email Queue": {"before_insert": "ph_cas.qa.uat.redirect_staging_mail"},
     "Accounting Period": {"validate": "ph_cas.controls.dates.validate_accounting_period"},
     "Sales Invoice": {
         "before_insert": ["ph_cas.controls.serial.clear_serial_on_copy", "ph_cas.invoicing.rules.refuse_amendment"],

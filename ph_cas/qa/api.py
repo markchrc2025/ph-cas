@@ -46,6 +46,10 @@ def seed():
     s.save()
     ensure_qa_user()
     frappe.db.set_single_value("System Settings", "enable_two_factor_auth", 0)
+    # B77: the UAT accounts and companies a separate UAT session tests with (ph_cas.qa.uat)
+    from ph_cas.qa.uat import seed_uat
+
+    seed_uat()
     frappe.db.commit()
     return "seeded"
 

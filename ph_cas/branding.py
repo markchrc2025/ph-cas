@@ -335,6 +335,10 @@ def extend_bootinfo(bootinfo):
     from ph_cas.setup.roles import role_set
 
     bootinfo.ph_cas_role_set = role_set()
+    # B77: the build a UAT tester matches to the workbook's Cover
+    from ph_cas.buildstamp import build
+
+    bootinfo.ph_cas_build = build()
 
 
 def licence_text() -> str:
