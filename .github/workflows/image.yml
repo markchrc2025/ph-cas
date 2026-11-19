@@ -23,7 +23,9 @@ jobs:
     # Runs on the Oracle Arm runner. The deploy servers (Contabo) are x86, so the image is
     # built for linux/amd64 through QEMU emulation: slower than a native build, but no
     # GitHub-hosted minutes.
-    runs-on: [self-hosted, sentire]
+    # ARM64 keeps it on the Oracle VMs: the build needs more memory than the 8 GB laptop
+    # runner (x64) can give it.
+    runs-on: [self-hosted, sentire, ARM64]
     timeout-minutes: 240
     steps:
       - uses: actions/checkout@v4
