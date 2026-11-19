@@ -21,6 +21,11 @@ class TestB77UAT(IntegrationTestCase):
     def tearDown(self):
         frappe.local.conf.pop("ph_staging_site", None)
         frappe.set_user("Administrator")
+        # the seed commits; switch the UAT accounts off again so later tests' user limits hold
+        for a in uat.accounts():
+            if frappe.db.exists("User", a["email"]):
+                frappe.db.set_value("User", a["email"], "enabled", 0)
+        frappe.db.commit()
 
     def test_build_stamp(self):
         info = uat.build_info()
