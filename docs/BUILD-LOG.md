@@ -3,26 +3,26 @@
 One entry per bundle, newest first. Counts are the test totals on main after the merge.
 
 ## B75 A home per role set, the counter view, Your plan and Get help (after ECOUNT) (19 Nov 2026)
-- PR: (filled in at merge)
+- PR: #88
 - Built: the home page reads the user's role set (ph_cas.setup.roles.role_set). Owner and Bookkeeper: the whole business, with Record an expense and Import from a template among the Create actions. Cashier: Sales, Collections, Cash today and Items; today's sales, cash and bank, receivable and their own unposted invoices; the payables, the VAT and withholding position, the chart and the tax calendar are not shown and not sent. The Sales Invoice counter view: the customer, the lines, VAT, totals, payment and the Philippine sections only; on by default for a Cashier, a Full form / Counter view button for everyone, remembered on the browser; a required field still empty stays in sight. Help > Your plan: the tier, what it allows, what the site uses (users, companies, branches, invoices this month), the dates, and a link to ask the provider for a change. Help > Get help: the tutorials, a message to the provider that starts with the page and the user, and the page details to copy.
 - Full pass: section role_homes (4 steps). Checked in a browser as a Cashier and as the owner.
 - Tests: +1 (test_b75_role_homes).
 
 ## B74 Subsidiary ledgers and the daily cash position (after ECOUNT) (19 Nov 2026)
-- PR: (filled in at merge)
+- PR: #88
 - Built: the Accounts Receivable and Accounts Payable subsidiary ledgers in the loose-leaf books (Company > Loose-leaf books, tick "Add the customers' and suppliers' subsidiary ledgers"): one block per customer or supplier with its TIN and the balance forwarded, each invoice, credit note, collection receipt, bill and payment with its BIR reference and a running balance, and the TOTAL, which ties to the receivable (payable) accounts. Same page layout and BIR header as the six books; PAGES.txt counts them. The PH Cash Position report (ph_cas.books.cash): per cash and bank account the day's beginning balance, received, paid out and ending balance, with the total tied to the ledger and an ending balance below zero shown in red.
 - Full pass: section ledgers (5 steps).
 - Tests: +1 (test_b74_ledgers).
 
 ## B73 Philippine import templates and batch edit (after ECOUNT's Excel upload and Change Selected) (19 Nov 2026)
-- PR: (filled in at merge)
+- PR: #88
 - Built: ph_cas.imports. Four CSV templates (they open in Excel; Excel files are read too): customers and suppliers with TIN, branch code, payee type and the individual's names, VAT status, government and top withholding agent flags and the supplier's withholding category; items with VAT class, stock, capital good, price, cost and the company's income and expense accounts; opening account balances; open invoices and bills from the old books. "Check the file" reports every line's problems without saving; Import saves only when every line passes, all lines or none. A file imported again updates the same records. Opening balances post one opening Journal Entry dated the cut-over day; receivable and payable totals wait on Temporary Opening until the open items import lists them by customer and supplier, which clears it (the Go-live checklist shows it). Batch edit BIR fields on the Customer, Supplier and Item lists changes many records at once, each through its own validation; the TIN is not batch editable.
 - Where: Customer, Supplier and Item lists (Import from a template; Actions > Batch edit BIR fields); Company > Sentire Ledger > Import from a template.
 - Full pass: section imports (12 steps).
 - Tests: +1 (test_b73_imports).
 
 ## B72 Record an expense (after ECOUNT's payment journal) (19 Nov 2026)
-- PR: (filled in at merge)
+- PR: #88
 - Built: ph_cas.expense and a "Record an expense" button on the Purchase Invoice list. One dialog: paid to, what for, item or expense account, VAT class, the amount on the receipt, receipt number and date, paid from, mode of payment; Preview shows net of VAT, input VAT, EWT and cash paid without posting; Post makes one paid Purchase Invoice (Is Paid), so the tax engine, the 2307, the books and the returns treat it like any bill. VAT is worked back from the receipt for a VAT supplier on a VATable line; EWT is on the net. The expense account is chosen or comes from the item, never the company default (cost of goods sold). A Cashier may not record one.
 - Full pass: section expense (6 steps): 11,200 receipt to net 10,000, VAT 1,200, EWT 500, cash 10,700 with the GL checked; a non-VAT fare; the Purchase Journal, Cash Disbursements Book and the quarter's 2307; the Cashier refused; no account refused.
 - Tests: +1 (test_b72_expense).
@@ -178,7 +178,7 @@ One entry per bundle, newest first. Counts are the test totals on main after the
 - Left out: nothing in scope.
 
 ## B56 Fixes from the second staging QA pass (16 Nov 2026)
-- PR: (filled in at merge)
+- PR: #88
 - Built: LDG-112: output VAT and input VAT sit only on the lines they belong to. ERPNext rebuilds each line's tax map from its Item Tax Template on every save, so ph_cas.tax.line_scope gives each company its own templates ("PH No VAT", "PH Input VAT goods", "services", "capital") marking the VAT accounts a line does not carry as not applicable, and the tax engine puts one on each line by its VAT class and kind; a template a person chose is left alone. LDG-115: recording an event asks for the commit, so downloads and exports (GET requests) keep their audit row. LDG-116: a PH Approval Chain left blank for every company is no longer filled with the saving user's default company. LDG-117: the 1604-E takes item 8A from Company > Top withholding agent; BIR Returns gains Generate SAWT (.dat) on the 2550Q, 2551Q, 1701Q, 1702Q, 1701 and 1702-RT, and the SAWT accepts the 1702-RT name; the demo company has a contact number and email. The QA scenarios add nothing twice when run again. Tests no longer depend on the bench's product name, user state or the QA scenario's commits.
 - Tests: +5 (test_b55_qa_fixes).
 - Assumed: nothing new.
@@ -192,7 +192,7 @@ One entry per bundle, newest first. Counts are the test totals on main after the
 - Left out: LDG-112 (the per-line tax breakup on the form spreads output VAT over exempt lines; totals, ledger and print are right).
 
 ## B54 Staging QA site and its connector (16 Nov 2026)
-- PR: (filled in at merge)
+- PR: #88
 - Built: the owner's request, after the Payroll pattern. PH_STAGING=1 makes the container a staging site (docs/STAGING.md): on first start the site is seeded by ph_cas.qa.api.seed (demo VAT company, every module on, the QA admin qa.admin@sentire.solutions with STAGING_ADMIN_PASSWORD) and kept as the QA snapshot; every later start restores it (`ledger-site reset-staging`). The entrypoint refuses PH_STAGING with PH_PRODUCTION or PH_DEMO. ph_cas/qa/mcp_server.py is an MCP server (streamable HTTP, JSON responses, standard library plus requests) on QA_MCP_PORT, reached at /mcp/<QA_MCP_SECRET>; it signs in as the QA admin and calls the site's own API (12 tools: staging_status, list, get, create, update, submit, cancel, call_method, run_report, get_print, seed_scenario, api_request), refuses sign-in and password endpoints, allows 120 calls a minute and logs one JSON line per call. It refuses to start unless PH_STAGING=1, the secret has 32 characters or more and the site config says ph_staging_site. Scenarios: vat_quarter and non_vat_company.
 - Tests: +6 (test_b54_staging). The connector was also run against the bench: every tool answered, an invoice got its BIR serial on submit, the cancel was refused by the Annex B lock, and both scenarios posted.
 - Assumed: staging keeps no volumes, so a redeploy rebuilds it from nothing.
@@ -206,7 +206,7 @@ One entry per bundle, newest first. Counts are the test totals on main after the
 - Left out: nothing in scope.
 
 ## B52 Module switches, industry presets, module-aware demo (16 Nov 2026)
-- PR: (filled in at merge)
+- PR: #88
 - Built: M5.2 (LDG-83, LDG-84, LDG-85). PH Modules (Settings > Modules): one switch per optional module (Selling, Buying, Stock, Manufacturing, Projects, Assets, Quality, CRM, Support); Accounts, BIR and the Home page are always on. A module that is off is hidden, not removed: ph_cas.modules prunes the boot (dock, sidebars and links to its doctypes and reports in the sidebars that stay, workspaces, the search bar's can_read, can_search and can_create, allowed reports) and public/js/modules.js leaves its steps out of the onboarding guides and stops a route to it before it renders, with a notice. Records, roles and permissions are not touched, so switching a module back on restores everything. Which doctypes and reports belong to a module is data (modules/data/modules.json: the Frappe modules' doctypes and reports, plus extra, minus keep); shared masters stay whatever is off (Customer, Supplier, Item, Item Price, Price List, Warehouse, the settings pages). Industry presets in modules/data/presets.json (Services, Retail and trading, Restaurant and food, Manufacturing, Construction and projects, Professional practice, Other); picking an industry on the Modules page offers its set, and a new onboarding step "Choose what you use" opens the page. `ledger-site new --industry "<industry>"` applies a preset at creation; the open demo starts with Selling and Buying (demo seed, once); the usage report carries modules_on and the PH Subscription record shows it. A site that never saved PH Modules has everything on, so existing sites look the same until someone chooses.
 - Tests: +8 (test_b52_modules).
 - Assumed: hiding is a convenience, not a security boundary: a user who knows a record's name can still open it through the API, as the roles allow.
@@ -220,7 +220,7 @@ One entry per bundle, newest first. Counts are the test totals on main after the
 - Left out: transcoding. The exports are H.264 with the index at the front, so they stream as they are.
 
 ## Role renamed: Accounting Manager (15 Nov 2026)
-- PR: (filled in at merge)
+- PR: #88
 - Built: the owner's ruling: the role "PH Accounting Manager" is now "Accounting Manager" (not "Approver"; only "PH" is dropped). A pre-model-sync patch (ph_cas.patches.v0.rename_accounting_manager_role) renames the role in place on existing sites, so every user who holds it and every permission row that names it follow; setup runs the same step if the old name is still there. Code, DocType and report permissions, the home page and the docs use the new name.
 - Tests: +2 (test_role_rename).
 - Assumed: nothing new.
@@ -234,7 +234,7 @@ One entry per bundle, newest first. Counts are the test totals on main after the
 - Left out: the look-alike stays in the repository, disabled, so older prints can be traced; it can be deleted later.
 
 ## Accountant, not CPA; date of incorporation required (15 Nov 2026)
-- PR: (filled in at merge)
+- PR: #88
 - Built: the owner's tutorial notes 1 and 2. A non-individual company with a TIN must have its date of incorporation or organization (the 1702-RT and 1702Q print it): Company validation refuses a save without it, and the field is marked required on the form once the TIN is entered; before the TIN (the setup wizard's first save) and for individuals it stays optional. The demo-access company is created with a date. The user's reviewer is "your accountant", not "the CPA" (not every accountant is a CPA): the unconfirmed-rule refusal, the Tax Rules onboarding step, a tax rule note and code comments. Supplier names that are themselves CPAs are unchanged.
 - Tests: +1 (TestIncorporationDate in test_b48_rdo_answers); the test bootstrap gives the test company a date.
 - Assumed: an existing company without the date is asked for it at its next save.
@@ -248,7 +248,7 @@ One entry per bundle, newest first. Counts are the test totals on main after the
 - Left out: binding, the sworn statement and the ORUS submission are the client's (the page counts are given for them).
 
 ## B49 Release method: major versions and the quarterly notice (15 Nov 2026)
-- PR: (filled in at merge)
+- PR: #88
 - Built: the owner's release method (LDG-99) in docs/DECISIONS.md and docs/runbooks/upgrades.md; the release log ph_cas/setup/data/releases.json with its rules, left empty (the owner: no versioning until the product is done; the first entry will be 1.0.0, and ph_cas.__version__ stays 0.1.0 until then); ph_cas.ops.releases: the log check (classes, increasing versions and dates, a major release starts the next major number, a minor one stays within it) and the combined quarterly notice of minor enhancements per client (RMO 9-2021 V.9), from Company > PH CAS. One container per major version; the runbook says how a client moves after filing.
 - Tests: +5 (test_b49_releases).
 - Assumed: the notice goes out in the first two weeks after the quarter (firm policy; the RMO sets no deadline); a quarter without a minor release needs no notice.
@@ -262,7 +262,7 @@ One entry per bundle, newest first. Counts are the test totals on main after the
 - Left out: 3 (the client's notice of third-party custody) and 4 (the release method for major and minor updates) are proposed, not built; 6 and 10 are owner items.
 
 ## B47 RELIEF (SLSP) files verified against the BIR's own module (14 Nov 2026)
-- PR: (filled in at merge)
+- PR: #88
 - Built: downloaded RELIEF 2.3 (BIRReliefv2.3.exe, job aid, patch 21C) from bir-cdn.bir.gov.ph, ran its Data Entry module under Wine with invented data, and kept the three files it generated (sales, purchases, importations) as golden files; all three pass its Validation module. The old writer failed that validator on all three: no owner address in the header ("Owner Address is empty") and no H,I header on the importations file ("No Header record found in file!"). The writer now matches RELIEF byte for byte: owner address from the company's registered address and ZIP, blank name fields as empty unquoted fields in detail rows, addresses, entry numbers, countries and OR numbers quoted, zero amounts in detail rows as a bare 0, rows sorted by registered name then last, first and middle name, and the importations header. Formatting is now separate from the queries (sales_file, purchases_file, importations_file), and the writer refuses a missing owner address or a customer or supplier row with no address, naming the parties.
 - Tests: +5 (three byte-for-byte golden tests, the party and owner address refusals); the B29 tests follow the corrected format.
 - Assumed: an individual owner's header carries the names in the last, first and middle fields with the registered name blank (not yet seen in RELIEF); a quarter's list is one file named for its last month, as before.
@@ -588,7 +588,7 @@ One entry per bundle, newest first. Counts are the test totals on main after the
 - Left out: nothing in scope.
 
 ## B01 Repository, bench, CI, bootstrap, reference docs (7 Nov 2026)
-- PR: (filled in at merge)
+- PR: #88
 - Built: scripts/bootstrap.sh (uv Python 3.14, Node 24 from the npm registry, bench init at the pinned tags, ERPNext, ph_cas, test site); the ph_cas app skeleton (hooks, after_install and after_migrate through ph_cas.setup.install.setup_all, patches.txt, tests); VERSIONS.md; docs/DECISIONS.md; docs/CONFORMANCE.md with every Annex B item pending; docs/reference with the six reference documents; CI on GitHub Actions.
 - Tests: 3 (ph_cas.tests.test_install), run on a real bench; a before_tests hook completes the ERPNext setup wizard for "_Test PH Company" (Philippines, PHP, Asia/Manila) because Frappe runs before_tests only for the app under test.
 - Assumed: D1 and D2 as recommended. Node binaries come from the npm registry because nodejs.org was not reachable from the build workspace. The bootstrap points bench at the system Redis on 6379 instead of the 11000 and 13000 instances bench start would run; bench refuses to run as root, so the script exits early with that message.
