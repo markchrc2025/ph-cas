@@ -33,7 +33,7 @@ DEFAULT_PROVIDER = "MCRC Tax and Accounting Services"
 # sworn statement. Filled in only where the setting is blank, so an edit on a site stays.
 DEFAULT_SIGNATORY = "Christian R. Canlubo"
 DEFAULT_SIGNATORY_POSITION = "Owner"
-HIDDEN_HELP_ITEMS = ("Frappe Support", "Documentation", "User Forum", "Report an Issue", "Keyboard Shortcuts")
+HIDDEN_HELP_ITEMS = ("Frappe Support", "Frappe School", "Documentation", "User Forum", "Report an Issue", "Keyboard Shortcuts")
 WORKSPACE = "Sentire Ledger"
 HELP_ACTIONS = [("Get help", "ph_cas.get_help()"), ("Your plan", "ph_cas.show_plan()")]
 
