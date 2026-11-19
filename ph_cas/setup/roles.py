@@ -77,3 +77,19 @@ def setup():
             u = frappe.get_doc("User", user)
             u.flags.ignore_permissions = True
             u.save()  # a save re-applies the profile's roles
+
+
+def role_set(user: str | None = None) -> str:
+    """B75: the user's role set, for the home page and the counter view. A Role Profile on the
+    user decides; without one, the roles do (an Accounting or System Manager is an Owner)."""
+    user = user or frappe.session.user
+    profiles = frappe.get_all("User Role Profile", filters={"parent": user, "parenttype": "User"}, pluck="role_profile") if frappe.db.table_exists("User Role Profile") else []
+    for p in (OWNER, BOOKKEEPER, CASHIER):
+        if p in profiles:
+            return p
+    roles = set(frappe.get_roles(user))
+    if user == "Administrator" or roles & {"System Manager", "Accounting Manager"}:
+        return OWNER
+    if CASHIER_ROLE in roles and not roles & WIDER:
+        return CASHIER
+    return BOOKKEEPER

@@ -41,6 +41,33 @@ CREATE_ACTIONS = [
 ]
 
 
+# B75 (after ECOUNT's dashboards per user): what each role set's home shows
+CASHIER_TILES = [
+    {"label": "Sales", "route": "/app/sales-invoice", "icon": "receipt-text"},
+    {"label": "Collections", "route": "/app/payment-entry?payment_type=Receive", "icon": "banknote"},
+    {"label": "Cash today", "route": "/app/query-report/PH Cash Position", "icon": "wallet"},
+    {"label": "Items", "route": "/app/item", "icon": "package"},
+]
+CASHIER_ACTIONS = [
+    {"label": "New sales invoice", "route": "/app/sales-invoice/new"},
+    {"label": "Record a collection", "route": "/app/payment-entry/new?payment_type=Receive"},
+]
+BOOKKEEPER_EXTRA_ACTIONS = [
+    {"label": "Record an expense", "action": "record_expense"},
+    {"label": "Import from a template", "action": "import"},
+]
+CARDS = {
+    "Owner": ["sales", "purchases", "cash", "receivable", "payable", "vat", "withholding", "drafts"],
+    "Bookkeeper": ["sales", "purchases", "cash", "receivable", "payable", "vat", "withholding", "drafts"],
+    "Cashier": ["sales_today", "cash", "receivable", "drafts_mine"],
+}
+SECTIONS = {
+    "Owner": ["create", "onboarding", "approvals", "cards", "chart", "due"],
+    "Bookkeeper": ["create", "onboarding", "approvals", "cards", "chart", "due"],
+    "Cashier": ["create", "cards"],
+}
+
+
 def period_bounds(period: str, today: date | None = None) -> tuple[date | None, date | None, str]:
     today = today or getdate(nowdate())
     if period == "last_month":
@@ -230,6 +257,9 @@ def get(company: str | None = None, period: str = "month") -> dict:
         frappe.throw(_("Not permitted"), frappe.PermissionError)
     start, end, period_label = period_bounds(period)
     user = frappe.get_cached_value("User", frappe.session.user, ["first_name", "full_name"], as_dict=True)
+    from ph_cas.setup.roles import role_set
+
+    rs = role_set()
     out = {
         "greeting": _greeting(),
         "first_name": (user.first_name or user.full_name or frappe.session.user).strip(),
@@ -239,12 +269,15 @@ def get(company: str | None = None, period: str = "month") -> dict:
         "period": period,
         "period_label": period_label,
         "currency": frappe.get_cached_value("Company", company, "default_currency") if company else "PHP",
-        "tiles": TILES,
-        "create_actions": CREATE_ACTIONS,
+        "role_set": rs,
+        "tiles": CASHIER_TILES if rs == "Cashier" else TILES,
+        "create_actions": CASHIER_ACTIONS if rs == "Cashier" else CREATE_ACTIONS + BOOKKEEPER_EXTRA_ACTIONS,
+        "cards": CARDS[rs],
+        "sections": SECTIONS[rs],
         "figures": {},
         "monthly": [],
         "due": [],
-        "onboarding": _onboarding(),
+        "onboarding": _onboarding() if rs != "Cashier" else None,
         "approvals": _approvals(),
     }
     if not company:
@@ -269,12 +302,21 @@ def get(company: str | None = None, period: str = "month") -> dict:
         company, _mapped(company, ["ewt_payable", "wt_compensation_payable", "final_wt_payable", "wt_vat_payable"]), credit_side=True
     )
     f["percentage_tax_payable"] = _gl_balance(company, _mapped(company, ["percentage_tax_payable"]), credit_side=True)
+    today_ = nowdate()
+    f["sales_today"] = _sum("Sales Invoice", "base_grand_total", company, today_, today_)
+    f["invoices_today"] = _count("Sales Invoice", company, today_, today_)
+    f["drafts_mine"] = frappe.db.count("Sales Invoice", {"company": company, "docstatus": 0, "owner": frappe.session.user})
     f["drafts"] = {
         "sales_invoice": _count("Sales Invoice", company, None, None, docstatus=0),
         "purchase_invoice": _count("Purchase Invoice", company, None, None, docstatus=0),
         "payment_entry": _count("Payment Entry", company, None, None, docstatus=0),
         "journal_entry": _count("Journal Entry", company, None, None, docstatus=0),
     }
+    if rs == "Cashier":
+        # the counter sees the counter's figures only, not the payables or the tax position
+        out["figures"] = {k: f[k] for k in ("sales_today", "invoices_today", "cash", "receivable", "overdue_receivable", "drafts_mine")}
+        out["approvals"] = []
+        return out
     out["monthly"] = _monthly(company)
     out["due"] = _due_dates(company)
     return out

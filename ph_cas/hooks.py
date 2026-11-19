@@ -12,11 +12,12 @@ after_migrate = "ph_cas.setup.install.after_migrate"
 before_tests = "ph_cas.tests.setup.before_tests"
 
 doctype_js = {"Company": "public/js/company.js", "Sales Invoice": "public/js/sales_invoice.js", "PH Tutorial Video": "public/js/tutorial_video.js", "PH Modules": "public/js/ph_modules.js"}
-doctype_list_js = {"PH Tutorial Video": "public/js/tutorial_video_list.js"}
+doctype_list_js = {"PH Tutorial Video": "public/js/tutorial_video_list.js", "Purchase Invoice": "public/js/purchase_invoice_list.js",
+                   "Customer": "public/js/customer_list.js", "Supplier": "public/js/supplier_list.js", "Item": "public/js/item_list.js"}
 
 # B38 branding: the product, never the framework, is what users see (ph_cas.branding)
 app_logo_url = "/assets/ph_cas/images/logo.svg"
-app_include_js = ["/assets/ph_cas/js/branding.js", "/assets/ph_cas/js/approvals.js", "/assets/ph_cas/js/tutorials.js", "/assets/ph_cas/js/modules.js"]
+app_include_js = ["/assets/ph_cas/js/branding.js", "/assets/ph_cas/js/approvals.js", "/assets/ph_cas/js/tutorials.js", "/assets/ph_cas/js/modules.js", "/assets/ph_cas/js/expense.js", "/assets/ph_cas/js/imports.js", "/assets/ph_cas/js/help.js"]
 app_include_css = ["/assets/ph_cas/css/sentire.css"]
 boot_session = "ph_cas.branding.boot_session"
 extend_bootinfo = ["ph_cas.branding.extend_bootinfo", "ph_cas.tutorials.api.extend_bootinfo", "ph_cas.modules.api.extend_bootinfo"]

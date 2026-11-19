@@ -35,6 +35,7 @@ DEFAULT_SIGNATORY = "Christian R. Canlubo"
 DEFAULT_SIGNATORY_POSITION = "Owner"
 HIDDEN_HELP_ITEMS = ("Frappe Support", "Documentation", "User Forum", "Report an Issue", "Keyboard Shortcuts")
 WORKSPACE = "Sentire Ledger"
+HELP_ACTIONS = [("Get help", "ph_cas.get_help()"), ("Your plan", "ph_cas.show_plan()")]
 
 
 def product_name() -> str:
@@ -139,6 +140,12 @@ def _navbar_settings(product: str):
     if mail and not seen_contact:
         nb.append("help_dropdown", {"item_label": wanted_label, "item_type": "Route", "route": f"mailto:{mail}", "is_standard": 0})
         changed = True
+    # B75 (after ECOUNT's Help and subscription menus)
+    have = {row.item_label for row in nb.get("help_dropdown") or []}
+    for label, action in HELP_ACTIONS:
+        if label not in have:
+            nb.append("help_dropdown", {"item_label": label, "item_type": "Action", "action": action, "is_standard": 0})
+            changed = True
     if changed:
         nb.flags.ignore_permissions = True
         nb.save()
@@ -324,6 +331,10 @@ def extend_bootinfo(bootinfo):
     for key in (MODULE, SIDEBAR):
         if isinstance(shells.get(key), dict):
             shells[key]["label"] = product
+    # B75: the counter view and the home page read the user's role set
+    from ph_cas.setup.roles import role_set
+
+    bootinfo.ph_cas_role_set = role_set()
 
 
 def licence_text() -> str:

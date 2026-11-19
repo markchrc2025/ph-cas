@@ -36,8 +36,10 @@ frappe.ui.form.on("Company", {
                     { fieldname: "to_date", fieldtype: "Date", label: __("To"), default: frappe.datetime.get_today(), reqd: 1 },
                     { fieldname: "fmt", fieldtype: "Select", label: __("Format"), options: "pdf\nxlsx", default: "pdf", reqd: 1,
                       description: __("Six books, the header and page numbers on every page, and PAGES.txt with the page count of each book for the sworn statement.") },
+                    { fieldname: "subsidiary", fieldtype: "Check", label: __("Add the customers' and suppliers' subsidiary ledgers"),
+                      description: __("One block per customer or supplier with the balance forwarded, each invoice, collection and payment, and the running balance.") },
                 ], (v) => {
-                    window.open(`/api/method/ph_cas.books.looseleaf.download?company=${encodeURIComponent(frm.doc.name)}&from_date=${v.from_date}&to_date=${v.to_date}&fmt=${v.fmt}`);
+                    window.open(`/api/method/ph_cas.books.looseleaf.download?company=${encodeURIComponent(frm.doc.name)}&from_date=${v.from_date}&to_date=${v.to_date}&fmt=${v.fmt}&subsidiary=${v.subsidiary ? 1 : 0}`);
                 }, __("Loose-leaf books of accounts"));
             }, ph_cas_menu());
             frm.add_custom_button(__("Quarterly notice of minor enhancements"), () => {
@@ -63,6 +65,8 @@ frappe.ui.form.on("Company", {
                             + __("Opening balances: one Journal Entry, Entry Type Opening Entry, dated the day before go-live. Customers' and suppliers' open items go on Debtors and Creditors with the party and the old invoice number in the remark. Stock: an opening stock count on the same day.") + `</p>` });
                 });
             }, ph_cas_menu());
+            // B73: Philippine import templates (customers, suppliers, items, opening balances, open items)
+            frm.add_custom_button(__("Import from a template"), () => ph_cas.import_dialog({ company: frm.doc.name, kind: "balances" }), ph_cas_menu());
             if (!frm.doc.enable_perpetual_inventory) {
                 // B69: periodic method; the year-end count becomes the inventory adjustment
                 frm.add_custom_button(__("Year-end inventory adjustment"), () => {

@@ -47,11 +47,11 @@ class SentireHome {
 				</div>
 			</div>
 			<div class="sl-tiles"></div>
-			<div class="sl-section"><h2>${__("Create")}</h2><div class="sl-chips"></div></div>
+			<div class="sl-section" data-section="create"><h2>${__("Create")}</h2><div class="sl-chips"></div></div>
 			<div class="sl-onboarding"></div>
 			<div class="sl-approvals"></div>
-			<div class="sl-section"><h2>${__("Business at a glance")}</h2><div class="sl-cards"></div></div>
-			<div class="sl-grid-2">
+			<div class="sl-section" data-section="cards"><h2>${__("Business at a glance")}</h2><div class="sl-cards"></div></div>
+			<div class="sl-grid-2" data-section="chart">
 				<div class="sl-card sl-chart-card"><div class="sl-card-head"><span>${__("Sales and purchases, last 12 months")}</span></div><div class="sl-chart"></div></div>
 				<div class="sl-card sl-due-card"><div class="sl-card-head"><span>${__("Coming due")}</span><a href="/app/query-report/PH Compliance Calendar">${__("Calendar")} &rarr;</a></div><div class="sl-due"></div></div>
 			</div>
@@ -101,8 +101,20 @@ class SentireHome {
 				.join("")
 		);
 		this.$body.find(".sl-chips").html(
-			d.create_actions.map((a) => `<a class="sl-chip" href="${a.route}">${__(a.label)}</a>`).join("")
+			d.create_actions.map((a) => a.action
+				? `<a class="sl-chip" href="#" data-action="${a.action}">${__(a.label)}</a>`
+				: `<a class="sl-chip" href="${a.route}">${__(a.label)}</a>`).join("")
 		);
+		this.$body.find(".sl-chips [data-action]").on("click", (ev) => {
+			ev.preventDefault();
+			const act = ev.currentTarget.dataset.action;
+			if (act === "record_expense") ph_cas.record_expense(this.company);
+			if (act === "import") ph_cas.import_dialog({ company: this.company });
+		});
+		// B75: each role set sees its own sections
+		const sections = d.sections || ["create", "onboarding", "approvals", "cards", "chart", "due"];
+		this.$body.find("[data-section]").each((_i, el) => $(el).toggle(sections.includes(el.dataset.section)));
+		this.$body.find(".sl-cards").closest(".sl-section").find("h2").text(d.role_set === "Cashier" ? __("Today at the counter") : __("Business at a glance"));
 
 		this.render_onboarding(d.onboarding);
 		this.render_cards(d);
@@ -167,32 +179,36 @@ class SentireHome {
 		const open_filter = (dt) => `/app/${dt}?` + encodeURIComponent("outstanding_amount") + "=" + encodeURIComponent(JSON.stringify([">", 0]));
 		const drafts =
 			(f.drafts && f.drafts.sales_invoice + f.drafts.purchase_invoice + f.drafts.payment_entry + f.drafts.journal_entry) || 0;
-		const cards = [
-			this.card(__("Sales, {0}", [d.period_label]), this.money(f.sales), __("{0} invoices issued", [n(f.invoices_issued)]), "/app/sales-invoice?docstatus=1"),
-			this.card(__("Purchases, {0}", [d.period_label]), this.money(f.purchases), __("{0} bills recorded", [n(f.bills_recorded)]), "/app/purchase-invoice?docstatus=1"),
-			this.card(__("Cash and bank"), this.money(f.cash), __("balance today"), "/app/query-report/PH Cash Receipts Book"),
-			this.card(
+		const all = {
+			sales: () => this.card(__("Sales, {0}", [d.period_label]), this.money(f.sales), __("{0} invoices issued", [n(f.invoices_issued)]), "/app/sales-invoice?docstatus=1"),
+			sales_today: () => this.card(__("Sales today"), this.money(f.sales_today), __("{0} invoices issued", [n(f.invoices_today)]), "/app/sales-invoice?docstatus=1&posting_date=" + frappe.datetime.get_today()),
+			purchases: () => this.card(__("Purchases, {0}", [d.period_label]), this.money(f.purchases), __("{0} bills recorded", [n(f.bills_recorded)]), "/app/purchase-invoice?docstatus=1"),
+			cash: () => this.card(__("Cash and bank"), this.money(f.cash), __("balance today"), "/app/query-report/PH Cash Position"),
+			receivable: () => this.card(
 				__("Receivable"),
 				this.money(f.receivable),
 				f.overdue_receivable ? `<span class="sl-warn">${__("{0} overdue", [this.money(f.overdue_receivable)])}</span>` : __("nothing overdue"),
 				open_filter("sales-invoice")
 			),
-			this.card(__("Payable"), this.money(f.payable), __("open bills"), open_filter("purchase-invoice")),
-			this.card(
+			payable: () => this.card(__("Payable"), this.money(f.payable), __("open bills"), open_filter("purchase-invoice")),
+			vat: () => this.card(
 				__("VAT position"),
 				this.money(f.vat_position),
 				__("output {0}, input {1}", [this.money(f.output_vat), this.money(f.input_vat)]),
 				"/app/ph-tax-return?form=2550Q"
 			),
-			this.card(__("Withholding to remit"), this.money(f.withholding_to_remit), __("EWT, compensation, final, VAT"), "/app/ph-tax-return"),
-			this.card(
+			withholding: () => this.card(__("Withholding to remit"), this.money(f.withholding_to_remit), __("EWT, compensation, final, VAT"), "/app/ph-tax-return"),
+			drafts: () => this.card(
 				__("Drafts waiting"),
 				n(drafts),
 				drafts ? __("{0} invoices, {1} bills, {2} payments, {3} journals", [n(f.drafts.sales_invoice), n(f.drafts.purchase_invoice), n(f.drafts.payment_entry), n(f.drafts.journal_entry)]) : __("all posted"),
 				"/app/sales-invoice?docstatus=0",
 				drafts ? "sl-attention" : ""
 			),
-		];
+			drafts_mine: () => this.card(__("My unposted invoices"), n(f.drafts_mine), f.drafts_mine ? __("post them before closing the counter") : __("all posted"),
+				"/app/sales-invoice?docstatus=0&owner=" + encodeURIComponent(frappe.session.user), f.drafts_mine ? "sl-attention" : ""),
+		};
+		const cards = (d.cards || Object.keys(all)).filter((k) => all[k]).map((k) => all[k]());
 		this.$body.find(".sl-cards").html(cards.join(""));
 	}
 

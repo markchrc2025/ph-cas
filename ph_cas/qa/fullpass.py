@@ -1604,10 +1604,384 @@ def s_go_live(r: Runner):
     r.step("trial balance on the cut-over day balances", tb)
 
 
+# ---- section: record an expense (B72) --------------------------------------------------------
+def s_expense(r: Runner):
+    from ph_cas.expense import preview_expense, record_expense
+
+    co = VAT_CORP
+    _p = _parties()
+    rno = "OR-" + frappe.generate_hash(length=6).upper()
+    jeepney = supplier("QA4 Mang Jose Tricycle", supplier_type="Individual", ph_vat_status="Non-VAT", ph_payee_type="Individual", ph_last_name="SANTOS", ph_first_name="JOSE", ph_middle_name="")
+    state = {}
+
+    def preview():
+        f = preview_expense(company=co, supplier=_p[1], amount=11200, description="Notarial and legal advice", receipt_no=rno, expense_account=acc(co, "Legal Expenses"))
+        r.expect((f["net"], f["vat"], f["ewt"], f["paid"]) == (10000, 1200, 500, 10700), f"preview {f}")
+        r.expect(not frappe.db.exists("Purchase Invoice", {"bill_no": rno}), "the preview posted")
+        return f"receipt 11,200 -> net 10,000, input VAT 1,200, EWT {f['ewt_atc']} 500, cash paid 10,700 (nothing posted)"
+    r.step("preview: VAT worked back from the receipt, EWT on the net", preview)
+
+    def post():
+        out = record_expense(company=co, supplier=_p[1], amount=11200, description="Notarial and legal advice", receipt_no=rno, expense_account=acc(co, "Legal Expenses"))
+        g = gl("Purchase Invoice", out["purchase_invoice"])
+        want = {"Legal Expenses": 10000, "Input VAT - Services": 1200, "Withholding Tax Payable - Expanded": -500, "Cash": -10700}
+        bad = {k: (g.get(k), v) for k, v in want.items() if g.get(k) != v}
+        r.expect(not bad, f"GL {g}")
+        r.expect(frappe.db.get_value("Purchase Invoice", out["purchase_invoice"], "outstanding_amount") == 0, "not paid")
+        state["pi"] = out["purchase_invoice"]
+        return f"{out['purchase_invoice']} paid; GL {g}"
+    r.step("post: one paid bill, cash out net of EWT", post)
+
+    def small_cash():
+        out = record_expense(company=co, supplier=jeepney, amount=150, description="Tricycle fare to the BIR office", expense_account=acc(co, "Travel Expenses"))
+        r.expect((out["net"], out["vat"], out["ewt"], out["paid"]) == (150, 0, 0, 150), f"non-VAT {out}")
+        return f"{out['purchase_invoice']}: 150, no VAT, no EWT"
+    r.step("a small cash expense from a non-VAT supplier", small_cash)
+
+    def in_the_books():
+        from ph_cas.ph_cas.doctype.ph_2307_issued.ph_2307_issued import generate_quarter
+        from ph_cas.tax.returns import quarter_bounds
+
+        y = getdate(today()).year
+        pj = _report("PH Purchase Journal", {"company": co, "from_date": f"{y}-01-01", "to_date": f"{y}-12-31"})
+        r.expect(any(x.get("name") == state["pi"] for x in pj), "not in the Purchase Journal")
+        cd = _report("PH Cash Disbursements Book", {"company": co, "from_date": f"{y}-01-01", "to_date": f"{y}-12-31"})
+        r.expect(any(state["pi"] in str(x.values()) for x in cd), "not in the Cash Disbursements Book")
+        qs, _qe = quarter_bounds(today())
+        names = generate_quarter(co, str(qs))
+        cert = next((n for n in names if frappe.db.get_value("PH 2307 Issued", n, "supplier") == _p[1]), None)
+        r.expect(cert and flt(frappe.db.get_value("PH 2307 Issued", cert, "total_tax")) >= 500, f"2307 {cert}")
+        return f"in the Purchase Journal and the Cash Disbursements Book; 2307 {cert} carries the 500"
+    r.step("the expense reaches the books and the quarter's 2307", in_the_books)
+
+    def cashier_refused():
+        from ph_cas.setup import roles as R
+
+        email = "qa4.cashier@example.com"
+        if not frappe.db.exists("User", email):
+            frappe.get_doc({"doctype": "User", "email": email, "first_name": "QA4 Cashier", "send_welcome_email": 0, "role_profiles": [{"role_profile": R.CASHIER}]}).insert()
+        me = frappe.session.user
+        frappe.set_user(email)
+        try:
+            return refused(record_expense, company=co, supplier=jeepney, amount=50, description="Snacks", expense_account=acc(co, "Miscellaneous Expenses"))
+        finally:
+            frappe.set_user(me)
+    r.step("a Cashier cannot record an expense", cashier_refused)
+
+    def needs_account():
+        return refused(record_expense, company=co, supplier=jeepney, amount=80, description="Load for the office phone")
+    r.step("no expense account and no item: refused (never cost of goods sold by default)", needs_account)
+
+
+# ---- section: Philippine import templates and batch edit (B73) ----------------------------------
+IMPORT_CO = "QA4 Bagong Bukas Trading Corp."
+
+
+def _csv(rows):
+    import csv as _c
+    import io as _io
+
+    b = _io.StringIO()
+    _c.writer(b).writerows(rows)
+    return b.getvalue()
+
+
+def s_imports(r: Runner):
+    from frappe.utils import add_days
+
+    from ph_cas import imports as I
+    from ph_cas.golive import go_live_checklist
+
+    n = 1
+    while frappe.db.exists("Journal Entry", {"company": IMPORT_CO + (f" {n}" if n > 1 else ""), "is_opening": "Yes", "docstatus": 1}):
+        n += 1
+    co = IMPORT_CO + (f" {n}" if n > 1 else "")
+    state = {}
+    P_HEAD = ["Customer or Supplier", "Name", "Payee type", "TIN", "Branch code", "Registered name", "Last name", "First name", "Middle name", "VAT status",
+              "Government agency or GOCC", "Top withholding agent", "Withholding category", "Over the threshold or VAT-registered", "Address line 1", "Address line 2", "ZIP code"]
+
+    def template():
+        t = I.template_csv("parties")
+        lines = t.splitlines()
+        r.expect(lines[0].startswith("Customer or Supplier,Name,Payee type,TIN") and lines[1].startswith("# required") and lines[2].startswith("# e.g."), t[:200])
+        for k in I.TEMPLATES:
+            I.template_csv(k)
+        return f"4 templates; parties header: {lines[0][:90]}..."
+    r.step("templates: header, a help row and an example row, both skipped on import", template)
+
+    def bad_file():
+        bad = _csv([P_HEAD,
+                    ["Customer", "QA4 Imp Bad TIN", "Non-individual", "000123456000", "", "", "", "", "", "VAT"],
+                    ["Supplier", "QA4 Imp No Names", "Individual", "000-777-001", "00000", "", "", "", "", "Non-VAT", "", "", "professional"],
+                    ["Customer", "QA4 Imp Bad VAT", "Non-individual", "000-777-002", "00000", "", "", "", "", "VAT registered"],
+                    ["Customer", "QA4 Imp Cust EWT", "Non-individual", "000-777-003", "00000", "", "", "", "", "VAT", "", "", "rent"],
+                    ["Customer", "QA4 Imp Dup", "Non-individual", "000-777-003", "00000", "", "", "", "", "VAT", "", "", ""],
+                    ["Supplier", "QA4 Imp Bad Branch", "Non-individual", "000-777-004", "0001", "", "", "", "", "VAT", "", "", "", "", "", "", "18070"]])
+        res = I.check_import("parties", csv_text=bad)
+        lines = {e["line"]: " ".join(e["errors"]) for e in res["errors"]}
+        want = {2: "branch code", 3: "last name", 4: "VAT status", 5: "for suppliers", 6: "twice", 7: "5 digits"}
+        miss = {k: v for k, v in want.items() if v not in lines.get(k, "")}
+        r.expect(not res["ok"] and not miss, f"missing {miss}; got {lines}")
+        r.expect("Line 2" in refused(I.run_import, "parties", csv_text=bad), "imported")
+        r.expect(not frappe.db.exists("Customer", "QA4 Imp Bad VAT"), "a bad file saved a record")
+        return f"{len(lines)} lines refused with reasons: " + "; ".join(f"{k}: {v[:50]}" for k, v in sorted(lines.items()))
+    r.step("a bad customer/supplier file is checked line by line and nothing is saved", bad_file)
+
+    good = _csv([P_HEAD,
+                 ["# e.g. Customer", "example row, skipped"],
+                 ["Customer", "QA4 Imp Pasig Hardware Inc.", "Non-individual", "000-777-101", "00000", "PASIG HARDWARE INC.", "", "", "", "VAT", "", "yes", "", "", "8 Caruncho Ave", "Pasig City", "1600"],
+                 ["Customer", "QA4 Imp Generic Customer", "Non-individual", "000111222", "00000", "", "", "", "", "Non-VAT", "", "", "", "", "", "Makati City", ""],
+                 ["Supplier", "QA4 Imp Atty. Reyes", "Individual", "000-777-102", "00000", "", "REYES", "MARIA", "CRUZ", "VAT", "", "", "professional", "yes", "2 Shaw Blvd", "Mandaluyong City", "1550"],
+                 ["Supplier", "QA4 Imp Cebu Tiles Corp.", "Non-individual", "000-777-103", "00000", "", "", "", "", "VAT", "", "", "", "", "", "Cebu City", "6000"]])
+
+    def parties():
+        res = I.check_import("parties", csv_text=good)
+        r.expect(res["ok"] and res["rows"] == 4, f"check {res}")
+        out = I.run_import("parties", csv_text=good)
+        s_ = frappe.get_doc("Supplier", "QA4 Imp Atty. Reyes")
+        r.expect((s_.ph_tin, s_.ph_payee_type, s_.ph_ewt_category, s_.ph_over_threshold, s_.ph_last_name) == ("000-777-102", "Individual", "professional", 1, "REYES"), f"supplier {s_.as_dict()}")
+        c = frappe.get_doc("Customer", "QA4 Imp Pasig Hardware Inc.")
+        r.expect((c.ph_tin, c.ph_vat_status, c.ph_top_withholding_agent) == ("000-777-101", "VAT", 1), "customer fields")
+        r.expect(frappe.db.get_value("Customer", "QA4 Imp Generic Customer", "ph_tin") == "000-111-222", "walk-in TIN")
+        return f"created {len(out['created'])}, updated {len(out['updated'])}: TINs formatted, the lawyer is an individual professional over the threshold"
+    r.step("import customers and suppliers with their BIR details", parties)
+
+    def reimport():
+        before = frappe.db.count("Supplier", {"supplier_name": ("like", "QA4 Imp%")})
+        out = I.run_import("parties", csv_text=good)
+        r.expect(len(out["updated"]) == 4 and not out["created"] and frappe.db.count("Supplier", {"supplier_name": ("like", "QA4 Imp%")}) == before, f"{out}")
+        return "the same file again updates the 4 records; no duplicates"
+    r.step("importing the same file again updates, never duplicates", reimport)
+
+    def company():
+        c = _trading_company(co, f"Q4BK{n if n > 1 else ''}", "Periodic", "000-905-008")
+        c.ph_go_live_date = today()
+        c.save()
+        frappe.clear_document_cache("Company", co)
+        return f"{co}: live {today()}"
+    if not r.step("a fresh company going live today", company):
+        return
+
+    def items():
+        csv_ = _csv([["Item code", "Item name", "Item group", "Unit", "Stock item", "VAT class", "Capital good", "Selling price", "Cost", "Income account", "Expense account"],
+                     ["QA4-IMP-TILE", "Imported tile 30x30 (box)", "", "Nos", "yes", "VATable", "", "320", "250", "Sales", ""],
+                     ["QA4-IMP-RICE", "Rice, regular milled (sack)", "", "Nos", "yes", "VAT-exempt", "", "1,950.00", "1700", "", ""],
+                     ["QA4-IMP-BAD", "Bad item", "", "", "", "VAT", "", "abc", "", "No Such Account", ""]])
+        res = I.check_import("items", company=co, csv_text=csv_)
+        r.expect(not res["ok"] and [e["line"] for e in res["errors"]] == [4], f"{res}")
+        out = I.run_import("items", company=co, csv_text="\n".join(csv_.splitlines()[:3]))
+        it = frappe.get_doc("Item", "QA4-IMP-RICE")
+        r.expect(it.ph_vat_class == "VAT-exempt" and it.is_stock_item == 1, "rice")
+        d = next((x for x in frappe.get_doc("Item", "QA4-IMP-TILE").item_defaults if x.company == co), None)
+        r.expect(d and d.income_account == acc(co, "Sales"), "tile income account")
+        return f"bad row refused (VAT class, price, account); {len(out['created']) + len(out['updated'])} items saved; rice VAT-exempt; tile sells to {d.income_account}"
+    r.step("import items with VAT class, price and the company's accounts", items)
+
+    B_HEAD = ["Account", "Debit", "Credit"]
+    bal = [B_HEAD, ["Cash", "100,000.00", ""], ["Stock In Hand", "25000", ""], ["Debtors", "56000", ""], ["Creditors", "", "33600"], ["Capital Stock", "", "147400"]]
+
+    def unbalanced():
+        b = [list(x) for x in bal]
+        b[1][1] = "100,500.00"
+        res = I.check_import("balances", company=co, csv_text=_csv(b))
+        r.expect(not res["ok"] and any("differ by 500" in x for x in res["summary"]), f"{res}")
+        return refused(I.run_import, "balances", company=co, csv_text=_csv(b))
+    r.step("an old trial balance that does not balance is refused", unbalanced)
+
+    def balances():
+        out = I.run_import("balances", company=co, csv_text=_csv(bal))
+        je = frappe.get_doc("Journal Entry", out["posted"][0])
+        r.expect(str(je.posting_date) == str(add_days(today(), -1)) and je.is_opening == "Yes", f"{je.posting_date} {je.is_opening}")
+        temp = next(a.debit for a in je.accounts if frappe.db.get_value("Account", a.account, "account_type") == "Temporary")
+        r.expect(flt(temp) == 22400, f"temporary opening {temp}")
+        state["bal_je"] = je.name
+        return f"{je.name} dated the cut-over day; receivables less payables (22,400) wait on Temporary Opening"
+    r.step("import the opening account balances", balances)
+
+    def open_items():
+        O_HEAD = ["Customer or Supplier", "Name", "Old invoice or bill no.", "Date", "Amount still owed"]
+        late = _csv([O_HEAD, ["Customer", "QA4 Imp Pasig Hardware Inc.", "SI 9999", str(today()), "1000"]])
+        msg = refused(I.run_import, "open_items", company=co, csv_text=late)
+        r.expect("after the cut-over day" in msg, msg)
+        ok = _csv([O_HEAD,
+                   ["Customer", "QA4 Imp Pasig Hardware Inc.", "SI 001201", "2026-09-30", "30000"],
+                   ["Customer", "QA4 Imp Pasig Hardware Inc.", "SI 001234", "2026-10-15", "26,000"],
+                   ["Supplier", "QA4 Imp Cebu Tiles Corp.", "CT-0457", "2026-10-20", "33600"]])
+        out = I.run_import("open_items", company=co, csv_text=ok)
+        state["oi_je"] = out["posted"][0]
+        rows_ = _report("Accounts Receivable", {"company": co, "report_date": today(), "ageing_based_on": "Posting Date", "range": "30, 60, 90, 120"})
+        ar = sum(flt(x.get("outstanding")) for x in rows_ if x.get("voucher_no") == state["oi_je"])
+        r.expect(ar == 56000, f"AR {ar}")
+        from ph_cas.golive import _temporary_opening_balance
+
+        t = _temporary_opening_balance(co, add_days(today(), -1))
+        r.expect(abs(t) < 0.01, f"temporary opening still {t}")
+        return f"refused a date after cut-over; {out['posted'][0]}: Pasig Hardware owes 56,000 on two old invoices, owe Cebu Tiles 33,600; Temporary Opening back to zero"
+    r.step("import the open invoices and bills; Temporary Opening clears", open_items)
+
+    def checklist():
+        st = {i["key"]: i["status"] for i in go_live_checklist(co)}
+        r.expect(st["balances"] == "done" and st["open_items"] == "done", f"{st}")
+        return f"balances: {st['balances']}, open items: {st['open_items']}"
+    r.step("the go-live checklist shows balances and open items done", checklist)
+
+    def batch():
+        out = I.batch_update("Supplier", ["QA4 Imp Atty. Reyes", "QA4 Imp Cebu Tiles Corp."], {"ph_payee_type": "Individual"})
+        r.expect(out["changed"] == ["QA4 Imp Atty. Reyes"] and [x["name"] for x in out["refused"]] == ["QA4 Imp Cebu Tiles Corp."], f"{out}")
+        out2 = I.batch_update("Supplier", ["QA4 Imp Atty. Reyes", "QA4 Imp Cebu Tiles Corp."], {"ph_vat_status": "VAT"})
+        r.expect(len(out2["changed"]) == 2, f"{out2}")
+        r.expect(refused(I.batch_update, "Supplier", ["QA4 Imp Cebu Tiles Corp."], {"ph_tin": "000-000-000"}), "a TIN was batch edited")
+        return f"2 changed; a corporation cannot become an individual without names: {out['refused'][0]['reason'][:80]}"
+    r.step("batch edit: each record through its own validation; the TIN is not batch editable", batch)
+
+    def cashier():
+        from ph_cas.setup import roles as R
+
+        email = "qa4.cashier@example.com"
+        if not frappe.db.exists("User", email):
+            frappe.get_doc({"doctype": "User", "email": email, "first_name": "QA4 Cashier", "send_welcome_email": 0, "role_profiles": [{"role_profile": R.CASHIER}]}).insert()
+        me = frappe.session.user
+        frappe.set_user(email)
+        try:
+            return refused(I.run_import, "parties", csv_text=_csv([P_HEAD, ["Supplier", "QA4 Imp Cashier Supplier", "Non-individual", "000-777-199", "00000", "", "", "", "", "VAT"]]))
+        finally:
+            frappe.set_user(me)
+    r.step("a Cashier cannot import suppliers", cashier)
+
+
+# ---- section: subsidiary ledgers and the cash position (B74) ------------------------------------
+def s_ledgers(r: Runner):
+    from ph_cas.books import looseleaf as L
+    from ph_cas.books.cash import cash_position
+
+    co = VAT_CORP
+    y = getdate(today()).year
+    start, end = f"{y}-01-01", today()
+
+    def gl_party_balance(atype, ptype, before=None):
+        cond, args = ("and g.posting_date < %s", (co, atype, ptype, before)) if before else ("and g.posting_date <= %s", (co, atype, ptype, end))
+        return flt(frappe.db.sql(f"""select coalesce(sum(g.debit) - sum(g.credit), 0) from `tabGL Entry` g join `tabAccount` a on a.name = g.account
+                                    where g.company = %s and g.is_cancelled = 0 and a.account_type = %s and g.party_type = %s {cond}""", args)[0][0], 2)
+
+    def ar():
+        b = L.ar_ledger(co, start, end)
+        tot = b.rows[-1]
+        want = gl_party_balance("Receivable", "Customer")
+        r.expect(flt(tot[5], 2) == want, f"AR ledger total {tot[5]} vs GL {want}")
+        blocks = [x for x in b.rows if x[2] and "balance forwarded" in str(x[2])]
+        r.expect(blocks and any("TIN " in str(x[2]) for x in blocks), "no customer block with a TIN")
+        r.expect(any(str(x[2]).startswith("SALES INVOICE") for x in b.rows), "no sales invoice entry")
+        return f"{len(blocks)} customers; balance {want:,.2f} ties to the receivable accounts"
+    r.step("customers' subsidiary ledger ties to Accounts Receivable", ar)
+
+    def ap():
+        b = L.ap_ledger(co, start, end)
+        want = -gl_party_balance("Payable", "Supplier")
+        r.expect(flt(b.rows[-1][5], 2) == want, f"AP ledger total {b.rows[-1][5]} vs GL {want}")
+        r.expect(any(str(x[2]).startswith("PURCHASE INVOICE") for x in b.rows), "no bill entry")
+        return f"{len([x for x in b.rows if 'balance forwarded' in str(x[2])])} suppliers; owed {want:,.2f} ties to the payable accounts (credit-positive)"
+    r.step("suppliers' subsidiary ledger ties to Accounts Payable", ap)
+
+    def forwarded():
+        b = L.ar_ledger(co, today(), today())
+        fwd = sum(flt(x[5]) for x in b.rows if "balance forwarded" in str(x[2]))
+        want = gl_party_balance("Receivable", "Customer", before=today())
+        r.expect(flt(fwd, 2) == want, f"forwarded {fwd} vs {want}")
+        return f"balances forwarded into today: {fwd:,.2f}"
+    r.step("a ledger that starts mid-year brings the balances forward", forwarded)
+
+    def pack():
+        import io as _io
+        import zipfile as _z
+
+        _n, data, pages = L.pack(co, start, end, "xlsx", subsidiary=True)
+        names = _z.ZipFile(_io.BytesIO(data)).namelist()
+        r.expect(any(n.startswith("ARL_") for n in names) and any(n.startswith("APL_") for n in names), f"{names}")
+        txt = _z.ZipFile(_io.BytesIO(data)).read("PAGES.txt").decode()
+        r.expect("Accounts Receivable Subsidiary Ledger" in txt, txt)
+        _n2, data2, pages2 = L.pack(co, start, end, "xlsx")
+        r.expect(len(pages2) == 6 and len(pages) == 8, f"{len(pages2)} {len(pages)}")
+        wb = __import__("openpyxl").load_workbook(_io.BytesIO(_z.ZipFile(_io.BytesIO(data)).read(next(n for n in names if n.startswith("ARL_")))))
+        vals = [c.value for row in wb.active.iter_rows(max_row=12) for c in row if c.value]
+        r.expect("OWNER'S NAME" in vals and any("Page 1 of" in str(v) for v in vals), "no BIR header")
+        return f"8 books with the subsidiary ledgers (6 without); BIR header on each page; pages {pages.get('ACCOUNTS RECEIVABLE SUBSIDIARY LEDGER')} AR, {pages.get('ACCOUNTS PAYABLE SUBSIDIARY LEDGER')} AP"
+    r.step("the loose-leaf pack adds both ledgers when asked, with the BIR header", pack)
+
+    def cash():
+        from ph_cas.expense import record_expense
+
+        before = cash_position(co)
+        sup = supplier("QA4 Mang Jose Tricycle", supplier_type="Individual", ph_vat_status="Non-VAT", ph_payee_type="Individual", ph_last_name="SANTOS", ph_first_name="JOSE")
+        record_expense(company=co, supplier=sup, amount=120, description="Tricycle fare (cash position check)", expense_account=acc(co, "Travel Expenses"))
+        p = cash_position(co)
+        cash_acc = frappe.get_cached_value("Company", co, "default_cash_account")
+        row = next(x for x in p["accounts"] if x["account"] == cash_acc)
+        b0 = next(x for x in before["accounts"] if x["account"] == cash_acc)
+        r.expect(flt(row["paid"] - b0["paid"], 2) == 120, f"paid moved {row['paid'] - b0['paid']}")
+        r.expect(all(flt(x["opening"] + x["received"] - x["paid"], 2) == x["closing"] for x in p["accounts"]), "a row does not add up")
+        gl_cash = flt(frappe.db.sql("""select coalesce(sum(debit) - sum(credit), 0) from `tabGL Entry` where company = %s and is_cancelled = 0
+                                       and posting_date <= %s and account in %s""", (co, today(), [x["account"] for x in p["accounts"]]))[0][0], 2)
+        r.expect(p["total"]["closing"] == gl_cash, f"closing {p['total']['closing']} vs GL {gl_cash}")
+        from ph_cas.ph_cas.report.ph_cash_position.ph_cash_position import execute
+
+        _c, rows, *_x = execute({"company": co, "day": today()})
+        r.expect(rows[-1]["closing"] == gl_cash, "report total")
+        return f"{len(p['accounts'])} cash and bank accounts; today in {p['total']['received']:,.2f}, out {p['total']['paid']:,.2f}; ending {gl_cash:,.2f} = the ledger"
+    r.step("the cash position: beginning + in - out = ending, and it ties to the ledger", cash)
+
+
+# ---- section: a home per role set, Your plan, Get help (B75) -------------------------------------
+def s_role_homes(r: Runner):
+    from ph_cas.home import dashboard
+    from ph_cas.hosting.tiers import my_plan
+    from ph_cas.setup import roles as R
+
+    co = VAT_CORP
+    email = "qa4.cashier@example.com"
+    if not frappe.db.exists("User", email):
+        frappe.get_doc({"doctype": "User", "email": email, "first_name": "QA4 Cashier", "send_welcome_email": 0, "role_profiles": [{"role_profile": R.CASHIER}]}).insert()
+
+    def cashier_home():
+        me = frappe.session.user
+        frappe.set_user(email)
+        try:
+            d = dashboard.get(company=co)
+        finally:
+            frappe.set_user(me)
+        r.expect(d["role_set"] == "Cashier", d["role_set"])
+        r.expect(set(d["figures"]) <= {"sales_today", "invoices_today", "cash", "receivable", "overdue_receivable", "drafts_mine"}, f"leaks {sorted(d['figures'])}")
+        r.expect("chart" not in d["sections"] and not d["monthly"] and not d["due"], "cashier sees the chart or the tax calendar")
+        r.expect([a["label"] for a in d["create_actions"]] == ["New sales invoice", "Record a collection"], f"{d['create_actions']}")
+        return f"cards {d['cards']}; no payables, VAT or withholding figures sent"
+    r.step("a Cashier's home: today's counter only", cashier_home)
+
+    def owner_home():
+        d = dashboard.get(company=co)
+        r.expect(d["role_set"] == "Owner" and "vat" in d["cards"] and "vat_position" in d["figures"], f"{d['role_set']} {d['cards']}")
+        r.expect(any(a.get("action") == "record_expense" for a in d["create_actions"]), "no Record an expense")
+        return f"{d['role_set']}: {len(d['cards'])} cards, sections {d['sections']}"
+    r.step("the owner's home: the whole business, with Record an expense and Import", owner_home)
+
+    def plan():
+        p = my_plan()
+        r.expect(p["tier"] and {x["label"] for x in p["rows"]} >= {"Users", "Invoices this month"}, f"{p}")
+        return f"{p['tier']}: " + ", ".join(f"{x['label']} {x['used']}/{x['limit'] or 'no limit'}" for x in p["rows"])
+    r.step("Help > Your plan: the tier, its limits and the use", plan)
+
+    def help_menu():
+        from ph_cas import branding
+
+        branding._navbar_settings(branding.product_name())
+        items = {x.item_label: x.action for x in frappe.get_single("Navbar Settings").help_dropdown if not x.hidden}
+        r.expect(items.get("Get help") == "ph_cas.get_help()" and items.get("Your plan") == "ph_cas.show_plan()", f"{items}")
+        return "Help menu: " + ", ".join(items)
+    r.step("the Help menu carries Get help and Your plan", help_menu)
+
+
 SECTIONS = {
     "companies": s_companies, "purchasing": s_purchasing, "sales": s_sales, "tasks": s_tasks, "inventory": s_inventory,
     "projects": s_projects, "assets": s_assets, "quality": s_quality, "crm": s_crm, "support": s_support,
-    "industries": s_industries, "forms": s_forms, "inventory_tracking": s_inventory_tracking, "roles": s_roles, "reports": s_reports, "go_live": s_go_live,
+    "industries": s_industries, "forms": s_forms, "inventory_tracking": s_inventory_tracking, "roles": s_roles, "reports": s_reports, "go_live": s_go_live, "expense": s_expense, "imports": s_imports, "ledgers": s_ledgers, "role_homes": s_role_homes,
 }
 
 

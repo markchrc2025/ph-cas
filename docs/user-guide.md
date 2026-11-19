@@ -60,3 +60,27 @@ Set the Company's Go-live date: the first day the books are kept in Sentire Ledg
 - one Journal Entry, Entry Type "Opening Entry": every account balance; on Debtors, one row per customer with what they still owe, and on Creditors one row per supplier, each with the old invoice or bill number in its remark. Collections and payments are matched to those rows later.
 - the opening stock count (Stock Reconciliation, purpose Opening Stock). On the periodic method also put the stock value on the inventory account in the opening entry.
 Old invoices are not re-entered as invoices. Company > Sentire Ledger > Go-live checklist shows what is done and what is missing.
+
+## Record an expense
+
+Purchase Invoice list > Record an expense: for a bill already paid (fares, supplies, a notarial fee). Enter who was paid, what for, the expense account, the amount on the receipt and where the money came from; Preview shows the input VAT, the tax withheld and the cash paid. Post makes a paid bill, so the 2307 and the returns pick it up.
+
+## Import from a template
+
+Customer, Supplier or Item list > Import from a template (or Company > Sentire Ledger > Import from a template for opening balances). Download the template, fill it in Excel, attach it and press Check the file: every line with a problem is listed with the reason, and nothing is saved. Import saves only when every line passes. Import in this order when going live: customers and suppliers, items, opening account balances, then open invoices and bills. The go-live date must be set first; opening entries are dated the day before it.
+
+To change a BIR field on many records at once (for example the VAT status of several suppliers), tick them on the list and choose Actions > Batch edit BIR fields. A record the change does not fit is refused and named; the others change.
+
+## Customers' and suppliers' ledgers, and today's cash
+
+Company > Sentire Ledger > Loose-leaf books: tick "Add the customers' and suppliers' subsidiary ledgers" to get one page block per customer and per supplier, with the BIR header on every page.
+
+Report PH Cash Position: pick the day to see each cash and bank account's beginning balance, what came in, what went out and the ending balance. An ending balance below zero is shown in red: a receipt or deposit is missing, or more was paid out than the books show came in.
+
+## Home, the counter view and help
+
+Each user's home matches their role set. A Cashier sees today at the counter; an Owner or Bookkeeper sees the whole business.
+
+On a Sales Invoice, Counter view shows only what a sale needs; Full form shows everything. A Cashier starts in the counter view.
+
+Help > Your plan shows the plan, its limits and what the site uses now. Help > Get help opens the tutorials, writes to the provider with the page you are on, or copies the page details.
