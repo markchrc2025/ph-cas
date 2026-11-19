@@ -93,3 +93,18 @@ def record_expense(**kwargs) -> dict:
     pi.save()
     pi.submit()
     return {"purchase_invoice": pi.name, **_figures(pi)}
+
+
+@frappe.whitelist()
+@frappe.validate_and_sanitize_search_inputs
+def paid_from_query(doctype, txt, searchfield, start, page_len, filters):
+    """Record an expense > Paid from: the company's cash and bank accounts and its credit card."""
+    from ph_cas.setup.chart import CARD_ACCOUNT
+
+    company = (filters or {}).get("company")
+    return frappe.db.sql(
+        """select name, account_name from `tabAccount`
+           where company = %(company)s and is_group = 0 and disabled = 0 and name like %(txt)s
+             and ((account_type in ('Cash', 'Bank') and root_type = 'Asset') or (account_name = %(card)s and root_type = 'Liability'))
+           order by name limit %(start)s, %(page_len)s""",
+        {"company": company, "txt": f"%{txt}%", "card": CARD_ACCOUNT, "start": int(start), "page_len": int(page_len)})
