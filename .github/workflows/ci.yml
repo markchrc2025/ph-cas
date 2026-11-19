@@ -3,6 +3,11 @@ on:
   pull_request:
   push:
     branches: [main]
+# One runner serves ph-cas: when a newer commit arrives on the same branch or PR, cancel the
+# older run instead of letting it hold the queue (the newer commit contains its changes).
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 jobs:
   docs:
     runs-on: [self-hosted, sentire]
