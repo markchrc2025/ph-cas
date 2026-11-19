@@ -3,7 +3,7 @@
 One entry per bundle, newest first. Counts are the test totals on main after the merge.
 
 ## B71 Go-live and opening balances (after ECOUNT's starting balance) (19 Nov 2026)
-- PR: (filled in at merge)
+- PR: #87
 - Built: ph_cas.golive. Company "Go-live date". Opening entries dated the cut-over day (the day before go-live) need no back-date reason: the opening Journal Entry (Entry Type Opening Entry, Is Opening Yes) for account balances and, as party rows on Debtors and Creditors, what each customer owes and each supplier is owed; and the opening stock count (Stock Reconciliation, purpose Opening Stock). An opening entry on any other day, or before the go-live date is set, is refused. Opening invoices and bills (Is Opening on a Sales or Purchase Invoice, ERPNext's Opening Invoice Creation Tool) are refused with a pointer to the opening entry, because an old invoice must not take a BIR serial, carry VAT again or enter the sales journal and the returns. Company > Sentire Ledger > Go-live checklist: COR details, Philippine setup, tax rules confirmed, go-live date, inventory method, bank account, users with a role set, opening balances (posted, trial balance even, Temporary Opening cleared), old open items, opening stock (perpetual: the count; periodic: the count and the inventory account).
 - Full pass: section go_live (11 steps): refusals, the opening entry, the opening stock count, AR and AP from the opening entry, collecting an old balance against it, the checklist complete, the trial balance on the cut-over day.
 - Tests: +2 (test_b71_go_live).
