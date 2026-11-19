@@ -81,6 +81,12 @@ doc_events = {
     "Activity Log": {"after_insert": ["ph_cas.controls.security.on_activity_log", "ph_cas.audit.events.on_activity_log"]},
 }
 
+# B79: Staff runs the counter's reports only (ph_cas.setup.roles.STAFF_REPORTS)
+override_whitelisted_methods = {
+    "frappe.desk.query_report.run": "ph_cas.setup.roles.run_report",
+    "frappe.desk.query_report.export_query": "ph_cas.setup.roles.export_report",
+}
+
 override_doctype_class = {
     "Document Naming Settings": "ph_cas.controls.naming.PHDocumentNamingSettings",
 }
@@ -88,8 +94,12 @@ override_doctype_class = {
 has_permission = {
     "Accounting Period": "ph_cas.controls.dates.manager_only_permission",
     "Stock Reconciliation": "ph_cas.controls.dates.manager_only_permission",
-    # B69: the Cashier profile stays at the counter
-    **{dt: "ph_cas.setup.roles.cashier_limit" for dt in ("Purchase Invoice", "Purchase Order", "Purchase Receipt", "Journal Entry", "Supplier", "Payment Entry")},
+    # B79: the chart of accounts belongs to the Owner and the Accounting Manager
+    "Account": "ph_cas.setup.roles.chart_limit",
+    "Cost Center": "ph_cas.setup.roles.chart_limit",
+    # B69: the Staff profile (was Cashier) stays at the counter
+    **{dt: "ph_cas.setup.roles.cashier_limit" for dt in ("Purchase Invoice", "Purchase Order", "Purchase Receipt", "Journal Entry", "Supplier", "Payment Entry",
+                                                         "PH Tax Return", "PH 2307 Issued", "PH Alphalist File")},
 }
 
 # ERPNext reads this when a new Accounting Period is opened in the form: every

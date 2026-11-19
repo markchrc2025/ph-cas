@@ -28,7 +28,7 @@ TILES = [
     {"label": "Payments", "route": "/app/payment-entry", "icon": "banknote"},
     {"label": "BIR", "route": "/app/ph-tax-return", "icon": "landmark"},
     {"label": "Books", "route": "/app/query-report/PH General Ledger Book", "icon": "notebook"},
-    {"label": "Reports", "route": "/app/query-report/BIR Audit Trail", "icon": "chart-column"},
+    {"label": "Reports", "route": "/app/ph-reports", "icon": "chart-column"},
 ]
 
 CREATE_ACTIONS = [
@@ -47,6 +47,7 @@ CASHIER_TILES = [
     {"label": "Collections", "route": "/app/payment-entry?payment_type=Receive", "icon": "banknote"},
     {"label": "Cash today", "route": "/app/query-report/PH Cash Position", "icon": "wallet"},
     {"label": "Items", "route": "/app/item", "icon": "package"},
+    {"label": "Reports", "route": "/app/ph-reports", "icon": "chart-column"},
 ]
 CASHIER_ACTIONS = [
     {"label": "New sales invoice", "route": "/app/sales-invoice/new"},
@@ -56,15 +57,18 @@ BOOKKEEPER_EXTRA_ACTIONS = [
     {"label": "Record an expense", "action": "record_expense"},
     {"label": "Import from a template", "action": "import"},
 ]
+_WHOLE = ["sales", "purchases", "cash", "receivable", "payable", "vat", "withholding", "drafts"]
 CARDS = {
-    "Owner": ["sales", "purchases", "cash", "receivable", "payable", "vat", "withholding", "drafts"],
-    "Bookkeeper": ["sales", "purchases", "cash", "receivable", "payable", "vat", "withholding", "drafts"],
-    "Cashier": ["sales_today", "cash", "receivable", "drafts_mine"],
+    "Owner": _WHOLE,
+    "Accounting Manager": _WHOLE,
+    "Accountant": _WHOLE,
+    "Staff": ["sales_today", "cash", "receivable", "drafts_mine"],
 }
 SECTIONS = {
     "Owner": ["create", "onboarding", "approvals", "cards", "chart", "due"],
-    "Bookkeeper": ["create", "onboarding", "approvals", "cards", "chart", "due"],
-    "Cashier": ["create", "cards"],
+    "Accounting Manager": ["create", "onboarding", "approvals", "cards", "chart", "due"],
+    "Accountant": ["create", "onboarding", "approvals", "cards", "chart", "due"],
+    "Staff": ["create", "cards"],
 }
 
 
@@ -246,6 +250,20 @@ def _approvals() -> list:
         return []
 
 
+def _modules_off() -> list[str]:
+    """B79: a System Manager is told which modules are switched off, so a missing menu is not
+    mistaken for lost access (Settings > Modules turns them back on)."""
+    if "System Manager" not in frappe.get_roles():
+        return []
+    try:
+        from ph_cas.modules.api import catalogue, state
+
+        st = state()
+        return [m.get("label") or m["key"].title() for m in catalogue() if not st.get(m["key"], True)]
+    except Exception:
+        return []
+
+
 @frappe.whitelist()
 def get(company: str | None = None, period: str = "month") -> dict:
     """Everything the home page shows, for one company and one period."""
@@ -270,15 +288,16 @@ def get(company: str | None = None, period: str = "month") -> dict:
         "period_label": period_label,
         "currency": frappe.get_cached_value("Company", company, "default_currency") if company else "PHP",
         "role_set": rs,
-        "tiles": CASHIER_TILES if rs == "Cashier" else TILES,
-        "create_actions": CASHIER_ACTIONS if rs == "Cashier" else CREATE_ACTIONS + BOOKKEEPER_EXTRA_ACTIONS,
+        "tiles": CASHIER_TILES if rs == "Staff" else TILES,
+        "create_actions": CASHIER_ACTIONS if rs == "Staff" else CREATE_ACTIONS + BOOKKEEPER_EXTRA_ACTIONS,
         "cards": CARDS[rs],
         "sections": SECTIONS[rs],
         "figures": {},
         "monthly": [],
         "due": [],
-        "onboarding": _onboarding() if rs != "Cashier" else None,
+        "onboarding": _onboarding() if rs != "Staff" else None,
         "approvals": _approvals(),
+        "modules_off": _modules_off(),
     }
     if not company:
         return out
@@ -312,7 +331,7 @@ def get(company: str | None = None, period: str = "month") -> dict:
         "payment_entry": _count("Payment Entry", company, None, None, docstatus=0),
         "journal_entry": _count("Journal Entry", company, None, None, docstatus=0),
     }
-    if rs == "Cashier":
+    if rs == "Staff":
         # the counter sees the counter's figures only, not the payables or the tax position
         out["figures"] = {k: f[k] for k in ("sales_today", "invoices_today", "cash", "receivable", "overdue_receivable", "drafts_mine")}
         out["approvals"] = []

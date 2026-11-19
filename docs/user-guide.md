@@ -52,7 +52,16 @@ Each company chooses Periodic or Perpetual (Company, Inventory method) before it
 
 ## User roles
 
-Give each user one profile (User, Role Profiles): Owner (everything, including users, settings, stock counts and earlier posting dates), Bookkeeper (books, bills, invoices, masters, stock and the BIR returns), or Cashier (sales invoices and collections at the counter only).
+Give each user one profile (User, Role Profiles):
+
+- Owner: everything, including users, modules and settings.
+- Accounting Manager: everything in the books except users, modules and settings. This includes the chart of accounts, earlier posting dates, closing a period, stock counts, approvals and filing BIR returns.
+- Accountant: invoices, bills, payments, journal entries, masters, stock moves and BIR return drafts. Every book and statement can be read.
+- Staff: sales invoices, collections and stock issues at the counter, and the counter's reports only.
+
+The full matrix is docs/uat/ROLE_MATRIX.md.
+
+All reports are on one page: Home > Reports. It lists only what your role and the modules switched on allow.
 
 ## Going live
 
@@ -79,9 +88,9 @@ Report PH Cash Position: pick the day to see each cash and bank account's beginn
 
 ## Home, the counter view and help
 
-Each user's home matches their role set. A Cashier sees today at the counter; an Owner or Bookkeeper sees the whole business.
+Each user's home matches their role set. Staff sees today at the counter; an Owner, Accounting Manager or Accountant sees the whole business.
 
-On a Sales Invoice, Counter view shows only what a sale needs; Full form shows everything. A Cashier starts in the counter view.
+On a Sales Invoice, Counter view shows only what a sale needs; Full form shows everything. Staff starts in the counter view.
 
 Help > Your plan shows the plan, its limits and what the site uses now. Help > Get help opens the tutorials, writes to the provider with the page you are on, or copies the page details.
 

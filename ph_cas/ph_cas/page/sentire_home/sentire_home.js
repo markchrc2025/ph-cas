@@ -46,6 +46,7 @@ class SentireHome {
 					</select>
 				</div>
 			</div>
+			<div class="sl-modules-off text-muted" style="display:none;margin:0 0 12px;font-size:13px"></div>
 			<div class="sl-tiles"></div>
 			<div class="sl-section" data-section="create"><h2>${__("Create")}</h2><div class="sl-chips"></div></div>
 			<div class="sl-onboarding"></div>
@@ -92,6 +93,10 @@ class SentireHome {
 		(d.companies || []).forEach((c) => $c.append(`<option value="${e(c)}">${e(c)}</option>`));
 		$c.val(d.company).toggle((d.companies || []).length > 1);
 
+		const off = d.modules_off || [];
+		this.$body.find(".sl-modules-off").toggle(!!off.length).html(off.length
+			? `${__("Switched off, so hidden from every menu: {0}.", [e(off.join(", "))])} <a href="/app/ph-modules">${__("Turn modules on")} &rarr;</a>`
+			: "");
 		this.$body.find(".sl-tiles").html(
 			d.tiles
 				.map(
@@ -114,7 +119,7 @@ class SentireHome {
 		// B75: each role set sees its own sections
 		const sections = d.sections || ["create", "onboarding", "approvals", "cards", "chart", "due"];
 		this.$body.find("[data-section]").each((_i, el) => $(el).toggle(sections.includes(el.dataset.section)));
-		this.$body.find(".sl-cards").closest(".sl-section").find("h2").text(d.role_set === "Cashier" ? __("Today at the counter") : __("Business at a glance"));
+		this.$body.find(".sl-cards").closest(".sl-section").find("h2").text(d.role_set === "Staff" ? __("Today at the counter") : __("Business at a glance"));
 
 		this.render_onboarding(d.onboarding);
 		this.render_cards(d);
