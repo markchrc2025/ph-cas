@@ -46,12 +46,23 @@ jobs:
       - name: Bootstrap bench
         env: { SKIP_ASSETS: "1", DB_ROOT_PASSWORD: root }
         run: |
-          # the self-hosted runner keeps its home between jobs, while the MariaDB service is new
-          # each time: a bench left by the last job holds a site whose database user no longer
-          # exists ("Access denied for user ..."), so always start from a clean bench
-          rm -rf "$HOME/bench"
+          # The self-hosted runner keeps its home between jobs, so the built bench (frappe,
+          # erpnext, the Python env: about 3 minutes) is reused. What is NOT reused: the site,
+          # because the MariaDB service is new each time and an old site's database user no
+          # longer exists ("Access denied for user ..."), and apps/ph_cas, which must be this
+          # checkout. The bench is rebuilt from scratch when the pinned versions or the
+          # bootstrap script change.
           export PATH="$HOME/.local/bin:$PATH"
+          STAMP="$(cat ph_cas/scripts/bootstrap.sh | sha256sum | cut -c1-16)"
+          if [ "$(cat "$HOME/bench/.ci-stamp" 2>/dev/null)" != "$STAMP" ]; then
+            echo "bench cache: rebuilding"
+            rm -rf "$HOME/bench"
+          else
+            echo "bench cache: reusing frappe and erpnext"
+            rm -rf "$HOME/bench/sites/test_site" "$HOME/bench/apps/ph_cas"
+          fi
           bash ph_cas/scripts/bootstrap.sh "$HOME/bench"
+          echo "$STAMP" > "$HOME/bench/.ci-stamp"
       - name: Run tests
         run: |
           export PATH="$HOME/.local/bin:$PATH"
