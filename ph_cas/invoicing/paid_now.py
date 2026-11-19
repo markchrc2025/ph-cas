@@ -25,9 +25,9 @@ MODE = "ph_paid_mode"
 
 def setup():
     create_custom_fields({"Sales Invoice": [
-        {"fieldname": FIELD, "fieldtype": "Check", "label": "Paid in full now", "insert_after": "due_date", "allow_on_submit": 0,
+        {"fieldname": FIELD, "fieldtype": "Check", "label": "Paid in full now", "insert_after": "due_date", "allow_on_submit": 0, "no_copy": 1,
          "description": "The customer pays the whole invoice now. The payment is recorded on the invoice; no collection receipt is issued (the invoice is the evidence of a cash sale)."},
-        {"fieldname": MODE, "fieldtype": "Link", "options": "Mode of Payment", "label": "Paid by", "insert_after": FIELD, "default": "Cash",
+        {"fieldname": MODE, "fieldtype": "Link", "options": "Mode of Payment", "label": "Paid by", "insert_after": FIELD, "default": "Cash", "no_copy": 1,
          "depends_on": f"eval:doc.{FIELD}", "mandatory_depends_on": f"eval:doc.{FIELD}"},
     ]}, ignore_validate=True, update=True)
 
