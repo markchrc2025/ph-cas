@@ -2,6 +2,12 @@
 
 One entry per bundle, newest first. Counts are the test totals on main after the merge.
 
+## B72 Record an expense (after ECOUNT's payment journal) (19 Nov 2026)
+- PR: (filled in at merge)
+- Built: ph_cas.expense and a "Record an expense" button on the Purchase Invoice list. One dialog: paid to, what for, item or expense account, VAT class, the amount on the receipt, receipt number and date, paid from, mode of payment; Preview shows net of VAT, input VAT, EWT and cash paid without posting; Post makes one paid Purchase Invoice (Is Paid), so the tax engine, the 2307, the books and the returns treat it like any bill. VAT is worked back from the receipt for a VAT supplier on a VATable line; EWT is on the net. The expense account is chosen or comes from the item, never the company default (cost of goods sold). A Cashier may not record one.
+- Full pass: section expense (6 steps): 11,200 receipt to net 10,000, VAT 1,200, EWT 500, cash 10,700 with the GL checked; a non-VAT fare; the Purchase Journal, Cash Disbursements Book and the quarter's 2307; the Cashier refused; no account refused.
+- Tests: +1 (test_b72_expense).
+
 ## B71 Go-live and opening balances (after ECOUNT's starting balance) (19 Nov 2026)
 - PR: #87
 - Built: ph_cas.golive. Company "Go-live date". Opening entries dated the cut-over day (the day before go-live) need no back-date reason: the opening Journal Entry (Entry Type Opening Entry, Is Opening Yes) for account balances and, as party rows on Debtors and Creditors, what each customer owes and each supplier is owed; and the opening stock count (Stock Reconciliation, purpose Opening Stock). An opening entry on any other day, or before the go-live date is set, is refused. Opening invoices and bills (Is Opening on a Sales or Purchase Invoice, ERPNext's Opening Invoice Creation Tool) are refused with a pointer to the opening entry, because an old invoice must not take a BIR serial, carry VAT again or enter the sales journal and the returns. Company > Sentire Ledger > Go-live checklist: COR details, Philippine setup, tax rules confirmed, go-live date, inventory method, bank account, users with a role set, opening balances (posted, trial balance even, Temporary Opening cleared), old open items, opening stock (perpetual: the count; periodic: the count and the inventory account).

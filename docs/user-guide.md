@@ -60,3 +60,7 @@ Set the Company's Go-live date: the first day the books are kept in Sentire Ledg
 - one Journal Entry, Entry Type "Opening Entry": every account balance; on Debtors, one row per customer with what they still owe, and on Creditors one row per supplier, each with the old invoice or bill number in its remark. Collections and payments are matched to those rows later.
 - the opening stock count (Stock Reconciliation, purpose Opening Stock). On the periodic method also put the stock value on the inventory account in the opening entry.
 Old invoices are not re-entered as invoices. Company > Sentire Ledger > Go-live checklist shows what is done and what is missing.
+
+## Record an expense
+
+Purchase Invoice list > Record an expense: for a bill already paid (fares, supplies, a notarial fee). Enter who was paid, what for, the expense account, the amount on the receipt and where the money came from; Preview shows the input VAT, the tax withheld and the cash paid. Post makes a paid bill, so the 2307 and the returns pick it up.

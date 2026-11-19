@@ -1604,10 +1604,79 @@ def s_go_live(r: Runner):
     r.step("trial balance on the cut-over day balances", tb)
 
 
+# ---- section: record an expense (B72) --------------------------------------------------------
+def s_expense(r: Runner):
+    from ph_cas.expense import preview_expense, record_expense
+
+    co = VAT_CORP
+    _p = _parties()
+    rno = "OR-" + frappe.generate_hash(length=6).upper()
+    jeepney = supplier("QA4 Mang Jose Tricycle", supplier_type="Individual", ph_vat_status="Non-VAT", ph_payee_type="Individual", ph_last_name="SANTOS", ph_first_name="JOSE", ph_middle_name="")
+    state = {}
+
+    def preview():
+        f = preview_expense(company=co, supplier=_p[1], amount=11200, description="Notarial and legal advice", receipt_no=rno, expense_account=acc(co, "Legal Expenses"))
+        r.expect((f["net"], f["vat"], f["ewt"], f["paid"]) == (10000, 1200, 500, 10700), f"preview {f}")
+        r.expect(not frappe.db.exists("Purchase Invoice", {"bill_no": rno}), "the preview posted")
+        return f"receipt 11,200 -> net 10,000, input VAT 1,200, EWT {f['ewt_atc']} 500, cash paid 10,700 (nothing posted)"
+    r.step("preview: VAT worked back from the receipt, EWT on the net", preview)
+
+    def post():
+        out = record_expense(company=co, supplier=_p[1], amount=11200, description="Notarial and legal advice", receipt_no=rno, expense_account=acc(co, "Legal Expenses"))
+        g = gl("Purchase Invoice", out["purchase_invoice"])
+        want = {"Legal Expenses": 10000, "Input VAT - Services": 1200, "Withholding Tax Payable - Expanded": -500, "Cash": -10700}
+        bad = {k: (g.get(k), v) for k, v in want.items() if g.get(k) != v}
+        r.expect(not bad, f"GL {g}")
+        r.expect(frappe.db.get_value("Purchase Invoice", out["purchase_invoice"], "outstanding_amount") == 0, "not paid")
+        state["pi"] = out["purchase_invoice"]
+        return f"{out['purchase_invoice']} paid; GL {g}"
+    r.step("post: one paid bill, cash out net of EWT", post)
+
+    def small_cash():
+        out = record_expense(company=co, supplier=jeepney, amount=150, description="Tricycle fare to the BIR office", expense_account=acc(co, "Travel Expenses"))
+        r.expect((out["net"], out["vat"], out["ewt"], out["paid"]) == (150, 0, 0, 150), f"non-VAT {out}")
+        return f"{out['purchase_invoice']}: 150, no VAT, no EWT"
+    r.step("a small cash expense from a non-VAT supplier", small_cash)
+
+    def in_the_books():
+        from ph_cas.ph_cas.doctype.ph_2307_issued.ph_2307_issued import generate_quarter
+        from ph_cas.tax.returns import quarter_bounds
+
+        y = getdate(today()).year
+        pj = _report("PH Purchase Journal", {"company": co, "from_date": f"{y}-01-01", "to_date": f"{y}-12-31"})
+        r.expect(any(x.get("name") == state["pi"] for x in pj), "not in the Purchase Journal")
+        cd = _report("PH Cash Disbursements Book", {"company": co, "from_date": f"{y}-01-01", "to_date": f"{y}-12-31"})
+        r.expect(any(state["pi"] in str(x.values()) for x in cd), "not in the Cash Disbursements Book")
+        qs, _qe = quarter_bounds(today())
+        names = generate_quarter(co, str(qs))
+        cert = next((n for n in names if frappe.db.get_value("PH 2307 Issued", n, "supplier") == _p[1]), None)
+        r.expect(cert and flt(frappe.db.get_value("PH 2307 Issued", cert, "total_tax")) >= 500, f"2307 {cert}")
+        return f"in the Purchase Journal and the Cash Disbursements Book; 2307 {cert} carries the 500"
+    r.step("the expense reaches the books and the quarter's 2307", in_the_books)
+
+    def cashier_refused():
+        from ph_cas.setup import roles as R
+
+        email = "qa4.cashier@example.com"
+        if not frappe.db.exists("User", email):
+            frappe.get_doc({"doctype": "User", "email": email, "first_name": "QA4 Cashier", "send_welcome_email": 0, "role_profiles": [{"role_profile": R.CASHIER}]}).insert()
+        me = frappe.session.user
+        frappe.set_user(email)
+        try:
+            return refused(record_expense, company=co, supplier=jeepney, amount=50, description="Snacks", expense_account=acc(co, "Miscellaneous Expenses"))
+        finally:
+            frappe.set_user(me)
+    r.step("a Cashier cannot record an expense", cashier_refused)
+
+    def needs_account():
+        return refused(record_expense, company=co, supplier=jeepney, amount=80, description="Load for the office phone")
+    r.step("no expense account and no item: refused (never cost of goods sold by default)", needs_account)
+
+
 SECTIONS = {
     "companies": s_companies, "purchasing": s_purchasing, "sales": s_sales, "tasks": s_tasks, "inventory": s_inventory,
     "projects": s_projects, "assets": s_assets, "quality": s_quality, "crm": s_crm, "support": s_support,
-    "industries": s_industries, "forms": s_forms, "inventory_tracking": s_inventory_tracking, "roles": s_roles, "reports": s_reports, "go_live": s_go_live,
+    "industries": s_industries, "forms": s_forms, "inventory_tracking": s_inventory_tracking, "roles": s_roles, "reports": s_reports, "go_live": s_go_live, "expense": s_expense,
 }
 
 
