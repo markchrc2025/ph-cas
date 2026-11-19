@@ -2,9 +2,10 @@
 
 - The build stamp, readable without signing in (build_info), so the tester can match it to the
   workbook's Cover.
-- UAT accounts, seeded with the staging site and kept in its snapshot: Owner, Bookkeeper and
-  Cashier for Company A (the demo company), the Owner and Bookkeeper also for Companies C and D
-  (fresh companies for go-live and for imports), and a Bookkeeper for Company B, the other tenant. User
+- UAT accounts, seeded with the staging site and kept in its snapshot, one per role set (B79):
+  Owner, Accounting Manager, Accountant and Staff for Company A (the demo company), the first three
+  also for Companies C and D (fresh companies for go-live and for imports), and an Accountant for
+  Company B, the other tenant. User
   Permissions keep each to its companies, so "Company B cannot open Company A's record" is
   testable. The password is STAGING_UAT_PASSWORD (Dokploy); it is never written anywhere else.
   The addresses are plus-addresses of the test mailbox.
@@ -37,10 +38,15 @@ def mailbox() -> str:
 def accounts() -> list[dict]:
     return [
         {"email": _plus("uat-owner-a"), "first_name": "UAT Owner", "last_name": "A", "profile": "Owner", "companies": [COMPANY_A, COMPANY_C, COMPANY_D]},
-        {"email": _plus("uat-bookkeeper-a"), "first_name": "UAT Bookkeeper", "last_name": "A", "profile": "Bookkeeper", "companies": [COMPANY_A, COMPANY_C, COMPANY_D]},
-        {"email": _plus("uat-cashier-a"), "first_name": "UAT Cashier", "last_name": "A", "profile": "Cashier", "companies": [COMPANY_A]},
-        {"email": _plus("uat-bookkeeper-b"), "first_name": "UAT Bookkeeper", "last_name": "B", "profile": "Bookkeeper", "companies": [COMPANY_B]},
+        {"email": _plus("uat-acctmgr-a"), "first_name": "UAT Accounting Manager", "last_name": "A", "profile": "Accounting Manager", "companies": [COMPANY_A, COMPANY_C, COMPANY_D]},
+        {"email": _plus("uat-accountant-a"), "first_name": "UAT Accountant", "last_name": "A", "profile": "Accountant", "companies": [COMPANY_A, COMPANY_C, COMPANY_D]},
+        {"email": _plus("uat-staff-a"), "first_name": "UAT Staff", "last_name": "A", "profile": "Staff", "companies": [COMPANY_A]},
+        {"email": _plus("uat-accountant-b"), "first_name": "UAT Accountant", "last_name": "B", "profile": "Accountant", "companies": [COMPANY_B]},
     ]
+
+
+# B79 renamed the role sets; these earlier UAT addresses are switched off when found
+RETIRED = ("uat-bookkeeper-a", "uat-cashier-a", "uat-bookkeeper-b")
 
 
 @frappe.whitelist(allow_guest=True)
@@ -70,6 +76,9 @@ def seed_uat():
     _company(COMPANY_D, "UATD", "000-905-203")
     roles.setup()
     password = os.environ.get("STAGING_UAT_PASSWORD")
+    for tag in RETIRED:
+        if frappe.db.exists("User", _plus(tag)):
+            frappe.db.set_value("User", _plus(tag), "enabled", 0)
     for a in accounts():
         if not frappe.db.exists("User", a["email"]):
             frappe.get_doc({"doctype": "User", "email": a["email"], "first_name": a["first_name"], "last_name": a["last_name"],

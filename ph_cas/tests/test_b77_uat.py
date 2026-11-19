@@ -49,9 +49,10 @@ class TestB77UAT(IntegrationTestCase):
             rows = {r["user"]: r for r in uat.check_accounts()}
         finally:
             os.environ.pop("STAGING_UAT_PASSWORD", None)
-        b = uat._plus("uat-bookkeeper-b")
+        b = uat._plus("uat-accountant-b")
         self.assertTrue(all(r["signs_in"] and r["enabled"] for r in rows.values()), rows)
-        self.assertEqual(rows[uat._plus("uat-cashier-a")]["role_set"], "Cashier")
+        self.assertEqual({rows[uat._plus(t)]["role_set"] for t in ("uat-owner-a", "uat-acctmgr-a", "uat-accountant-a", "uat-staff-a")},
+                         {"Owner", "Accounting Manager", "Accountant", "Staff"})
         self.assertEqual(rows[b]["companies"], [uat.COMPANY_B])
         frappe.set_user(b)
         self.assertFalse(frappe.has_permission("Company", "read", uat.COMPANY_A))

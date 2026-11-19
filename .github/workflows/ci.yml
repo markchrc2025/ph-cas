@@ -10,7 +10,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   docs:
-    runs-on: [self-hosted, sentire]
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: No em or en dashes under docs/
@@ -18,7 +18,7 @@ jobs:
           if grep -rnP '[\x{2013}\x{2014}]' docs/ README.md VERSIONS.md; then
             echo "Em or en dash found"; exit 1; fi
   test:
-    runs-on: [self-hosted, sentire]
+    runs-on: ubuntu-latest
     timeout-minutes: 60
     services:
       mariadb:
@@ -45,6 +45,13 @@ jobs:
         run: |
           sudo apt-get update -q
           sudo apt-get install -y -q mariadb-client libmariadb-dev libmariadb-dev-compat pkg-config
+      - name: MariaDB client without TLS
+        # MariaDB clients from 11.4 on require TLS by default; the throwaway mariadb:10.11 service
+        # has none ("SSL is required, but the server does not support it"). bench also shells out
+        # to the client, so the setting goes in ~/.my.cnf for every caller.
+        run: |
+          printf '[client]\nskip-ssl\n' > ~/.my.cnf
+          mysql --version
       - name: MariaDB charset
         run: |
           mysql -h127.0.0.1 -uroot -proot -e "SET GLOBAL character_set_server='utf8mb4'; SET GLOBAL collation_server='utf8mb4_unicode_ci';"
@@ -75,7 +82,8 @@ jobs:
           fi
           bash ph_cas/scripts/bootstrap.sh "$HOME/bench"
           echo "$STAMP" > "$HOME/bench/.ci-stamp"
-          if [ ! -s "$SNAPSHOT" ]; then
+          # GitHub-hosted runners start empty every job, so a saved database would never be reused there.
+          if [ "${RUNNER_ENVIRONMENT:-}" = "self-hosted" ] && [ ! -s "$SNAPSHOT" ]; then
             echo "site: saving a frappe + erpnext database for the next runs"
             cd "$HOME/bench"
             bench new-site snapshot_site --db-root-password root --admin-password admin --install-app erpnext

@@ -6,7 +6,7 @@
    "section": "Get started",
    "title": "Add your team and give each a role",
    "length": "1:15",
-   "summary": "Invite users and give each one role set: Owner, Bookkeeper or Cashier",
+   "summary": "Invite users and give each one role set: Owner, Accounting Manager, Accountant or Staff",
    "menu_path": "Home > Users > User > Role Profiles",
    "ends_on": "User list showing each person's role set",
    "steps": [

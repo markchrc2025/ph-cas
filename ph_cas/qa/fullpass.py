@@ -1186,9 +1186,9 @@ def s_roles(r: Runner):
 
     me = frappe.session.user
     users = {}
-    for profile in (R.OWNER, R.BOOKKEEPER, R.CASHIER):
+    for profile in R.ROLE_SETS:
         def make_user(profile=profile):
-            email = f"qa4.{profile.lower()}@example.com"
+            email = f"qa4.{profile.lower().replace(' ', '-')}@example.com"
             if not frappe.db.exists("User", email):
                 u = frappe.get_doc({"doctype": "User", "email": email, "first_name": f"QA4 {profile}", "send_welcome_email": 0, "user_type": "System User",
                                     "role_profiles": [{"role_profile": profile}]})
@@ -1231,11 +1231,25 @@ def s_roles(r: Runner):
         name = new_return(VAT_CORP, "2550Q", f"{qs.year}-Q{(qs.month - 1) // 3 + 1}")
         frappe.get_doc("PH Tax Return", name).refresh_from_books()
         return f"{s}; bill {pi.name}; {name} refreshed"
-    r.step("Bookkeeper: supplier, bill with EWT, 2550Q from the books", as_user(R.BOOKKEEPER, bookkeeper_work))
+    r.step("Accountant: supplier, bill with EWT, 2550Q from the books", as_user(R.ACCOUNTANT, bookkeeper_work))
 
     def bookkeeper_no_users():
         return refused(frappe.get_doc({"doctype": "User", "email": "qa4.nope@example.com", "first_name": "Nope", "send_welcome_email": 0}).insert)
-    r.step("Bookkeeper: cannot add users", as_user(R.BOOKKEEPER, bookkeeper_no_users))
+    r.step("Accountant: cannot add users", as_user(R.ACCOUNTANT, bookkeeper_no_users))
+    r.step("Accounting Manager: cannot add users", as_user(R.ACCOUNTING_MANAGER, bookkeeper_no_users))
+
+    def no_chart_change():
+        parent = frappe.db.get_value("Account", {"company": VAT_CORP, "is_group": 1, "root_type": "Expense"}, "name")
+        return refused(frappe.get_doc({"doctype": "Account", "account_name": f"QA4 Nope {frappe.generate_hash(length=4)}", "company": VAT_CORP,
+                                       "parent_account": parent, "root_type": "Expense"}).insert)
+    r.step("Accountant: cannot change the chart of accounts", as_user(R.ACCOUNTANT, no_chart_change))
+
+    def manager_chart_change():
+        parent = frappe.db.get_value("Account", {"company": VAT_CORP, "is_group": 1, "root_type": "Expense"}, "name")
+        a = frappe.get_doc({"doctype": "Account", "account_name": f"QA4 Manager Account {frappe.generate_hash(length=4)}", "company": VAT_CORP,
+                            "parent_account": parent, "root_type": "Expense"}).insert()
+        return a.name
+    r.step("Accounting Manager: adds an account to the chart", as_user(R.ACCOUNTING_MANAGER, manager_chart_change))
 
     def cashier_sale():
         from erpnext.accounts.doctype.payment_entry.payment_entry import get_payment_entry
@@ -1246,7 +1260,7 @@ def s_roles(r: Runner):
         pe.insert()
         pe.submit()
         return f"{si.name} serial {si.bir_serial}; collected {pe.name}"
-    r.step("Cashier: invoices and collects at the counter", as_user(R.CASHIER, cashier_sale))
+    r.step("Staff: invoices and collects at the counter", as_user(R.STAFF, cashier_sale))
 
     def cashier_limits():
         a = refused(supplier, f"QA4 Cashier Supplier {frappe.generate_hash(length=4)}")
@@ -1255,7 +1269,7 @@ def s_roles(r: Runner):
             {"account": acc(VAT_CO, "Cash"), "debit_in_account_currency": 100, "cost_center": acc(VAT_CO, "Main")},
             {"account": acc(VAT_CO, "Sales"), "credit_in_account_currency": 100, "cost_center": acc(VAT_CO, "Main")}]}).insert())
         return f"supplier: {a} | bill: {b} | journal: {c}"
-    r.step("Cashier: cannot add suppliers, post bills or journal entries", as_user(R.CASHIER, cashier_limits))
+    r.step("Staff: cannot add suppliers, post bills or journal entries", as_user(R.STAFF, cashier_limits))
 
 
 # ---- section: reports ----------------------------------------------------------------------------
@@ -1948,12 +1962,36 @@ def s_role_homes(r: Runner):
             d = dashboard.get(company=co)
         finally:
             frappe.set_user(me)
-        r.expect(d["role_set"] == "Cashier", d["role_set"])
+        r.expect(d["role_set"] == "Staff", d["role_set"])
         r.expect(set(d["figures"]) <= {"sales_today", "invoices_today", "cash", "receivable", "overdue_receivable", "drafts_mine"}, f"leaks {sorted(d['figures'])}")
         r.expect("chart" not in d["sections"] and not d["monthly"] and not d["due"], "cashier sees the chart or the tax calendar")
         r.expect([a["label"] for a in d["create_actions"]] == ["New sales invoice", "Record a collection"], f"{d['create_actions']}")
         return f"cards {d['cards']}; no payables, VAT or withholding figures sent"
-    r.step("a Cashier's home: today's counter only", cashier_home)
+    r.step("a Staff user's home: today's counter only", cashier_home)
+
+    def reports_page():
+        from ph_cas.home.reports import catalogue
+
+        me = frappe.session.user
+        owner = {g["key"]: [i["name"] for i in g["items"]] for g in catalogue()["groups"]}
+        r.expect({"books", "statements", "bir", "audit"} <= set(owner), f"owner groups {sorted(owner)}")
+        r.expect("Trial Balance" in owner["statements"] and "BIR Audit Trail" in owner["audit"], f"{owner}")
+        frappe.set_user(email)
+        try:
+            staff = {g["key"]: [i["name"] for i in g["items"]] for g in catalogue()["groups"]}
+            names = {n for v in staff.values() for n in v}
+            r.expect("Trial Balance" not in names and "BIR Audit Trail" not in names, f"staff sees {sorted(names)}")
+            try:
+                R.check_report("Trial Balance")
+                refused_tb = False
+            except frappe.PermissionError:
+                refused_tb = True
+            r.expect(refused_tb, "Staff ran the Trial Balance")
+            R.check_report("PH Cash Position")
+        finally:
+            frappe.set_user(me)
+        return f"owner: {sum(map(len, owner.values()))} reports in {len(owner)} groups; staff: {sorted(names)}"
+    r.step("Reports page: every report the role may open, Staff kept to the counter's", reports_page)
 
     def owner_home():
         d = dashboard.get(company=co)
