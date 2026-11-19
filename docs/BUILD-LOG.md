@@ -2,6 +2,13 @@
 
 One entry per bundle, newest first. Counts are the test totals on main after the merge.
 
+## B78 Print pack for the paper check at 100%, and PDFs at true size (19 Nov 2026)
+- PR: (filled in at merge)
+- Built: Company > Sentire Ledger > Print pack for the paper check (ph_cas.invoicing.paper_check): one PDF with a cover (print at Actual size, a 100 mm bar drawn by the page engine, the checklist of what to look at on paper) and the latest invoice, credit note, collection receipt and 2307 (on the BIR blank). Each document page is stamped SPECIMEN, PAPER CHECK with a 100 mm bar in its bottom margin; the pages are rendered like the screen preview, so no print is counted and an original stays unprinted. Accounting Managers and System Managers; recorded in the audit trail.
+- Found by it: the Debian wkhtmltopdf (unpatched Qt) ignores --disable-smart-shrinking, so every PDF came out at about 77% of true size (the 100 mm bar measured 76.9 mm). The image now installs wkhtmltopdf 0.12.6.1-3 with patched Qt from the project's release, checked against its SHA-256; the build fails if the installed one is not the patched build.
+- Full pass: section paper_check (3 steps; one measures the bar in the PDF's drawing commands and must read 100 mm).
+- Tests: +1 (test_b78_paper_check).
+
 ## B76 Counter and cash: Paid in full now, the company credit card, the Payment Entry counter view (after ECOUNT) (19 Nov 2026)
 - PR: #95
 - Built: "Paid in full now" and "Paid by" on the Sales Invoice (ph_cas.invoicing.paid_now): the payment is taken on the invoice itself (Is POS with one payment row), so the sale is one document with its BIR invoice serial and no Collection Receipt serial is used; it still posts cash or bank, so it shows in the Cash Receipts Book under the invoice serial, the cash position, the Sales Journal and the 2550Q. Refused for a credit or debit note, a customer who withholds tax, and a mode of payment with no account. The Philippine setup adds the company's credit card: account Company Credit Card under Current Liabilities (no account type, so nothing takes it for a bank; ERPNext's Credit Card payment mode stays for customers paying by card); Record an expense offers it under Paid from and posts the expense to it; the cash books, the cash position and the home's cash card leave it out; the Go-live checklist shows it. The Payment Entry gets the counter view (ph_cas.counter_view, shared with the Sales Invoice), on by default for a Cashier.

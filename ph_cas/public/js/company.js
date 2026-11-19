@@ -65,6 +65,10 @@ frappe.ui.form.on("Company", {
                             + __("Opening balances: one Journal Entry, Entry Type Opening Entry, dated the day before go-live. Customers' and suppliers' open items go on Debtors and Creditors with the party and the old invoice number in the remark. Stock: an opening stock count on the same day.") + `</p>` });
                 });
             }, ph_cas_menu());
+            // B78: the print pack for the paper check at 100% (specimens; no print is counted)
+            frm.add_custom_button(__("Print pack for the paper check"), () => {
+                window.open(`/api/method/ph_cas.invoicing.paper_check.download?company=${encodeURIComponent(frm.doc.name)}`);
+            }, ph_cas_menu());
             // B73: Philippine import templates (customers, suppliers, items, opening balances, open items)
             frm.add_custom_button(__("Import from a template"), () => ph_cas.import_dialog({ company: frm.doc.name, kind: "balances" }), ph_cas_menu());
             if (!frm.doc.enable_perpetual_inventory) {
