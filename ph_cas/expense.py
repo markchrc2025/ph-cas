@@ -50,10 +50,17 @@ def _build(company, supplier, amount, description, expense_account=None, item_co
     pi = frappe.get_doc({
         "doctype": "Purchase Invoice", "company": company, "supplier": supplier, "posting_date": today(),
         "bill_no": receipt_no, "bill_date": receipt_date or today(), "credit_to": c.default_payable_account,
-        "is_paid": 1, "cash_bank_account": paid_from or c.default_cash_account, "mode_of_payment": mode_of_payment,
+        "is_paid": 1, "cash_bank_account": paid_from or _mode_account(mode_of_payment, company) or c.default_cash_account, "mode_of_payment": mode_of_payment,
         "remarks": description, "items": [line],
     })
     return pi
+
+
+def _mode_account(mode, company):
+    """B76: paying by card (or any mode) without choosing Paid from uses the mode's account."""
+    if not mode:
+        return None
+    return frappe.db.get_value("Mode of Payment Account", {"parent": mode, "company": company}, "default_account")
 
 
 def _figures(pi) -> dict:
