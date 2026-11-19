@@ -2113,7 +2113,7 @@ def s_paper_check(r: Runner):
     def true_size():
         data, _found = paper_check.build(co)
         widths = paper_check.bar_widths_mm(data, 0)
-        bar = [w for w in widths if 60 <= w <= 120]
+        bar = widths
         r.expect(bar and all(99.0 <= w <= 101.0 for w in bar), f"the 100 mm bar is drawn {bar} mm wide: the PDF engine is not printing at true size")
         return f"the bar is {bar[0]} mm in the PDF (so a print at Actual size gives 100 mm)"
     r.step("the PDF is at true size: the 100 mm bar is 100 mm", true_size)

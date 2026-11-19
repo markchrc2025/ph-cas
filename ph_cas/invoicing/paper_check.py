@@ -176,7 +176,8 @@ def download(company: str):
 
 
 def bar_widths_mm(pdf: bytes, page: int = 0) -> list[float]:
-    """The widths, in mm, of the filled rectangles on a page of the pack (the 100 mm bars among them),
+    """The widths, in mm, of the rectangles on a page of the pack shaped like the bar (100 by 3 mm,
+    so about 33 times as wide as high, whatever the scale),
     read from the PDF's drawing commands and the page's transformation matrices, so the full pass
     can measure the bar without a printer or a rasteriser."""
     from pypdf import PdfReader
@@ -188,8 +189,9 @@ def bar_widths_mm(pdf: bytes, page: int = 0) -> list[float]:
 
     def visit(op, args, cm, tm):
         if op == b"re" and len(args) == 4:
-            w = abs(float(args[2]) * cm[0])
-            widths.append(w)
+            w, h = abs(float(args[2]) * cm[0]), abs(float(args[3]) * cm[3])
+            if h and 30 <= w / h <= 37:
+                widths.append(w)
 
     pg.extract_text(visitor_operand_before=visit)
     for w in widths:
