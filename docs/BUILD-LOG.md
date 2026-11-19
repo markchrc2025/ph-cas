@@ -3,7 +3,7 @@
 One entry per bundle, newest first. Counts are the test totals on main after the merge.
 
 ## B76 Counter and cash: Paid in full now, the company credit card, the Payment Entry counter view (after ECOUNT) (19 Nov 2026)
-- PR: (filled in at merge)
+- PR: #95
 - Built: "Paid in full now" and "Paid by" on the Sales Invoice (ph_cas.invoicing.paid_now): the payment is taken on the invoice itself (Is POS with one payment row), so the sale is one document with its BIR invoice serial and no Collection Receipt serial is used; it still posts cash or bank, so it shows in the Cash Receipts Book under the invoice serial, the cash position, the Sales Journal and the 2550Q. Refused for a credit or debit note, a customer who withholds tax, and a mode of payment with no account. The Philippine setup adds a company credit card: account Credit Card under Current Liabilities (type Bank) and the Mode of Payment Credit Card pointing to it; the cash books, the cash position and the home's cash card leave it out; Record an expense paid by Credit Card posts to it; the Go-live checklist shows it. The Payment Entry gets the counter view (ph_cas.counter_view, shared with the Sales Invoice), on by default for a Cashier.
 - Full pass: section counter (5 steps).
 - Tests: +1 (test_b76_counter).
