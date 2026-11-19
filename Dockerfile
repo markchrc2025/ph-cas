@@ -45,9 +45,24 @@ FROM python:3.14-bookworm
 ENV DEBIAN_FRONTEND=noninteractive PYTHONUNBUFFERED=1
 RUN apt-get update && apt-get install -y --no-install-recommends \
       mariadb-server mariadb-client redis-server libmariadb-dev libmariadb-dev-compat pkg-config \
-      build-essential libffi-dev libssl-dev git curl ca-certificates cron wkhtmltopdf fonts-dejavu \
+      build-essential libffi-dev libssl-dev git curl ca-certificates cron fonts-dejavu \
     && curl -fsSL https://deb.nodesource.com/setup_24.x | bash - && apt-get install -y nodejs \
     && npm install -g yarn && rm -rf /var/lib/apt/lists/*
+
+# B78: wkhtmltopdf with patched Qt (the Debian package is unpatched: it ignores
+# --disable-smart-shrinking and prints every PDF at about 77% of true size; the paper check
+# found it). Pinned release, checked against its SHA-256.
+ARG TARGETARCH
+RUN set -e; arch="${TARGETARCH:-amd64}"; \
+    case "$arch" in \
+      amd64) sum=98ba0d157b50d36f23bd0dedf4c0aa28c7b0c50fcdcdc54aa5b6bbba81a3941d ;; \
+      arm64) sum=b6606157b27c13e044d0abbe670301f88de4e1782afca4f9c06a5817f3e03a9c ;; \
+      *) echo "no wkhtmltox package for $arch"; exit 1 ;; \
+    esac; \
+    curl -fsSL -o /tmp/wkhtmltox.deb "https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-3/wkhtmltox_0.12.6.1-3.bookworm_${arch}.deb"; \
+    echo "$sum  /tmp/wkhtmltox.deb" | sha256sum -c -; \
+    apt-get update && apt-get install -y --no-install-recommends /tmp/wkhtmltox.deb && rm -rf /tmp/wkhtmltox.deb /var/lib/apt/lists/*; \
+    wkhtmltopdf --version | grep -q "with patched qt"
 
 RUN useradd -m -s /bin/bash frappe && pip install --no-cache-dir frappe-bench
 

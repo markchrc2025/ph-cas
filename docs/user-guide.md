@@ -92,3 +92,7 @@ On the Sales Invoice tick "Paid in full now" and pick how it was paid (Cash, or 
 ## The company credit card
 
 The Philippine setup adds a Company Credit Card account (what the company owes on its card). In Record an expense, pick it under Paid from to put the expense on the card. The card is not cash, so it is left out of the cash books and the cash position; paying the card bill is a Journal Entry from the bank. (The payment mode Credit Card is for customers who pay you by card.)
+
+## Check the prints on paper
+
+Company > Sentire Ledger > Print pack for the paper check gives one PDF. Print the whole file at Actual size (100%), with "Fit to page" off. Measure the bar on the first page and at the bottom of each page: each must be 100 mm. Then go down the checklist on the first page. The pages are marked SPECIMEN and are not counted as prints.
