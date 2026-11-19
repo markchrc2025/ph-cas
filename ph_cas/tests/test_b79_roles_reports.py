@@ -44,7 +44,7 @@ class TestB79RolesReports(IntegrationTestCase):
 
     def test_reports_page_and_roles_sections(self):
         frappe.set_user("Administrator")
-        for section in ("companies", "roles", "role_homes"):
+        for section in ("companies", "purchasing", "roles", "role_homes"):
             res = fullpass.run(section)
             failed = [f"{s['step']}: {s['detail']}" for s in res["steps"] if not s["ok"]]
             self.assertFalse(failed, f"{section}: {failed}")
