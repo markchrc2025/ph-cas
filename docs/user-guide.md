@@ -53,3 +53,10 @@ Each company chooses Periodic or Perpetual (Company, Inventory method) before it
 ## User roles
 
 Give each user one profile (User, Role Profiles): Owner (everything, including users, settings, stock counts and earlier posting dates), Bookkeeper (books, bills, invoices, masters, stock and the BIR returns), or Cashier (sales invoices and collections at the counter only).
+
+## Going live
+
+Set the Company's Go-live date: the first day the books are kept in Sentire Ledger. Then enter what the old books carry, dated the day before (the cut-over day), and nothing else needs a reason for that date:
+- one Journal Entry, Entry Type "Opening Entry": every account balance; on Debtors, one row per customer with what they still owe, and on Creditors one row per supplier, each with the old invoice or bill number in its remark. Collections and payments are matched to those rows later.
+- the opening stock count (Stock Reconciliation, purpose Opening Stock). On the periodic method also put the stock value on the inventory account in the opening entry.
+Old invoices are not re-entered as invoices. Company > Sentire Ledger > Go-live checklist shows what is done and what is missing.
