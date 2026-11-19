@@ -45,6 +45,13 @@ jobs:
         run: |
           sudo apt-get update -q
           sudo apt-get install -y -q mariadb-client libmariadb-dev libmariadb-dev-compat pkg-config
+      - name: MariaDB client without TLS
+        # MariaDB clients from 11.4 on require TLS by default; the throwaway mariadb:10.11 service
+        # has none ("SSL is required, but the server does not support it"). bench also shells out
+        # to the client, so the setting goes in ~/.my.cnf for every caller.
+        run: |
+          printf '[client]\nskip-ssl\n' > ~/.my.cnf
+          mysql --version
       - name: MariaDB charset
         run: |
           mysql -h127.0.0.1 -uroot -proot -e "SET GLOBAL character_set_server='utf8mb4'; SET GLOBAL collation_server='utf8mb4_unicode_ci';"
