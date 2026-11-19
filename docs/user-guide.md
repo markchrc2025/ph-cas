@@ -84,3 +84,11 @@ Each user's home matches their role set. A Cashier sees today at the counter; an
 On a Sales Invoice, Counter view shows only what a sale needs; Full form shows everything. A Cashier starts in the counter view.
 
 Help > Your plan shows the plan, its limits and what the site uses now. Help > Get help opens the tutorials, writes to the provider with the page you are on, or copies the page details.
+
+## A sale paid in full now
+
+On the Sales Invoice tick "Paid in full now" and pick how it was paid (Cash, or another mode with an account for the company). The invoice is then paid when you submit it: no payment entry and no collection receipt is needed, because the invoice is the evidence of a cash sale. Not for a customer who withholds tax: take that payment with a Payment Entry so the 2307 is recorded.
+
+## The company credit card
+
+The Philippine setup adds a Company Credit Card account (what the company owes on its card). In Record an expense, pick it under Paid from to put the expense on the card. The card is not cash, so it is left out of the cash books and the cash position; paying the card bill is a Journal Entry from the bank. (The payment mode Credit Card is for customers who pay you by card.)

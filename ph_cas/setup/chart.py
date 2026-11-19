@@ -63,6 +63,28 @@ def ensure_accounts(company: str) -> list[str]:
     return created
 
 
+CARD_ACCOUNT = "Company Credit Card"
+
+
+def ensure_card(company: str) -> str | None:
+    """B76 (after ECOUNT's card register): the company's own credit card, a plain liability account
+    under Current Liabilities. An expense or bill paid with it (Record an expense > Paid from)
+    raises what is owed on the card; paying the card bill is a Journal Entry from the bank. It has
+    no account type, so nothing takes it for a bank account (and so no Mode of Payment can point to
+    it: ERPNext's "Credit Card" mode is for customers paying by card). It is not cash: the cash
+    books and the cash position leave it out (ph_cas.books.common.cash_accounts)."""
+    abbr = frappe.get_cached_value("Company", company, "abbr")
+    name = _acc(abbr, CARD_ACCOUNT)
+    parent = _acc(abbr, "Current Liabilities")
+    if not frappe.db.exists("Account", name):
+        if not frappe.db.exists("Account", parent):
+            return None
+        acc = frappe.get_doc({"doctype": "Account", "account_name": CARD_ACCOUNT, "parent_account": parent, "company": company, "is_group": 0})
+        acc.flags.ignore_permissions = True
+        acc.insert()
+    return name
+
+
 def ensure_mapping(company: str) -> list[str]:
     abbr = frappe.get_cached_value("Company", company, "abbr")
     created = []
@@ -91,7 +113,7 @@ def setup_philippine_company(company: str) -> dict:
     frappe.has_permission("Company", "write", company, throw=True)
     from ph_cas.controls.serial import ensure_series
 
-    out = {"accounts": ensure_accounts(company), "mapping": ensure_mapping(company)}
+    out = {"accounts": ensure_accounts(company), "mapping": ensure_mapping(company), "card": ensure_card(company)}
     branch = frappe.db.get_value("Company", company, "ph_branch_code") or "00000"
     out["series"] = ensure_series(company, branch)
     frappe.get_doc("Company", company).save(ignore_permissions=True)  # fills registered name and defaults

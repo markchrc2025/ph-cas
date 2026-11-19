@@ -59,7 +59,7 @@ def execute(filters=None):
     rows.append({"reference": _("TOTAL"), "cash_debit": flt(total_cash, 2), "credit": flt(total_credit, 2), "other_debit": flt(total_other, 2), "is_total_row": 1})
     ledger_cash = frappe.db.sql(
         """select coalesce(sum(g.debit), 0) from `tabGL Entry` g join `tabAccount` a on a.name = g.account
-           where g.company = %s and g.is_cancelled = 0 and g.posting_date between %s and %s and a.account_type in ('Cash', 'Bank')""",
+           where g.company = %s and g.is_cancelled = 0 and g.posting_date between %s and %s and a.account_type in ('Cash', 'Bank') and a.root_type != 'Liability'""",
         (f.company, f.from_date, f.to_date),
     )[0][0]
     rows.append(tie_row(_("Tie-out of cash debits"), flt(total_cash, 2) == flt(ledger_cash, 2), f"ledger {flt(ledger_cash):,.2f}"))

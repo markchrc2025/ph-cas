@@ -1979,10 +1979,116 @@ def s_role_homes(r: Runner):
     r.step("the Help menu carries Get help and Your plan", help_menu)
 
 
+# ---- section: counter and cash (B76) -------------------------------------------------------------
+def s_counter(r: Runner):
+    from ph_cas.books.cash import cash_position
+    from ph_cas.controls.serial import series_name
+    from ph_cas.expense import record_expense
+    from ph_cas.setup.chart import CARD_ACCOUNT, setup_philippine_company
+
+    co = VAT_CORP
+    _sg, _sp, _sr, c_twa, c_walkin, _cg = _parties()
+    svc = item("QA4 Repair Service")
+    cash = frappe.get_cached_value("Company", co, "default_cash_account")
+    cr_series = series_name(co, "00000", "Collection Receipt")
+    state = {}
+
+    def cr_next():
+        return frappe.db.get_value("BIR Series", cr_series, "next_number") if frappe.db.exists("BIR Series", cr_series) else None
+
+    def paid_now():
+        state["cr0"], state["cash0"] = cr_next(), cash_position(co)
+        si = sales_invoice(co, c_walkin, [(svc, 1, 1000)], ph_paid_now=1, ph_paid_mode="Cash")
+        si.reload()
+        r.expect(si.status == "Paid" and flt(si.outstanding_amount) == 0 and flt(si.paid_amount) == 1120, f"{si.status} {si.outstanding_amount} {si.paid_amount}")
+        r.expect(si.bir_serial and si.is_pos == 1, f"serial {si.bir_serial}")
+        r.expect(cr_next() == state["cr0"], f"collection receipt series moved {state['cr0']} -> {cr_next()}")
+        r.expect(not frappe.get_all("Payment Entry Reference", filters={"reference_name": si.name, "docstatus": 1}), "a Payment Entry was made")
+        state["si"] = si
+        gl = {}
+        for g in frappe.get_all("GL Entry", filters={"voucher_no": si.name, "is_cancelled": 0}, fields=["account", "debit", "credit"]):
+            gl[g.account] = flt(gl.get(g.account, 0) + flt(g.debit) - flt(g.credit), 2)
+        r.expect(gl.get(cash) == 1120 and gl.get(acc(co, "Sales")) == -1000 and gl.get(acc(co, "Output VAT")) == -120 and not gl.get(acc(co, "Debtors")), f"{gl}")
+        return f"{si.name} serial {si.bir_serial}: Paid, 1,120.00 in cash (1,000 + 12% VAT); no Payment Entry, collection receipt series unchanged ({state['cr0']})"
+    if not r.step("paid in full now: one invoice, paid, no collection receipt used", paid_now):
+        return
+
+    def books():
+        si = state["si"]
+        _c, rows = __import__("ph_cas.ph_cas.report.ph_cash_receipts_book.ph_cash_receipts_book", fromlist=["execute"]).execute(
+            {"company": co, "from_date": today(), "to_date": today()})
+        row = next((x for x in rows if x.get("reference") and si.bir_serial in str(x.get("reference")) and flt(x.get("cash_debit")) == 1120), None)
+        r.expect(row, "no Cash Receipts Book row under the invoice serial")
+        tie = rows[-1]
+        r.expect("TIES TO THE LEDGER" in str(tie.get("particulars")), f"tie row {tie}")
+        p = cash_position(co)
+        moved = next(x["received"] for x in p["accounts"] if x["account"] == cash) - next(x["received"] for x in state["cash0"]["accounts"] if x["account"] == cash)
+        r.expect(flt(moved, 2) == 1120, f"cash position received moved {moved}")
+        return f"Cash Receipts Book row under {row['reference']} for 1,120.00; cash position received +1,120.00"
+    r.step("the cash sale reaches the Cash Receipts Book and the cash position", books)
+
+    def refusals():
+        a = refused(sales_invoice, co, c_twa, [(svc, 1, 1000)], ph_paid_now=1, ph_paid_mode="Cash")
+        r.expect("withholds tax" in a, a)
+        if not frappe.db.exists("Mode of Payment", "QA4 E-wallet"):
+            frappe.get_doc({"doctype": "Mode of Payment", "mode_of_payment": "QA4 E-wallet", "type": "Bank", "enabled": 1}).insert()
+        b = refused(sales_invoice, co, c_walkin, [(svc, 1, 1000)], ph_paid_now=1, ph_paid_mode="QA4 E-wallet")
+        r.expect("has no account" in b, b)
+        from erpnext.accounts.doctype.sales_invoice.sales_invoice import make_sales_return
+
+        def credit_note():
+            cn = make_sales_return(state["si"].name)
+            cn.ph_paid_now = 1
+            cn.ph_manual_invoice_no = "QA4-CN-" + frappe.generate_hash(length=6).upper()
+            cn.insert()
+        c = refused(credit_note)
+        r.expect("credit or debit note" in c, c)
+        return f"withholding customer: {a[:60]}...; mode without account: {b[:60]}...; credit note: {c[:50]}..."
+    r.step("refused: a customer who withholds, a mode with no account, a credit note", refusals)
+
+    def card():
+        setup_philippine_company(co)
+        card_acc = acc(co, CARD_ACCOUNT)
+        r.expect(frappe.db.get_value("Account", card_acc, ["root_type", "account_type"]) in (("Liability", None), ("Liability", "")), "card account")
+        from ph_cas.expense import paid_from_query
+
+        offered = [x[0] for x in paid_from_query("Account", "", "name", 0, 50, {"company": co})]
+        r.expect(card_acc in offered and cash in offered, f"Paid from offers {offered}")
+        before = cash_position(co)
+        sup = supplier("QA4 Mang Jose Tricycle", supplier_type="Individual", ph_vat_status="Non-VAT", ph_payee_type="Individual", ph_last_name="SANTOS", ph_first_name="JOSE")
+        out = record_expense(company=co, supplier=sup, amount=300, description="Fuel on the company card", expense_account=acc(co, "Travel Expenses"), paid_from=card_acc)
+        gl = {g.account: flt(g.credit) for g in frappe.get_all("GL Entry", filters={"voucher_no": out["purchase_invoice"], "is_cancelled": 0}, fields=["account", "credit"]) if flt(g.credit)}
+        r.expect(gl.get(card_acc) == 300, f"{gl}")
+        after = cash_position(co)
+        r.expect(card_acc not in [x["account"] for x in after["accounts"]] and after["total"]["paid"] == before["total"]["paid"], "the card shows as cash")
+        from ph_cas.golive import go_live_checklist
+
+        st = {i["key"]: i["status"] for i in go_live_checklist(co)}
+        r.expect(st.get("card") == "done", f"{st}")
+        return f"{card_acc} (a liability, no account type), offered under Paid from; a 300.00 card expense raises the card balance and leaves cash untouched"
+    r.step("the company credit card: set up, used for an expense, kept out of cash", card)
+
+    def cashier_sale():
+        from ph_cas.setup import roles as R
+
+        email = "qa4.cashier@example.com"
+        if not frappe.db.exists("User", email):
+            frappe.get_doc({"doctype": "User", "email": email, "first_name": "QA4 Cashier", "send_welcome_email": 0, "role_profiles": [{"role_profile": R.CASHIER}]}).insert()
+        me = frappe.session.user
+        frappe.set_user(email)
+        try:
+            si = sales_invoice(co, c_walkin, [(svc, 2, 500)], ph_paid_now=1, ph_paid_mode="Cash")
+        finally:
+            frappe.set_user(me)
+        r.expect(frappe.db.get_value("Sales Invoice", si.name, "status") == "Paid", "not paid")
+        return f"{si.name}: the Cashier rang up a paid sale of {si.grand_total:,.2f}"
+    r.step("the Cashier makes a paid sale at the counter", cashier_sale)
+
+
 SECTIONS = {
     "companies": s_companies, "purchasing": s_purchasing, "sales": s_sales, "tasks": s_tasks, "inventory": s_inventory,
     "projects": s_projects, "assets": s_assets, "quality": s_quality, "crm": s_crm, "support": s_support,
-    "industries": s_industries, "forms": s_forms, "inventory_tracking": s_inventory_tracking, "roles": s_roles, "reports": s_reports, "go_live": s_go_live, "expense": s_expense, "imports": s_imports, "ledgers": s_ledgers, "role_homes": s_role_homes,
+    "industries": s_industries, "forms": s_forms, "inventory_tracking": s_inventory_tracking, "roles": s_roles, "reports": s_reports, "go_live": s_go_live, "expense": s_expense, "imports": s_imports, "ledgers": s_ledgers, "role_homes": s_role_homes, "counter": s_counter,
 }
 
 
