@@ -2,6 +2,12 @@
 
 One entry per bundle, newest first. Counts are the test totals on main after the merge.
 
+## B77 UAT standard adopted, with the UAT workbooks for B71 to B75 (19 Nov 2026)
+- PR: (filled in at merge)
+- Built: the Sentire UAT Standard v1.0 (docs/uat/UAT_STANDARD.md, UAT_TEMPLATE.xlsx, the block in CLAUDE.md). What a separate UAT session needs on staging: a build stamp (ph_cas/buildstamp.py: version + a hash of the package's files, written into the image; shown under Help > Your plan and Help > Get help and at /api/method/ph_cas.qa.uat.build_info); UAT accounts seeded with the staging site (Owner, Bookkeeper and Cashier for Company A, Owner and Bookkeeper also for the fresh Companies C and D, a Bookkeeper for Company B), kept to their companies by User Permissions, password STAGING_UAT_PASSWORD; every staging mail goes to the test mailbox (mcrc.business.solutions@gmail.com). The PH Cash Position now refuses a company the user is kept from.
+- Workbooks (tools/uat/make_workbooks.py from tools/uat/cases/): go-live (14 cases, LDG-143), record an expense (9, LDG-144), import templates (16, LDG-145), ledgers and cash position (10, LDG-146), role homes (9, LDG-147).
+- Tests: +1 (test_b77_uat).
+
 ## B75 A home per role set, the counter view, Your plan and Get help (after ECOUNT) (19 Nov 2026)
 - PR: #88
 - Built: the home page reads the user's role set (ph_cas.setup.roles.role_set). Owner and Bookkeeper: the whole business, with Record an expense and Import from a template among the Create actions. Cashier: Sales, Collections, Cash today and Items; today's sales, cash and bank, receivable and their own unposted invoices; the payables, the VAT and withholding position, the chart and the tax calendar are not shown and not sent. The Sales Invoice counter view: the customer, the lines, VAT, totals, payment and the Philippine sections only; on by default for a Cashier, a Full form / Counter view button for everyone, remembered on the browser; a required field still empty stays in sight. Help > Your plan: the tier, what it allows, what the site uses (users, companies, branches, invoices this month), the dates, and a link to ask the provider for a change. Help > Get help: the tutorials, a message to the provider that starts with the page and the user, and the page details to copy.

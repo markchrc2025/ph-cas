@@ -20,6 +20,23 @@ The `staging` branch is `main` plus whatever is under test, combined with ordina
 - Password: the value of `STAGING_ADMIN_PASSWORD` in the staging app's Environment tab in Dokploy. It is generated there and never written in chat or in the repo.
 - Two-factor sign-in is off on staging.
 
+## UAT (Sentire UAT Standard v1.0)
+
+A separate UAT session tests each process with the workbook in docs/uat/<process>/ (see CLAUDE.md and docs/uat/UAT_STANDARD.md). For it the seed also adds (ph_cas/qa/uat.py):
+
+| Account | Role set | Companies |
+|---|---|---|
+| mcrc.business.solutions+uat-owner-a@gmail.com | Owner | A, C, D |
+| mcrc.business.solutions+uat-bookkeeper-a@gmail.com | Bookkeeper | A, C, D |
+| mcrc.business.solutions+uat-cashier-a@gmail.com | Cashier | A |
+| mcrc.business.solutions+uat-bookkeeper-b@gmail.com | Bookkeeper | B |
+
+Companies: A Tala Trading Corporation (the demo company), B UAT Company B Corp. (the other tenant), C UAT Bagong Simula Corp. (fresh, go-live), D UAT Bagong Bukas Corp. (fresh, imports). The password of every UAT account is `STAGING_UAT_PASSWORD` (generated in Dokploy). `ph_cas.qa.uat.check_accounts` (System Manager) reports whether each signs in, without showing the password.
+
+On staging every outgoing mail is sent to the test mailbox only (`STAGING_TEST_MAILBOX`, default mcrc.business.solutions@gmail.com), whoever it was addressed to; mails also stay listed under Email Queue. Outgoing mail needs `SMTP_HOST`, `SMTP_USER`, `SMTP_PASSWORD` and `SMTP_FROM` in the staging app's Environment; without them mails stay in Email Queue unsent.
+
+The build under test shows under Help > Your plan, Help > Get help and at `/api/method/ph_cas.qa.uat.build_info`. Do not deploy during a UAT run.
+
 ## Test data
 
 On the container's first start the site is created and seeded (ph_cas.qa.api.seed): the demo VAT company with an invoice, a supplier bill and the quarter's 2550Q, every module switched on, and the QA admin with the System Manager, Accounting Manager and module roles. That state is kept as the QA snapshot.
