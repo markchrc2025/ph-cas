@@ -79,10 +79,56 @@ def make(m, commit, branch):
     return path, build, len(m.CASES), sum(1 for c in m.CASES if c["Priority"] == "P1"), sum(1 for c in m.CASES if c["Test Steps"].startswith("HUMAN:"))
 
 
+ROLES = ["Owner A", "Accounting Manager A", "Accountant A", "Staff A", "Accountant B"]
+
+
+def master(made, commit):
+    """docs/uat/UAT_MASTER_CHECKLIST.md: every workbook in run order, its task, its counts and the
+    roles it signs in as. Rewritten whenever the workbooks are made."""
+    from _common import RUN_ORDER
+
+    by = {m.SLUG: (m, path, build) for m, path, build in made}
+    build = next(iter(by.values()))[2]
+    lines = [
+        "# Sentire Ledger: full UAT checklist",
+        "",
+        f"Build {build} (commit {commit[:7]}). Made by tools/uat/make_workbooks.py; do not edit by hand.",
+        "",
+        "Run the workbooks in this order, one UAT chat per workbook (\"Run UAT for LDG-n\"), on staging restarted once before the first. "
+        "Later workbooks use data the earlier ones made; never deploy to staging during the run. "
+        "The role sets and what each may do: [ROLE_MATRIX.md](ROLE_MATRIX.md). How to run: [UAT_RUNNER_GUIDE.md](UAT_RUNNER_GUIDE.md).",
+        "",
+        "| # | Workbook | UAT task | Cases | P1 | HUMAN | " + " | ".join(ROLES) + " |",
+        "| --- | --- | --- | --- | --- | --- | " + " | ".join("---" for _ in ROLES) + " |",
+    ]
+    totals = [0, 0, 0] + [0] * len(ROLES)
+    for n, (slug, title) in enumerate(RUN_ORDER, 1):
+        if slug not in by:
+            continue
+        m, path, _b = by[slug]
+        rel = os.path.relpath(path, os.path.join(ROOT, "docs", "uat"))
+        p1 = sum(1 for c in m.CASES if c["Priority"] == "P1")
+        hu = sum(1 for c in m.CASES if c["Test Steps"].startswith("HUMAN:"))
+        per = [sum(1 for c in m.CASES if c["Role"] == r or r in (c["Test Steps"] + c["Preconditions"])) for r in ROLES]
+        row = [len(m.CASES), p1, hu] + per
+        totals = [a + b for a, b in zip(totals, row)]
+        lines.append(f"| {n} | [{title}]({rel}) | {m.COVER['UAT task']} | " + " | ".join(str(x) for x in row) + " |")
+    lines.append("| | **Total** | | " + " | ".join(f"**{x}**" for x in totals) + " |")
+    lines += ["", "Role columns count the cases that sign in as that account (in the Role column or in the steps).", "",
+              "## Every case", "", "| Case | Workbook | Priority | Role | Scenario |", "| --- | --- | --- | --- | --- |"]
+    for slug, _t in RUN_ORDER:
+        if slug in by:
+            for c in by[slug][0].CASES:
+                lines.append(f"| {c['Case ID']} | {slug} | {c['Priority']} | {c['Role']} | {c['Test Scenario'].replace('|', '/')} |")
+    with open(os.path.join(ROOT, "docs", "uat", "UAT_MASTER_CHECKLIST.md"), "w", encoding="utf-8") as f:
+        f.write("\n".join(lines) + "\n")
+
+
 if __name__ == "__main__":
     commit = subprocess.check_output(["git", "-C", ROOT, "rev-parse", sys.argv[1] if len(sys.argv) > 1 else "HEAD"], text=True).strip()
     branch = subprocess.check_output(["git", "-C", ROOT, "rev-parse", "--abbrev-ref", "HEAD"], text=True).strip()
     want = set(sys.argv[2:])
+    made = []
     for f in sorted(os.listdir(os.path.join(ROOT, "tools", "uat", "cases"))):
         if not f.endswith(".py") or f.startswith("_"):
             continue
@@ -90,4 +136,8 @@ if __name__ == "__main__":
         if want and m.SLUG not in want:
             continue
         check(m)
-        print(*make(m, commit, branch))
+        out = make(m, commit, branch)
+        made.append((m, out[0], out[1]))
+        print(*out)
+    if not want:
+        master(made, commit)

@@ -708,6 +708,9 @@ def pack(company: str, start, end, fmt: str = "xlsx", user=None, subsidiary: boo
 
 @frappe.whitelist()
 def download(company: str, from_date: str, to_date: str, fmt: str = "xlsx", subsidiary: int = 0):
+    from ph_cas.setup.roles import check_report
+
+    check_report("PH General Ledger Book")  # B79: Staff does not take the books away
     frappe.has_permission("Company", "read", company, throw=True)
     if getdate(from_date) > getdate(to_date):
         frappe.throw(_("The start date is after the end date."))

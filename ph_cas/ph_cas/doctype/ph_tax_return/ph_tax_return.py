@@ -130,6 +130,9 @@ class PHTaxReturn(Document):
         s = self._spec()
         if s.code not in BUILT:
             frappe.throw(_("The {0} engine is not built yet; it cannot be filed from here.").format(s.code))
+        if s.output != "certificate" and not set(frappe.get_roles()) & set(MANAGER_ROLES):
+            # B79: an Accountant prepares the return; the Accounting Manager or the Owner files it
+            frappe.throw(_("Only an Accounting Manager or the Owner marks a return as filed. The Accountant prepares it; ask a manager to submit it."), frappe.PermissionError)
         needs = self._needs()
         if needs:
             frappe.throw(_("The return still needs: {0}").format("; ".join(n["question"] for n in needs[:5])))

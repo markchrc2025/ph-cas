@@ -2,6 +2,16 @@
 
 One entry per bundle, newest first. Counts are the test totals on main after the merge.
 
+## B79 Four role sets, the Reports page, the modules note and the full UAT checklist (20 Nov 2026)
+- PR: (this one)
+- Asked by the owner (20 Nov 2026): every role tested in every module; "where are the Reports?"; "why did the Administrator lose the modules?".
+- Built, roles (LDG-150): the role sets are now Owner, Accounting Manager, Accountant and Staff (ph_cas.setup.roles). Bookkeeper is renamed Accountant and Cashier is renamed Staff, in place, so their users follow. Accounting Manager has the books without System Manager. Accountant loses Accounts Manager: it cannot change the chart of accounts or cost centers (new has_permission chart_limit, because ERPNext lets Accounts User add accounts), post with an earlier date, close a period, count stock, file a BIR return (new check in PH Tax Return before_submit) or open an amendment. Staff is kept away from the BIR return doctypes, and it runs only the counter's reports: frappe.desk.query_report.run and export_query are overridden to refuse any other report, and the loose-leaf and year-end book downloads refuse it too. The matrix is docs/uat/ROLE_MATRIX.md.
+- Built, reports (LDG-151): a Reports page (/app/ph-reports) lists every report by area: books, statements, receivables and payables, cash, BIR, sales, purchases, stock, projects, assets, manufacturing and audit. It shows only the reports the user's modules and roles allow. The home Reports tile (which used to open only the BIR Audit Trail), the Staff home and the Sentire Ledger sidebar point to it.
+- Built, modules (LDG-152): the live site has modules switched off (the open demo's set), which hides their menus for everyone, Administrator included; nothing was lost. A System Manager now sees on Home and on the Reports page which modules are off, with a link to turn them on.
+- UAT (LDG-153): ten new workbooks (roles-permissions with 40 cases, reports-page, sales-collections, purchases-payables, journals-periods, bir-returns, books-audit, masters-stock, approvals, setup-company), the seven earlier ones re-issued with the new accounts (Owner A, Accounting Manager A, Accountant A, Staff A, Accountant B), docs/uat/UAT_MASTER_CHECKLIST.md (run order and per-role coverage) and docs/uat/UAT_RUNNER_GUIDE.md.
+- Full pass: section roles now covers the four sets (Accountant cannot change the chart; Accounting Manager can; neither adds users); role_homes adds the Reports page per role.
+- Tests: +1 (test_b79_roles_reports).
+
 ## B78 Print pack for the paper check at 100%, and PDFs at true size (19 Nov 2026)
 - PR: #97
 - Built: Company > Sentire Ledger > Print pack for the paper check (ph_cas.invoicing.paper_check): one PDF with a cover (print at Actual size, a 100 mm bar drawn by the page engine, the checklist of what to look at on paper) and the latest invoice, credit note, collection receipt and 2307 (on the BIR blank). Each document page is stamped SPECIMEN, PAPER CHECK with a 100 mm bar in its bottom margin; the pages are rendered like the screen preview, so no print is counted and an original stays unprinted. Accounting Managers and System Managers; recorded in the audit trail.

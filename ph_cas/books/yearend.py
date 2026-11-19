@@ -131,6 +131,9 @@ def transmittal(company: str, year: int, manifest: dict) -> str:
 
 @frappe.whitelist()
 def download_pack(company: str, year: int):
+    from ph_cas.setup.roles import check_report
+
+    check_report("PH General Ledger Book")  # B79: Staff does not take the books away
     frappe.has_permission("Company", "read", company, throw=True)
     out = build_pack(company, int(year))
     buf = io.BytesIO()

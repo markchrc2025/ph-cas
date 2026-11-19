@@ -1,4 +1,4 @@
-// B75/B76 (after ECOUNT's simple input screens): the counter view of a form. A Cashier sees only what
+// B75/B76 (after ECOUNT's simple input screens): the counter view of a form. A Staff user sees only what
 // the counter needs; everyone can switch between the counter view and the full form, and the choice
 // is remembered on this browser. A required field still empty always stays in sight.
 frappe.provide("ph_cas");
@@ -8,7 +8,7 @@ ph_cas.counter_on = function (key) {
 		const v = localStorage.getItem(key);
 		if (v !== null) return v === "1";
 	} catch (e) { /* storage blocked: fall through */ }
-	return frappe.boot.ph_cas_role_set === "Cashier";
+	return frappe.boot.ph_cas_role_set === "Staff";
 };
 
 ph_cas.counter_view = function (frm, fields, key) {
