@@ -57,7 +57,7 @@ CASES = [
          ["Steps 1 and 2: the report does not run; message \"Staff users can open the counter's reports only. Ask an accountant for Trial Balance.\" (and for PH General Ledger Book)",
           "Step 3: PH Cash Position runs and shows Company A's cash and bank accounts"], "P1"),
     case("LDG-RE-009", "Reports", I, "Staff cannot export another report", "Staff A", "None",
-         ["HUMAN: in the browser's address bar open " + URL + "/api/method/frappe.desk.query_report.export_query?report_name=Balance%20Sheet&file_format_type=Excel"],
+         "HUMAN: 1. In the browser's address bar open " + URL + "/api/method/frappe.desk.query_report.export_query?report_name=Balance%20Sheet&file_format_type=Excel",
          "None",
          ["No file downloads; the answer is a permission error naming Balance Sheet"], "P2"),
     case("LDG-RE-010", "Reports", I, "The search box filters the list", "Accountant A", "None",
