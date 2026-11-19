@@ -7,8 +7,8 @@ ph_cas/BUILD at build time (Dockerfile); the developer works out the same value 
     python3 ph_cas/buildstamp.py            # from the files on disk
     python3 ph_cas/buildstamp.py --git REV  # from a commit, e.g. HEAD or origin/main
 
-Docs, workflows and tests outside the package do not change it, so a docs-only commit keeps the
-build. This module imports nothing from Frappe so the Dockerfile can run it before the bench starts.
+Docs, workflows and the tests (ph_cas/tests) do not change it, so a docs-only or test-only commit
+keeps the build. This module imports nothing from Frappe so the Dockerfile can run it before the bench starts.
 """
 
 from __future__ import annotations
@@ -24,7 +24,8 @@ SKIP_DIRS = {"__pycache__", "node_modules"}
 
 def _keep(rel: str) -> bool:
     parts = rel.split("/")
-    return not (set(parts) & SKIP_DIRS) and not rel.endswith(".pyc") and rel != "BUILD"
+    # the tests ship in the package but change nothing a user sees, so they keep the build
+    return not (set(parts) & SKIP_DIRS) and not rel.endswith(".pyc") and rel != "BUILD" and parts[0] != "tests"
 
 
 def digest(items) -> str:
