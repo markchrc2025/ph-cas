@@ -2082,10 +2082,58 @@ def s_counter(r: Runner):
     r.step("the Cashier makes a paid sale at the counter", cashier_sale)
 
 
+# ---- section: the print pack for the paper check (B78) -------------------------------------------
+def s_paper_check(r: Runner):
+    import io as _io
+
+    from pypdf import PdfReader
+
+    from ph_cas.invoicing import paper_check
+
+    co = VAT_CORP
+
+    def pack():
+        si = frappe.get_all("Sales Invoice", filters={"company": co, "docstatus": 1, "is_return": 0, "is_debit_note": 0}, order_by="creation desc", pluck="name", limit=1)[0]
+        before = frappe.db.count("PH Print Record", {"ref_name": si})
+        data, found = paper_check.build(co)
+        names = dict(found)
+        r.expect(all(names.values()), f"missing documents: {names}")
+        pages = PdfReader(_io.BytesIO(data)).pages
+        r.expect(len(pages) >= 5, f"{len(pages)} pages")
+        texts = [" ".join((p.extract_text() or "").split()) for p in pages]
+        r.expect(all("SPECIMEN" in t for t in texts), "a page without the SPECIMEN mark")
+        r.expect("exactly 100 mm" in texts[0] and "Actual size (100%)" in texts[0], "cover text")
+        r.expect(frappe.db.count("PH Print Record", {"ref_name": si}) == before, "the pack counted a print")
+        return f"{len(pages)} pages: cover with the 100 mm bar and checklist, then " + ", ".join(f"{k} {v}" for k, v in found) + "; no print counted"
+    r.step("the print pack: cover, the four documents, SPECIMEN on every page, no print counted", pack)
+
+    def true_size():
+        data, _found = paper_check.build(co)
+        widths = paper_check.bar_widths_mm(data, 0)
+        bar = [w for w in widths if 60 <= w <= 120]
+        r.expect(bar and all(99.0 <= w <= 101.0 for w in bar), f"the 100 mm bar is drawn {bar} mm wide: the PDF engine is not printing at true size")
+        return f"the bar is {bar[0]} mm in the PDF (so a print at Actual size gives 100 mm)"
+    r.step("the PDF is at true size: the 100 mm bar is 100 mm", true_size)
+
+    def roles_():
+        from ph_cas.setup import roles as R
+
+        email = "qa4.cashier@example.com"
+        if not frappe.db.exists("User", email):
+            frappe.get_doc({"doctype": "User", "email": email, "first_name": "QA4 Cashier", "send_welcome_email": 0, "role_profiles": [{"role_profile": R.CASHIER}]}).insert()
+        me = frappe.session.user
+        frappe.set_user(email)
+        try:
+            return refused(paper_check.download, co)
+        finally:
+            frappe.set_user(me)
+    r.step("a Cashier cannot download the pack", roles_)
+
+
 SECTIONS = {
     "companies": s_companies, "purchasing": s_purchasing, "sales": s_sales, "tasks": s_tasks, "inventory": s_inventory,
     "projects": s_projects, "assets": s_assets, "quality": s_quality, "crm": s_crm, "support": s_support,
-    "industries": s_industries, "forms": s_forms, "inventory_tracking": s_inventory_tracking, "roles": s_roles, "reports": s_reports, "go_live": s_go_live, "expense": s_expense, "imports": s_imports, "ledgers": s_ledgers, "role_homes": s_role_homes, "counter": s_counter,
+    "industries": s_industries, "forms": s_forms, "inventory_tracking": s_inventory_tracking, "roles": s_roles, "reports": s_reports, "go_live": s_go_live, "expense": s_expense, "imports": s_imports, "ledgers": s_ledgers, "role_homes": s_role_homes, "counter": s_counter, "paper_check": s_paper_check,
 }
 
 
