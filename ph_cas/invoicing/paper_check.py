@@ -63,7 +63,25 @@ def _page(doctype, name, print_format) -> str:
         html = frappe.get_print(doctype, name, print_format)
     finally:
         frappe.flags.ph_in_print_preview = False
-    return html
+    return _self_contained(html)
+
+
+def _self_contained(html: str) -> str:
+    """Inline the site's own stylesheets and drop scripts, so the engine fetches nothing (the page is
+    the same; it no longer depends on reaching the site's own address while rendering)."""
+    import os
+    import re
+
+    def inline(m):
+        href = m.group(1).split("?")[0]
+        path = os.path.join(frappe.local.sites_path, href.lstrip("/"))
+        if href.startswith("/assets/") and href.endswith(".css") and os.path.exists(path):
+            with open(path, encoding="utf-8") as f:
+                return f"<style>{f.read()}</style>"
+        return m.group(0)
+
+    html = re.sub(r'<link[^>]+href=["\']([^"\']+)["\'][^>]*>', inline, html)
+    return re.sub(r'<script[^>]*src=["\'][^"\']+["\'][^>]*>\s*</script>', "", html)
 
 
 def _bir_2307(name) -> bytes:
@@ -126,14 +144,16 @@ def build(company: str) -> tuple[bytes, list]:
     found = []
     for doctype, fmt, filters, label in DOCS:
         found.append((label, _latest(company, doctype, filters), doctype, fmt))
+    # a stylesheet or font the engine cannot fetch must not stop the pack (the page still renders)
+    opts = {"load-error-handling": "ignore", "load-media-error-handling": "ignore"}
     writer = PdfWriter()
-    get_pdf(_cover(company, [(l, n) for l, n, *_x in found]), output=writer)
+    get_pdf(_cover(company, [(l, n) for l, n, *_x in found]), options=dict(opts), output=writer)
     from pypdf import PdfReader
 
     for label, name, doctype, fmt in found:
         if not name:
             continue
-        pdf = get_pdf(_page(doctype, name, fmt)) if fmt else _bir_2307(name)
+        pdf = get_pdf(_page(doctype, name, fmt), options=dict(opts)) if fmt else _bir_2307(name)
         for page in PdfReader(io.BytesIO(pdf)).pages:
             _stamp(page)
             writer.add_page(page)
