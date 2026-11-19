@@ -16,6 +16,8 @@ from ph_cas.books.common import cash_accounts
 @frappe.whitelist()
 def cash_position(company: str, day: str | None = None) -> dict:
     frappe.has_permission("GL Entry", "read", throw=True)
+    # B77: another company's cash is not shown to a user kept to their own (User Permission)
+    frappe.has_permission("Company", "read", company, throw=True)
     day = getdate(day or today())
     accounts = sorted(cash_accounts(company))
     rows = []

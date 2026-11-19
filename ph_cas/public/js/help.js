@@ -15,7 +15,8 @@ ph_cas.show_plan = function () {
 		frappe.msgprint({ title: __("Your plan: {0}", [e(p.tier)]), message:
 			`<p>${e(p.note)}</p><table style="width:100%;margin:8px 0">${rows}</table>`
 			+ (p.modules_on.length ? `<p style="color:var(--text-muted)">${__("Modules on")}: ${p.modules_on.map(e).join(", ")}</p>` : "")
-			+ (dates.length ? `<p>${dates.join("<br>")}</p>` : "") + `<p>${contact}</p>` });
+			+ (dates.length ? `<p>${dates.join("<br>")}</p>` : "") + `<p>${contact}</p>`
+			+ `<p style="color:var(--text-muted);font-size:11px">${__("Build")} ${e(frappe.boot.ph_cas_build || "")}</p>` });
 	});
 };
 
@@ -23,7 +24,7 @@ ph_cas.get_help = function () {
 	const b = (frappe.boot && frappe.boot.ph_cas_branding) || {};
 	const route = frappe.get_route_str();
 	const facts = [`${__("Site")}: ${window.location.hostname}`, `${__("User")}: ${frappe.session.user}`, `${__("Page")}: ${route}`,
-		`${b.product || "Sentire Ledger"} ${b.version || ""}`].join("\n");
+		`${b.product || "Sentire Ledger"} ${__("build")} ${frappe.boot.ph_cas_build || b.version || ""}`].join("\n");
 	const mail = b.support_email ? `mailto:${b.support_email}?subject=${encodeURIComponent(__("Help with {0}", [route]))}&body=${encodeURIComponent("\n\n---\n" + facts)}` : null;
 	const d = new frappe.ui.Dialog({
 		title: __("Get help"),
