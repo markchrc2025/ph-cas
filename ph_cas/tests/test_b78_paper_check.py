@@ -18,8 +18,20 @@ def _patched() -> bool:
         return False
 
 
+def _assets_built() -> bool:
+    """Frappe's print page needs the compiled assets (assets.json); the CI bench does not build them."""
+    from frappe.utils import get_assets_json
+
+    try:
+        return bool(get_assets_json())
+    except Exception:
+        return False
+
+
 class TestB78PaperCheck(IntegrationTestCase):
     def test_paper_check_section(self):
+        if not _assets_built():
+            self.skipTest("no compiled assets on this bench: the print page cannot render (the full pass runs it on staging)")
         frappe.set_user("Administrator")
         for section in ("companies", "purchasing", "sales", "paper_check"):
             res = fullpass.run(section)
