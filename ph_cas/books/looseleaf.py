@@ -31,7 +31,7 @@ from frappe import _
 from frappe.utils import add_days, flt, getdate, now_datetime
 
 from ph_cas.audit.header import company_facts, software_name, software_version
-from ph_cas.books.common import cash_accounts, party_name, party_tin
+from ph_cas.books.common import cash_accounts, party_name, party_tin, voucher_kind
 
 ROWS_PER_PAGE = 20  # data rows per page (each up to two lines), the same in the PDF and the Excel file
 
@@ -389,6 +389,64 @@ BOOKS = [
 ]
 
 
+# ---------------------------------------------------------------- B74 subsidiary ledgers (after ECOUNT)
+
+KIND_LABEL = {"Sales Invoice": "SALES", "Purchase Invoice": "PURCHASE", "Journal Entry": "MJ"}
+
+
+def _subsidiary(company, start, end, party_type: str) -> Book:
+    """One block per customer (or supplier): name and TIN with the balance brought forward, each
+    entry with a running balance, and its total. The customers' ledger runs debit-positive (what
+    they owe); the suppliers' ledger runs credit-positive (what is owed to them). The TOTAL of the
+    balances ties to the receivable (or payable) accounts in the general ledger."""
+    receivable = party_type == "Customer"
+    code, title = ("ARL", "ACCOUNTS RECEIVABLE SUBSIDIARY LEDGER") if receivable else ("APL", "ACCOUNTS PAYABLE SUBSIDIARY LEDGER")
+    b = Book(code, title, [Col("GL DATE", "date", 12), Col("REFERENCE", "text", 30), Col("PARTICULARS", "text", 40), Col("DEBITS", "money", 16),
+                           Col("CREDITS", "money", 16), Col("BALANCE" if receivable else "BALANCE (PAYABLE)", "money", 17)])
+    atype = "Receivable" if receivable else "Payable"
+    sign = 1 if receivable else -1
+    opening = dict(frappe.db.sql(
+        """select g.party, coalesce(sum(g.debit) - sum(g.credit), 0) from `tabGL Entry` g join `tabAccount` a on a.name = g.account
+           where g.company = %s and g.is_cancelled = 0 and g.posting_date < %s and a.account_type = %s and g.party_type = %s
+           group by g.party""", (company, start, atype, party_type)))
+    entries = frappe.db.sql(
+        """select g.posting_date, g.voucher_type, g.voucher_no, g.party, g.debit, g.credit, g.remarks, g.is_opening
+           from `tabGL Entry` g join `tabAccount` a on a.name = g.account
+           where g.company = %s and g.is_cancelled = 0 and g.posting_date between %s and %s and a.account_type = %s and g.party_type = %s
+           order by g.party, g.posting_date, g.creation""", (company, start, end, atype, party_type), as_dict=True)
+    parties = sorted({p for p, v in opening.items() if flt(v, 2)} | {e.party for e in entries}, key=lambda p: (party_name(party_type, p, {}) or p).lower())
+    pcache, rcache, kcache, td, tc, tb = {}, {}, {}, 0.0, 0.0, 0.0
+    for p in parties:
+        bal = flt(sign * flt(opening.get(p)), 2)
+        tin = party_tin(party_type, p, pcache)
+        b.add([None, None, f"{party_name(party_type, p, pcache)}{'  TIN ' + tin if tin else ''}: balance forwarded", None, None, bal], "bold")
+        d = c = 0.0
+        for e in (x for x in entries if x.party == p):
+            bal = flt(bal + sign * (flt(e.debit) - flt(e.credit)), 2)
+            kind = "OPENING" if e.is_opening == "Yes" else voucher_kind(e.voucher_type, e.voucher_no, kcache).upper()
+            remark = (e.remarks or "").replace("\n", " ").strip() if e.voucher_type == "Journal Entry" else ""
+            b.add([e.posting_date, _doc_ref(e.voucher_type, e.voucher_no, rcache), (kind + (f": {remark[:70]}" if remark else ""))[:110], flt(e.debit), flt(e.credit), bal])
+            d, c = d + flt(e.debit), c + flt(e.credit)
+        b.add([None, None, "Total", flt(d, 2), flt(c, 2), bal], "bold")
+        td, tc, tb = td + d, tc + c, tb + bal
+    b.add([None, None, "TOTAL", flt(td, 2), flt(tc, 2), flt(tb, 2)], "bold")
+    return b
+
+
+def ar_ledger(company, start, end) -> Book:
+    return _subsidiary(company, start, end, "Customer")
+
+
+def ap_ledger(company, start, end) -> Book:
+    return _subsidiary(company, start, end, "Supplier")
+
+
+SUBSIDIARY_BOOKS = [
+    ("ARL", "Accounts Receivable Subsidiary Ledger", ar_ledger),
+    ("APL", "Accounts Payable Subsidiary Ledger", ap_ledger),
+]
+
+
 # ---------------------------------------------------------------- Excel
 
 def _header_rows(h: dict, book: Book, page: int) -> tuple[list, list]:
@@ -618,17 +676,19 @@ def to_pdf(book: Book, h: dict) -> bytes:
 
 # ---------------------------------------------------------------- the pack
 
-def build(company: str, start, end, codes: list | None = None) -> list:
-    return [fn(company, start, end) for code, _title, fn in BOOKS if not codes or code in codes]
+def build(company: str, start, end, codes: list | None = None, subsidiary: bool = False) -> list:
+    books = BOOKS + (SUBSIDIARY_BOOKS if subsidiary or (codes and set(codes) & {c for c, *_x in SUBSIDIARY_BOOKS}) else [])
+    return [fn(company, start, end) for code, _title, fn in books if not codes or code in codes]
 
 
-def pack(company: str, start, end, fmt: str = "xlsx", user=None) -> tuple[str, bytes, dict]:
-    """A zip of the six books (Excel or PDF) and PAGES.txt, the page count per
-    book for the sworn statement that goes with the bound books."""
+def pack(company: str, start, end, fmt: str = "xlsx", user=None, subsidiary: bool = False) -> tuple[str, bytes, dict]:
+    """A zip of the six books (Excel or PDF), with the customers' and suppliers' subsidiary
+    ledgers when asked (B74), and PAGES.txt, the page count per book for the sworn statement
+    that goes with the bound books."""
     if fmt not in ("xlsx", "pdf"):
         frappe.throw(_("Format is xlsx or pdf."))
     h = header(company, start, end, user)
-    books = build(company, start, end)
+    books = build(company, start, end, subsidiary=subsidiary)
     tin = (company_facts(company)["tin"] or "").replace("-", "")
     stamp = f"{getdate(start):%Y%m%d}-{getdate(end):%Y%m%d}"
     pages, buf = {}, io.BytesIO()
@@ -647,11 +707,11 @@ def pack(company: str, start, end, fmt: str = "xlsx", user=None) -> tuple[str, b
 
 
 @frappe.whitelist()
-def download(company: str, from_date: str, to_date: str, fmt: str = "xlsx"):
+def download(company: str, from_date: str, to_date: str, fmt: str = "xlsx", subsidiary: int = 0):
     frappe.has_permission("Company", "read", company, throw=True)
     if getdate(from_date) > getdate(to_date):
         frappe.throw(_("The start date is after the end date."))
-    name, data, pages = pack(company, from_date, to_date, fmt)
+    name, data, pages = pack(company, from_date, to_date, fmt, subsidiary=bool(frappe.utils.cint(subsidiary)))
     from ph_cas.audit.events import record
 
     record("export", "Company", company, 0, {"loose_leaf_books": fmt, "from": str(from_date), "to": str(to_date), "pages": pages})

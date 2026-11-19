@@ -70,3 +70,9 @@ Purchase Invoice list > Record an expense: for a bill already paid (fares, suppl
 Customer, Supplier or Item list > Import from a template (or Company > Sentire Ledger > Import from a template for opening balances). Download the template, fill it in Excel, attach it and press Check the file: every line with a problem is listed with the reason, and nothing is saved. Import saves only when every line passes. Import in this order when going live: customers and suppliers, items, opening account balances, then open invoices and bills. The go-live date must be set first; opening entries are dated the day before it.
 
 To change a BIR field on many records at once (for example the VAT status of several suppliers), tick them on the list and choose Actions > Batch edit BIR fields. A record the change does not fit is refused and named; the others change.
+
+## Customers' and suppliers' ledgers, and today's cash
+
+Company > Sentire Ledger > Loose-leaf books: tick "Add the customers' and suppliers' subsidiary ledgers" to get one page block per customer and per supplier, with the BIR header on every page.
+
+Report PH Cash Position: pick the day to see each cash and bank account's beginning balance, what came in, what went out and the ending balance. An ending balance below zero is shown in red: a receipt or deposit is missing, or more was paid out than the books show came in.

@@ -36,8 +36,10 @@ frappe.ui.form.on("Company", {
                     { fieldname: "to_date", fieldtype: "Date", label: __("To"), default: frappe.datetime.get_today(), reqd: 1 },
                     { fieldname: "fmt", fieldtype: "Select", label: __("Format"), options: "pdf\nxlsx", default: "pdf", reqd: 1,
                       description: __("Six books, the header and page numbers on every page, and PAGES.txt with the page count of each book for the sworn statement.") },
+                    { fieldname: "subsidiary", fieldtype: "Check", label: __("Add the customers' and suppliers' subsidiary ledgers"),
+                      description: __("One block per customer or supplier with the balance forwarded, each invoice, collection and payment, and the running balance.") },
                 ], (v) => {
-                    window.open(`/api/method/ph_cas.books.looseleaf.download?company=${encodeURIComponent(frm.doc.name)}&from_date=${v.from_date}&to_date=${v.to_date}&fmt=${v.fmt}`);
+                    window.open(`/api/method/ph_cas.books.looseleaf.download?company=${encodeURIComponent(frm.doc.name)}&from_date=${v.from_date}&to_date=${v.to_date}&fmt=${v.fmt}&subsidiary=${v.subsidiary ? 1 : 0}`);
                 }, __("Loose-leaf books of accounts"));
             }, ph_cas_menu());
             frm.add_custom_button(__("Quarterly notice of minor enhancements"), () => {

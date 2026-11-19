@@ -2,6 +2,12 @@
 
 One entry per bundle, newest first. Counts are the test totals on main after the merge.
 
+## B74 Subsidiary ledgers and the daily cash position (after ECOUNT) (19 Nov 2026)
+- PR: (filled in at merge)
+- Built: the Accounts Receivable and Accounts Payable subsidiary ledgers in the loose-leaf books (Company > Loose-leaf books, tick "Add the customers' and suppliers' subsidiary ledgers"): one block per customer or supplier with its TIN and the balance forwarded, each invoice, credit note, collection receipt, bill and payment with its BIR reference and a running balance, and the TOTAL, which ties to the receivable (payable) accounts. Same page layout and BIR header as the six books; PAGES.txt counts them. The PH Cash Position report (ph_cas.books.cash): per cash and bank account the day's beginning balance, received, paid out and ending balance, with the total tied to the ledger and an ending balance below zero shown in red.
+- Full pass: section ledgers (5 steps).
+- Tests: +1 (test_b74_ledgers).
+
 ## B73 Philippine import templates and batch edit (after ECOUNT's Excel upload and Change Selected) (19 Nov 2026)
 - PR: (filled in at merge)
 - Built: ph_cas.imports. Four CSV templates (they open in Excel; Excel files are read too): customers and suppliers with TIN, branch code, payee type and the individual's names, VAT status, government and top withholding agent flags and the supplier's withholding category; items with VAT class, stock, capital good, price, cost and the company's income and expense accounts; opening account balances; open invoices and bills from the old books. "Check the file" reports every line's problems without saving; Import saves only when every line passes, all lines or none. A file imported again updates the same records. Opening balances post one opening Journal Entry dated the cut-over day; receivable and payable totals wait on Temporary Opening until the open items import lists them by customer and supplier, which clears it (the Go-live checklist shows it). Batch edit BIR fields on the Customer, Supplier and Item lists changes many records at once, each through its own validation; the TIN is not batch editable.

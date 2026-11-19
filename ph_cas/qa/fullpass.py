@@ -1849,10 +1849,91 @@ def s_imports(r: Runner):
     r.step("a Cashier cannot import suppliers", cashier)
 
 
+# ---- section: subsidiary ledgers and the cash position (B74) ------------------------------------
+def s_ledgers(r: Runner):
+    from ph_cas.books import looseleaf as L
+    from ph_cas.books.cash import cash_position
+
+    co = VAT_CORP
+    y = getdate(today()).year
+    start, end = f"{y}-01-01", today()
+
+    def gl_party_balance(atype, ptype, before=None):
+        cond, args = ("and g.posting_date < %s", (co, atype, ptype, before)) if before else ("and g.posting_date <= %s", (co, atype, ptype, end))
+        return flt(frappe.db.sql(f"""select coalesce(sum(g.debit) - sum(g.credit), 0) from `tabGL Entry` g join `tabAccount` a on a.name = g.account
+                                    where g.company = %s and g.is_cancelled = 0 and a.account_type = %s and g.party_type = %s {cond}""", args)[0][0], 2)
+
+    def ar():
+        b = L.ar_ledger(co, start, end)
+        tot = b.rows[-1]
+        want = gl_party_balance("Receivable", "Customer")
+        r.expect(flt(tot[5], 2) == want, f"AR ledger total {tot[5]} vs GL {want}")
+        blocks = [x for x in b.rows if x[2] and "balance forwarded" in str(x[2])]
+        r.expect(blocks and any("TIN " in str(x[2]) for x in blocks), "no customer block with a TIN")
+        r.expect(any(str(x[2]).startswith("SALES INVOICE") for x in b.rows), "no sales invoice entry")
+        return f"{len(blocks)} customers; balance {want:,.2f} ties to the receivable accounts"
+    r.step("customers' subsidiary ledger ties to Accounts Receivable", ar)
+
+    def ap():
+        b = L.ap_ledger(co, start, end)
+        want = -gl_party_balance("Payable", "Supplier")
+        r.expect(flt(b.rows[-1][5], 2) == want, f"AP ledger total {b.rows[-1][5]} vs GL {want}")
+        r.expect(any(str(x[2]).startswith("PURCHASE INVOICE") for x in b.rows), "no bill entry")
+        return f"{len([x for x in b.rows if 'balance forwarded' in str(x[2])])} suppliers; owed {want:,.2f} ties to the payable accounts (credit-positive)"
+    r.step("suppliers' subsidiary ledger ties to Accounts Payable", ap)
+
+    def forwarded():
+        b = L.ar_ledger(co, today(), today())
+        fwd = sum(flt(x[5]) for x in b.rows if "balance forwarded" in str(x[2]))
+        want = gl_party_balance("Receivable", "Customer", before=today())
+        r.expect(flt(fwd, 2) == want, f"forwarded {fwd} vs {want}")
+        return f"balances forwarded into today: {fwd:,.2f}"
+    r.step("a ledger that starts mid-year brings the balances forward", forwarded)
+
+    def pack():
+        import io as _io
+        import zipfile as _z
+
+        _n, data, pages = L.pack(co, start, end, "xlsx", subsidiary=True)
+        names = _z.ZipFile(_io.BytesIO(data)).namelist()
+        r.expect(any(n.startswith("ARL_") for n in names) and any(n.startswith("APL_") for n in names), f"{names}")
+        txt = _z.ZipFile(_io.BytesIO(data)).read("PAGES.txt").decode()
+        r.expect("Accounts Receivable Subsidiary Ledger" in txt, txt)
+        _n2, data2, pages2 = L.pack(co, start, end, "xlsx")
+        r.expect(len(pages2) == 6 and len(pages) == 8, f"{len(pages2)} {len(pages)}")
+        wb = __import__("openpyxl").load_workbook(_io.BytesIO(_z.ZipFile(_io.BytesIO(data)).read(next(n for n in names if n.startswith("ARL_")))))
+        vals = [c.value for row in wb.active.iter_rows(max_row=12) for c in row if c.value]
+        r.expect("OWNER'S NAME" in vals and any("Page 1 of" in str(v) for v in vals), "no BIR header")
+        return f"8 books with the subsidiary ledgers (6 without); BIR header on each page; pages {pages.get('ACCOUNTS RECEIVABLE SUBSIDIARY LEDGER')} AR, {pages.get('ACCOUNTS PAYABLE SUBSIDIARY LEDGER')} AP"
+    r.step("the loose-leaf pack adds both ledgers when asked, with the BIR header", pack)
+
+    def cash():
+        from ph_cas.expense import record_expense
+
+        before = cash_position(co)
+        sup = supplier("QA4 Mang Jose Tricycle", supplier_type="Individual", ph_vat_status="Non-VAT", ph_payee_type="Individual", ph_last_name="SANTOS", ph_first_name="JOSE")
+        record_expense(company=co, supplier=sup, amount=120, description="Tricycle fare (cash position check)", expense_account=acc(co, "Travel Expenses"))
+        p = cash_position(co)
+        cash_acc = frappe.get_cached_value("Company", co, "default_cash_account")
+        row = next(x for x in p["accounts"] if x["account"] == cash_acc)
+        b0 = next(x for x in before["accounts"] if x["account"] == cash_acc)
+        r.expect(flt(row["paid"] - b0["paid"], 2) == 120, f"paid moved {row['paid'] - b0['paid']}")
+        r.expect(all(flt(x["opening"] + x["received"] - x["paid"], 2) == x["closing"] for x in p["accounts"]), "a row does not add up")
+        gl_cash = flt(frappe.db.sql("""select coalesce(sum(debit) - sum(credit), 0) from `tabGL Entry` where company = %s and is_cancelled = 0
+                                       and posting_date <= %s and account in %s""", (co, today(), [x["account"] for x in p["accounts"]]))[0][0], 2)
+        r.expect(p["total"]["closing"] == gl_cash, f"closing {p['total']['closing']} vs GL {gl_cash}")
+        from ph_cas.ph_cas.report.ph_cash_position.ph_cash_position import execute
+
+        _c, rows, *_x = execute({"company": co, "day": today()})
+        r.expect(rows[-1]["closing"] == gl_cash, "report total")
+        return f"{len(p['accounts'])} cash and bank accounts; today in {p['total']['received']:,.2f}, out {p['total']['paid']:,.2f}; ending {gl_cash:,.2f} = the ledger"
+    r.step("the cash position: beginning + in - out = ending, and it ties to the ledger", cash)
+
+
 SECTIONS = {
     "companies": s_companies, "purchasing": s_purchasing, "sales": s_sales, "tasks": s_tasks, "inventory": s_inventory,
     "projects": s_projects, "assets": s_assets, "quality": s_quality, "crm": s_crm, "support": s_support,
-    "industries": s_industries, "forms": s_forms, "inventory_tracking": s_inventory_tracking, "roles": s_roles, "reports": s_reports, "go_live": s_go_live, "expense": s_expense, "imports": s_imports,
+    "industries": s_industries, "forms": s_forms, "inventory_tracking": s_inventory_tracking, "roles": s_roles, "reports": s_reports, "go_live": s_go_live, "expense": s_expense, "imports": s_imports, "ledgers": s_ledgers,
 }
 
 
