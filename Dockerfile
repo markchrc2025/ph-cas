@@ -23,6 +23,9 @@ RUN useradd -m -s /bin/bash frappe && pip install --no-cache-dir frappe-bench
 USER frappe
 WORKDIR /home/frappe
 RUN yarn config set network-timeout 600000 -g && yarn config set network-concurrency 4 -g && npm config set fetch-retries 5 && npm config set fetch-retry-maxtimeout 120000
+# bench makes its virtualenv with uv by default; uv crashes (SIGSEGV) when the amd64 image is built
+# on the Oracle Arm runner under QEMU, so the bench is made with python -m venv and pip instead
+ENV BENCH_DISABLE_UV=1
 RUN for i in 1 2 3; do bench init bench --frappe-branch ${FRAPPE_TAG} --python python3 --skip-redis-config-generation --no-backups --skip-assets && break; rm -rf bench; sleep 10; done; test -d bench
 WORKDIR /home/frappe/bench
 RUN for i in 1 2 3; do bench get-app erpnext https://github.com/frappe/erpnext --branch ${ERPNEXT_TAG} --skip-assets && break; rm -rf apps/erpnext; sed -i '/^erpnext$/d' sites/apps.txt; sleep 10; done; test -d apps/erpnext
@@ -72,6 +75,9 @@ USER frappe
 WORKDIR /home/frappe
 # yarn on a busy server trips its 30-second default; wait longer and retry more
 RUN yarn config set network-timeout 600000 -g && yarn config set network-concurrency 4 -g && npm config set fetch-retries 5 && npm config set fetch-retry-maxtimeout 120000
+# bench makes its virtualenv with uv by default; uv crashes (SIGSEGV) when the amd64 image is built
+# on the Oracle Arm runner under QEMU, so the bench is made with python -m venv and pip instead
+ENV BENCH_DISABLE_UV=1
 RUN for i in 1 2 3; do bench init bench --frappe-branch ${FRAPPE_TAG} --python python3 --skip-redis-config-generation --no-backups --skip-assets && break; rm -rf bench; sleep 10; done; test -d bench
 WORKDIR /home/frappe/bench
 RUN for i in 1 2 3; do bench get-app erpnext https://github.com/frappe/erpnext --branch ${ERPNEXT_TAG} --skip-assets && break; rm -rf apps/erpnext; sed -i '/^erpnext$/d' sites/apps.txt; sleep 10; done; test -d apps/erpnext
