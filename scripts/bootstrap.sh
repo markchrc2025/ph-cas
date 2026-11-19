@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # ph_cas bootstrap: pinned ERPNext v16 bench with ph_cas installed.
-# Usage: scripts/bootstrap.sh [bench_dir]   (env: SKIP_ASSETS=1, SITE=test_site)
+# Usage: scripts/bootstrap.sh [bench_dir]   (env: SKIP_ASSETS=1, SITE=test_site,
+#        SITE_SOURCE_SQL=<file.sql> to start the site from a saved database instead of a fresh install)
 set -euo pipefail
 BENCH_DIR="${1:-$HOME/ph-cas-bench}"
 SITE="${SITE:-test_site}"
@@ -57,7 +58,8 @@ bench set-config -g redis_socketio "$REDIS_URL" >/dev/null
 
 echo "== site $SITE"
 if [ ! -d "sites/$SITE" ]; then
-  bench new-site "$SITE" --db-root-password "$DB_ROOT_PASSWORD" --admin-password "$ADMIN_PASSWORD" --install-app erpnext --install-app ph_cas
+  bench new-site "$SITE" --db-root-password "$DB_ROOT_PASSWORD" --admin-password "$ADMIN_PASSWORD" \
+    ${SITE_SOURCE_SQL:+--source-sql "$SITE_SOURCE_SQL"} --install-app erpnext --install-app ph_cas
 else
   bench --site "$SITE" install-app erpnext ph_cas 2>/dev/null || true
   bench --site "$SITE" migrate

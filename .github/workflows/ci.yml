@@ -51,23 +51,39 @@ jobs:
       - name: Bootstrap bench
         env: { SKIP_ASSETS: "1", DB_ROOT_PASSWORD: root }
         run: |
-          # The self-hosted runner keeps its home between jobs, so the built bench (frappe,
-          # erpnext, the Python env: about 3 minutes) is reused. What is NOT reused: the site,
-          # because the MariaDB service is new each time and an old site's database user no
-          # longer exists ("Access denied for user ..."), and apps/ph_cas, which must be this
-          # checkout. The bench is rebuilt from scratch when the pinned versions or the
-          # bootstrap script change.
+          # The self-hosted runner keeps its home between jobs, so two things are reused:
+          #  1. the built bench (frappe, erpnext, the Python env: about 3 minutes);
+          #  2. a saved database with frappe and erpnext already installed, so the test site
+          #     is loaded from it and only ph_cas is installed fresh (saves the 1 to 2 minutes
+          #     of installing frappe and erpnext into a new database every run).
+          # Never reused: the site itself (the MariaDB service is new each job) and
+          # apps/ph_cas (must be this checkout). Both caches are rebuilt from scratch when
+          # scripts/bootstrap.sh, which pins the versions, changes.
           export PATH="$HOME/.local/bin:$PATH"
           STAMP="$(cat ph_cas/scripts/bootstrap.sh | sha256sum | cut -c1-16)"
+          SNAPSHOT="$HOME/bench/.ci-erpnext-site.sql"
           if [ "$(cat "$HOME/bench/.ci-stamp" 2>/dev/null)" != "$STAMP" ]; then
             echo "bench cache: rebuilding"
             rm -rf "$HOME/bench"
           else
             echo "bench cache: reusing frappe and erpnext"
-            rm -rf "$HOME/bench/sites/test_site" "$HOME/bench/apps/ph_cas"
+            rm -rf "$HOME/bench/sites/test_site" "$HOME/bench/sites/snapshot_site" "$HOME/bench/apps/ph_cas"
+          fi
+          if [ -s "$SNAPSHOT" ]; then
+            echo "site: loading the saved frappe + erpnext database"
+            export SITE_SOURCE_SQL="$SNAPSHOT"
           fi
           bash ph_cas/scripts/bootstrap.sh "$HOME/bench"
           echo "$STAMP" > "$HOME/bench/.ci-stamp"
+          if [ ! -s "$SNAPSHOT" ]; then
+            echo "site: saving a frappe + erpnext database for the next runs"
+            cd "$HOME/bench"
+            bench new-site snapshot_site --db-root-password root --admin-password admin --install-app erpnext
+            DB="$(python3 -c 'import json;print(json.load(open("sites/snapshot_site/site_config.json"))["db_name"])')"
+            mysqldump -h127.0.0.1 -uroot -proot --single-transaction --routines "$DB" > "$SNAPSHOT.tmp"
+            mv "$SNAPSHOT.tmp" "$SNAPSHOT"
+            bench drop-site snapshot_site --db-root-password root --no-backup --force
+          fi
       - name: Run tests
         run: |
           export PATH="$HOME/.local/bin:$PATH"
