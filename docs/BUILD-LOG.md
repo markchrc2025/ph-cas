@@ -3,7 +3,7 @@
 One entry per bundle, newest first. Counts are the test totals on main after the merge.
 
 ## B78 Print pack for the paper check at 100%, and PDFs at true size (19 Nov 2026)
-- PR: (filled in at merge)
+- PR: #97
 - Built: Company > Sentire Ledger > Print pack for the paper check (ph_cas.invoicing.paper_check): one PDF with a cover (print at Actual size, a 100 mm bar drawn by the page engine, the checklist of what to look at on paper) and the latest invoice, credit note, collection receipt and 2307 (on the BIR blank). Each document page is stamped SPECIMEN, PAPER CHECK with a 100 mm bar in its bottom margin; the pages are rendered like the screen preview, so no print is counted and an original stays unprinted. Accounting Managers and System Managers; recorded in the audit trail.
 - Found by it: the Debian wkhtmltopdf (unpatched Qt) ignores --disable-smart-shrinking, so every PDF came out at about 77% of true size (the 100 mm bar measured 76.9 mm). The image now installs wkhtmltopdf 0.12.6.1-3 with patched Qt from the project's release, checked against its SHA-256; the build fails if the installed one is not the patched build.
 - Full pass: section paper_check (3 steps; one measures the bar in the PDF's drawing commands and must read 100 mm).
