@@ -2,6 +2,12 @@
 
 One entry per bundle, newest first. Counts are the test totals on main after the merge.
 
+## B75 A home per role set, the counter view, Your plan and Get help (after ECOUNT) (19 Nov 2026)
+- PR: (filled in at merge)
+- Built: the home page reads the user's role set (ph_cas.setup.roles.role_set). Owner and Bookkeeper: the whole business, with Record an expense and Import from a template among the Create actions. Cashier: Sales, Collections, Cash today and Items; today's sales, cash and bank, receivable and their own unposted invoices; the payables, the VAT and withholding position, the chart and the tax calendar are not shown and not sent. The Sales Invoice counter view: the customer, the lines, VAT, totals, payment and the Philippine sections only; on by default for a Cashier, a Full form / Counter view button for everyone, remembered on the browser; a required field still empty stays in sight. Help > Your plan: the tier, what it allows, what the site uses (users, companies, branches, invoices this month), the dates, and a link to ask the provider for a change. Help > Get help: the tutorials, a message to the provider that starts with the page and the user, and the page details to copy.
+- Full pass: section role_homes (4 steps). Checked in a browser as a Cashier and as the owner.
+- Tests: +1 (test_b75_role_homes).
+
 ## B74 Subsidiary ledgers and the daily cash position (after ECOUNT) (19 Nov 2026)
 - PR: (filled in at merge)
 - Built: the Accounts Receivable and Accounts Payable subsidiary ledgers in the loose-leaf books (Company > Loose-leaf books, tick "Add the customers' and suppliers' subsidiary ledgers"): one block per customer or supplier with its TIN and the balance forwarded, each invoice, credit note, collection receipt, bill and payment with its BIR reference and a running balance, and the TOTAL, which ties to the receivable (payable) accounts. Same page layout and BIR header as the six books; PAGES.txt counts them. The PH Cash Position report (ph_cas.books.cash): per cash and bank account the day's beginning balance, received, paid out and ending balance, with the total tied to the ledger and an ending balance below zero shown in red.

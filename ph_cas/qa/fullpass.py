@@ -1930,10 +1930,58 @@ def s_ledgers(r: Runner):
     r.step("the cash position: beginning + in - out = ending, and it ties to the ledger", cash)
 
 
+# ---- section: a home per role set, Your plan, Get help (B75) -------------------------------------
+def s_role_homes(r: Runner):
+    from ph_cas.home import dashboard
+    from ph_cas.hosting.tiers import my_plan
+    from ph_cas.setup import roles as R
+
+    co = VAT_CORP
+    email = "qa4.cashier@example.com"
+    if not frappe.db.exists("User", email):
+        frappe.get_doc({"doctype": "User", "email": email, "first_name": "QA4 Cashier", "send_welcome_email": 0, "role_profiles": [{"role_profile": R.CASHIER}]}).insert()
+
+    def cashier_home():
+        me = frappe.session.user
+        frappe.set_user(email)
+        try:
+            d = dashboard.get(company=co)
+        finally:
+            frappe.set_user(me)
+        r.expect(d["role_set"] == "Cashier", d["role_set"])
+        r.expect(set(d["figures"]) <= {"sales_today", "invoices_today", "cash", "receivable", "overdue_receivable", "drafts_mine"}, f"leaks {sorted(d['figures'])}")
+        r.expect("chart" not in d["sections"] and not d["monthly"] and not d["due"], "cashier sees the chart or the tax calendar")
+        r.expect([a["label"] for a in d["create_actions"]] == ["New sales invoice", "Record a collection"], f"{d['create_actions']}")
+        return f"cards {d['cards']}; no payables, VAT or withholding figures sent"
+    r.step("a Cashier's home: today's counter only", cashier_home)
+
+    def owner_home():
+        d = dashboard.get(company=co)
+        r.expect(d["role_set"] == "Owner" and "vat" in d["cards"] and "vat_position" in d["figures"], f"{d['role_set']} {d['cards']}")
+        r.expect(any(a.get("action") == "record_expense" for a in d["create_actions"]), "no Record an expense")
+        return f"{d['role_set']}: {len(d['cards'])} cards, sections {d['sections']}"
+    r.step("the owner's home: the whole business, with Record an expense and Import", owner_home)
+
+    def plan():
+        p = my_plan()
+        r.expect(p["tier"] and {x["label"] for x in p["rows"]} >= {"Users", "Invoices this month"}, f"{p}")
+        return f"{p['tier']}: " + ", ".join(f"{x['label']} {x['used']}/{x['limit'] or 'no limit'}" for x in p["rows"])
+    r.step("Help > Your plan: the tier, its limits and the use", plan)
+
+    def help_menu():
+        from ph_cas import branding
+
+        branding._navbar_settings(branding.product_name())
+        items = {x.item_label: x.action for x in frappe.get_single("Navbar Settings").help_dropdown if not x.hidden}
+        r.expect(items.get("Get help") == "ph_cas.get_help()" and items.get("Your plan") == "ph_cas.show_plan()", f"{items}")
+        return "Help menu: " + ", ".join(items)
+    r.step("the Help menu carries Get help and Your plan", help_menu)
+
+
 SECTIONS = {
     "companies": s_companies, "purchasing": s_purchasing, "sales": s_sales, "tasks": s_tasks, "inventory": s_inventory,
     "projects": s_projects, "assets": s_assets, "quality": s_quality, "crm": s_crm, "support": s_support,
-    "industries": s_industries, "forms": s_forms, "inventory_tracking": s_inventory_tracking, "roles": s_roles, "reports": s_reports, "go_live": s_go_live, "expense": s_expense, "imports": s_imports, "ledgers": s_ledgers,
+    "industries": s_industries, "forms": s_forms, "inventory_tracking": s_inventory_tracking, "roles": s_roles, "reports": s_reports, "go_live": s_go_live, "expense": s_expense, "imports": s_imports, "ledgers": s_ledgers, "role_homes": s_role_homes,
 }
 
 

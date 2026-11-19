@@ -76,3 +76,11 @@ To change a BIR field on many records at once (for example the VAT status of sev
 Company > Sentire Ledger > Loose-leaf books: tick "Add the customers' and suppliers' subsidiary ledgers" to get one page block per customer and per supplier, with the BIR header on every page.
 
 Report PH Cash Position: pick the day to see each cash and bank account's beginning balance, what came in, what went out and the ending balance. An ending balance below zero is shown in red: a receipt or deposit is missing, or more was paid out than the books show came in.
+
+## Home, the counter view and help
+
+Each user's home matches their role set. A Cashier sees today at the counter; an Owner or Bookkeeper sees the whole business.
+
+On a Sales Invoice, Counter view shows only what a sale needs; Full form shows everything. A Cashier starts in the counter view.
+
+Help > Your plan shows the plan, its limits and what the site uses now. Help > Get help opens the tutorials, writes to the provider with the page you are on, or copies the page details.

@@ -186,3 +186,31 @@ def check_subscription_status() -> dict:
     if lim["pilot_until"] and getdate(lim["pilot_until"]) < getdate(today()):
         out["pilot_ended"] = True
     return out
+
+
+TIER_NOTES = {
+    "Internal": "The provider's own site: no limits.",
+    "Solo": "One user, one company, up to 150 invoices a month.",
+    "Team": "Up to 5 users, one company with up to 3 branches, up to 1,000 invoices a month.",
+    "Business": "Up to 15 users, one company, any number of branches and invoices.",
+    "Enterprise": "No limits on users, companies, branches or invoices.",
+}
+
+
+@frappe.whitelist()
+def my_plan() -> dict:
+    """B75 (after ECOUNT's subscription page): Help > Your plan. The tier, what it allows, what the
+    site uses now, and the dates; the provider's contact for a change of plan."""
+    from ph_cas.branding import provider_name, support_email
+
+    u = usage()
+    rows = []
+    for key, label, used in (("max_users", _("Users"), u["users"]), ("max_companies", _("Companies"), u["companies"]),
+                             ("max_branches", _("Branches"), u["branches"]), ("monthly_invoice_limit", _("Invoices this month"), u["invoices_this_month"])):
+        lim = u[key]
+        rows.append({"label": label, "used": used, "limit": lim or None, "near": bool(lim and used >= 0.8 * lim)})
+    status = check_subscription_status()
+    return {"tier": u["tier"], "note": _(TIER_NOTES.get(u["tier"], "")), "rows": rows, "modules_on": u.get("modules_on") or [],
+            "subscription_until": u.get("subscription_until"), "pilot_until": u.get("pilot_until"),
+            "expired": status["expired"], "pilot_ended": status["pilot_ended"],
+            "provider": provider_name(), "support_email": support_email()}
