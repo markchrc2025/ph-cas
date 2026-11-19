@@ -1482,10 +1482,132 @@ def s_reports(r: Runner):
     r.step("audit trail finds a document's history", audit_by_document)
 
 
+# ---- section: go-live and opening balances (B71) ----------------------------------------------
+GO_LIVE_CO = "QA4 Bagong Simula Trading Corp."
+
+
+def s_go_live(r: Runner):
+    from frappe.utils import add_days
+
+    from ph_cas.golive import go_live_checklist
+
+    _p = _parties()
+    tile = item("QA4-TILE", stock=1, item_name="Floor tile 60x60 (box)", valuation_rate=250)
+    # a company that has not gone live yet: the first free one of QA4 Bagong Simula Trading Corp., ... 2, ... 3
+    n = 1
+    while frappe.db.exists("Journal Entry", {"company": GO_LIVE_CO + (f" {n}" if n > 1 else ""), "is_opening": "Yes", "docstatus": 1}):
+        n += 1
+    co = GO_LIVE_CO + (f" {n}" if n > 1 else "")
+    state = {}
+
+    def company():
+        c = _trading_company(co, f"Q4BS{n if n > 1 else ''}", "Periodic", "000-905-007")
+        return c.name
+    if not r.step("a fresh company that is about to go live", company):
+        return
+    cutover = add_days(today(), -1)
+
+    def je(posting_date, rows, opening=True):
+        return frappe.get_doc({"doctype": "Journal Entry", "company": co, "posting_date": posting_date, "voucher_type": "Opening Entry" if opening else "Journal Entry",
+                               "is_opening": "Yes" if opening else "No", "user_remark": "QA4 opening balances from the old books",
+                               "accounts": [{"cost_center": acc(co, "Main"), **x} for x in rows]})
+
+    rows = [
+        {"account": acc(co, "Cash"), "debit_in_account_currency": 100000},
+        {"account": acc(co, "Stock In Hand"), "debit_in_account_currency": 25000},
+        {"account": acc(co, "Debtors"), "party_type": "Customer", "party": _p[3], "debit_in_account_currency": 56000, "user_remark": "Old SI 001234 of 2026-10-15"},
+        {"account": acc(co, "Creditors"), "party_type": "Supplier", "party": _p[0], "credit_in_account_currency": 33600, "user_remark": "Old bill TW-889"},
+        {"account": acc(co, "Capital Stock"), "credit_in_account_currency": 147400},
+    ]
+
+    def no_date_yet():
+        frappe.db.set_value("Company", co, "ph_go_live_date", None)
+        frappe.clear_document_cache("Company", co)
+        return refused(je(cutover, rows).insert)
+    r.step("an opening entry is refused until the go-live date is set", no_date_yet)
+
+    def set_date():
+        c = frappe.get_doc("Company", co)
+        c.ph_go_live_date = today()
+        c.save()
+        frappe.clear_document_cache("Company", co)
+        before = {i["key"]: i["status"] for i in go_live_checklist(co)}
+        r.expect(before["go_live"] == "done" and before["balances"] == "missing", f"checklist {before}")
+        return f"go live {today()}, cut-over {cutover}; checklist before: {before}"
+    r.step("set the go-live date; the checklist shows balances missing", set_date)
+
+    def wrong_day():
+        return refused(je(add_days(cutover, -3), rows).insert)
+    r.step("an opening entry on another day is refused", wrong_day)
+
+    def opening_invoice_refused():
+        si = frappe.get_doc({"doctype": "Sales Invoice", "company": co, "customer": _p[3], "is_opening": "Yes", "posting_date": cutover, "set_posting_time": 1,
+                             "debit_to": acc(co, "Debtors"), "items": [{"item_code": item("QA4 Repair Service"), "qty": 1, "rate": 56000, "income_account": acc(co, "Temporary Opening")}]})
+        return refused(si.insert)
+    r.step("an opening invoice is refused (no BIR serial or VAT for old invoices)", opening_invoice_refused)
+
+    def opening_entry():
+        d = je(cutover, rows)
+        d.insert()
+        d.submit()
+        state["je"] = d.name
+        r.expect(not d.get("ph_backdate_reason"), "needed a back-date reason")
+        return f"{d.name} dated {d.posting_date}: cash 100,000, inventory 25,000, Marikina Builders owes 56,000, owe Tools Wholesale 33,600, capital 147,400"
+    r.step("opening Journal Entry on the cut-over day, no reason needed", opening_entry)
+
+    def opening_stock():
+        sr = frappe.get_doc({"doctype": "Stock Reconciliation", "company": co, "purpose": "Opening Stock", "posting_date": cutover, "set_posting_time": 1,
+                             "expense_account": acc(co, "Temporary Opening"),
+                             "items": [{"item_code": tile, "warehouse": acc(co, "Stores"), "qty": 100, "valuation_rate": 250}]})
+        sr.insert()
+        sr.submit()
+        from ph_cas.stock.periodic import book_value, counted_value, inventory_account
+
+        r.expect(counted_value(co, cutover) == 25000 and book_value(co, inventory_account(co), cutover) == 25000, "stock count and inventory account differ")
+        return f"{sr.name}: 100 boxes x 250 = 25,000 = inventory account"
+    r.step("opening stock count on the cut-over day", opening_stock)
+
+    def receivable_shows():
+        rows_ = _report("Accounts Receivable", {"company": co, "report_date": today(), "ageing_based_on": "Posting Date", "range": "30, 60, 90, 120"})
+        mine = [x for x in rows_ if x.get("voucher_no") == state["je"]]
+        r.expect(mine and flt(mine[0].get("outstanding")) == 56000, f"AR rows {mine}")
+        ap = _report("Accounts Payable", {"company": co, "report_date": today(), "ageing_based_on": "Posting Date", "range": "30, 60, 90, 120"})
+        r.expect(any(x.get("voucher_no") == state["je"] and flt(x.get("outstanding")) == 33600 for x in ap), "AP row missing")
+        return "AR 56,000 and AP 33,600 from the opening entry"
+    r.step("the old balances show in Accounts Receivable and Payable", receivable_shows)
+
+    def collect_old():
+        pe = frappe.get_doc({"doctype": "Payment Entry", "payment_type": "Receive", "company": co, "posting_date": today(), "party_type": "Customer", "party": _p[3],
+                             "paid_from": acc(co, "Debtors"), "paid_to": acc(co, "Cash"), "paid_amount": 56000, "received_amount": 56000,
+                             "reference_no": "QA4-OLD-OR", "reference_date": today(),
+                             "references": [{"reference_doctype": "Journal Entry", "reference_name": state["je"], "allocated_amount": 56000}]})
+        pe.insert()
+        pe.submit()
+        rows_ = _report("Accounts Receivable", {"company": co, "report_date": today(), "ageing_based_on": "Posting Date", "range": "30, 60, 90, 120"})
+        r.expect(not [x for x in rows_ if x.get("voucher_no") == state["je"]], "still open after collection")
+        return f"{pe.name} collected 56,000 against the opening balance; receipt serial {pe.get('bir_serial') or '-'}"
+    r.step("collect an old balance against the opening entry", collect_old)
+
+    def checklist_after():
+        items = {i["key"]: (i["status"], i["detail"]) for i in go_live_checklist(co)}
+        bad = {k: v for k, v in items.items() if v[0] == "missing"}
+        r.expect(not bad, f"still missing {bad}")
+        return "; ".join(f"{k}: {v[0]}" for k, v in items.items())
+    r.step("the go-live checklist is complete", checklist_after)
+
+    def tb():
+        f = frappe.db.get_value("Fiscal Year", {"year_start_date": ("<=", today()), "year_end_date": (">=", today())}, "name")
+        rows_ = _report("Trial Balance", {"company": co, "fiscal_year": f, "from_date": f"{getdate(today()).year}-01-01", "to_date": cutover})
+        tot = next(x for x in rows_ if "Total" in str(x.get("account")))
+        r.expect(abs(flt(tot.get("closing_debit")) - flt(tot.get("closing_credit"))) < 0.01, f"TB {tot}")
+        return f"trial balance at cut-over {flt(tot.get('closing_debit')):,.2f} both sides"
+    r.step("trial balance on the cut-over day balances", tb)
+
+
 SECTIONS = {
     "companies": s_companies, "purchasing": s_purchasing, "sales": s_sales, "tasks": s_tasks, "inventory": s_inventory,
     "projects": s_projects, "assets": s_assets, "quality": s_quality, "crm": s_crm, "support": s_support,
-    "industries": s_industries, "forms": s_forms, "inventory_tracking": s_inventory_tracking, "roles": s_roles, "reports": s_reports,
+    "industries": s_industries, "forms": s_forms, "inventory_tracking": s_inventory_tracking, "roles": s_roles, "reports": s_reports, "go_live": s_go_live,
 }
 
 

@@ -50,6 +50,19 @@ frappe.ui.form.on("Company", {
                     window.open(`/api/method/ph_cas.ops.releases.download_quarterly_notice?company=${encodeURIComponent(frm.doc.name)}&year=${v.year}&quarter=${v.quarter}`);
                 }, __("Notice of minor enhancements (RMO 9-2021 V.9)"));
             }, ph_cas_menu());
+            // B71: what is done and what is missing before the company goes live
+            frm.add_custom_button(__("Go-live checklist"), () => {
+                frappe.call({ method: "ph_cas.golive.go_live_checklist", args: { company: frm.doc.name } }).then((r) => {
+                    const icon = { done: "✓", missing: "✗", optional: "○" };
+                    const color = { done: "green", missing: "red", optional: "gray" };
+                    const rows = (r.message || []).map((i) => `<tr><td style="color:${color[i.status]};font-weight:600;padding:4px 8px">${icon[i.status]}</td>`
+                        + `<td style="padding:4px 8px">${i.route ? `<a href="${i.route}">${frappe.utils.escape_html(i.label)}</a>` : frappe.utils.escape_html(i.label)}</td>`
+                        + `<td style="padding:4px 8px;color:var(--text-muted)">${frappe.utils.escape_html(i.detail || "")}</td></tr>`).join("");
+                    frappe.msgprint({ title: __("Go-live checklist"), wide: true,
+                        message: `<table style="width:100%">${rows}</table><p style="margin-top:12px;color:var(--text-muted)">`
+                            + __("Opening balances: one Journal Entry, Entry Type Opening Entry, dated the day before go-live. Customers' and suppliers' open items go on Debtors and Creditors with the party and the old invoice number in the remark. Stock: an opening stock count on the same day.") + `</p>` });
+                });
+            }, ph_cas_menu());
             if (!frm.doc.enable_perpetual_inventory) {
                 // B69: periodic method; the year-end count becomes the inventory adjustment
                 frm.add_custom_button(__("Year-end inventory adjustment"), () => {

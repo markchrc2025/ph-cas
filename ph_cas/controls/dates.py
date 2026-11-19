@@ -53,6 +53,13 @@ def validate_posting_date(doc, method=None):
     posting = getdate(doc.posting_date)
     now = getdate(today())
 
+    # B71: opening entries dated the cut-over day (the day before go-live) need no reason;
+    # opening invoices and bills are refused there
+    from ph_cas.golive import check_opening
+
+    if check_opening(doc):
+        return
+
     if posting > now:
         frappe.throw(
             _("{0}: the posting date {1} is in the future. Documents carry the day they are posted.").format(

@@ -88,4 +88,7 @@ def setup_all():
     from ph_cas.setup import roles
 
     roles.setup()  # B69
+    from ph_cas import golive
+
+    golive.setup()  # B71
     frappe.db.commit()
