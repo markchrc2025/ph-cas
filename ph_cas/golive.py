@@ -117,7 +117,7 @@ def go_live_checklist(company: str) -> list[dict]:
 
     card = frappe.db.get_value("Account", {"company": company, "account_name": CARD_ACCOUNT, "root_type": "Liability"}, "name")
     out.append(_item("card", _("Credit card"), "done" if card else "optional",
-                     _("{0}: pay a bill or an expense with Mode of Payment Credit Card").format(card) if card else _("Run Set up Philippine company to add it"),
+                     _("{0}: pick it under Paid from when you record an expense paid by card").format(card) if card else _("Run Set up Philippine company to add it"),
                      f"/app/account/{card}" if card else f"/app/company/{company}"))
 
     with_profile = frappe.db.sql("select count(distinct parent) from `tabUser Role Profile` where parenttype = 'User'")[0][0] if frappe.db.table_exists("User Role Profile") else 0

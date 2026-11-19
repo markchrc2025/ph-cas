@@ -2049,11 +2049,14 @@ def s_counter(r: Runner):
     def card():
         setup_philippine_company(co)
         card_acc = acc(co, CARD_ACCOUNT)
-        r.expect(frappe.db.get_value("Account", card_acc, ["root_type", "account_type"]) == ("Liability", "Bank"), "card account")
-        r.expect(frappe.db.get_value("Mode of Payment Account", {"parent": "Credit Card", "company": co}, "default_account") == card_acc, "mode account")
+        r.expect(frappe.db.get_value("Account", card_acc, ["root_type", "account_type"]) in (("Liability", None), ("Liability", "")), "card account")
+        from ph_cas.expense import paid_from_query
+
+        offered = [x[0] for x in paid_from_query("Account", "", "name", 0, 50, {"company": co})]
+        r.expect(card_acc in offered and cash in offered, f"Paid from offers {offered}")
         before = cash_position(co)
         sup = supplier("QA4 Mang Jose Tricycle", supplier_type="Individual", ph_vat_status="Non-VAT", ph_payee_type="Individual", ph_last_name="SANTOS", ph_first_name="JOSE")
-        out = record_expense(company=co, supplier=sup, amount=300, description="Fuel on the company card", expense_account=acc(co, "Travel Expenses"), mode_of_payment="Credit Card")
+        out = record_expense(company=co, supplier=sup, amount=300, description="Fuel on the company card", expense_account=acc(co, "Travel Expenses"), paid_from=card_acc)
         gl = {g.account: flt(g.credit) for g in frappe.get_all("GL Entry", filters={"voucher_no": out["purchase_invoice"], "is_cancelled": 0}, fields=["account", "credit"]) if flt(g.credit)}
         r.expect(gl.get(card_acc) == 300, f"{gl}")
         after = cash_position(co)
@@ -2062,7 +2065,7 @@ def s_counter(r: Runner):
 
         st = {i["key"]: i["status"] for i in go_live_checklist(co)}
         r.expect(st.get("card") == "done", f"{st}")
-        return f"{card_acc} (liability, Bank type) with Mode of Payment Credit Card; a 300.00 card expense raises the card balance and leaves cash untouched"
+        return f"{card_acc} (a liability, no account type), offered under Paid from; a 300.00 card expense raises the card balance and leaves cash untouched"
     r.step("the company credit card: set up, used for an expense, kept out of cash", card)
 
     def cashier_sale():
@@ -2110,7 +2113,7 @@ def s_paper_check(r: Runner):
     def true_size():
         data, _found = paper_check.build(co)
         widths = paper_check.bar_widths_mm(data, 0)
-        bar = [w for w in widths if 60 <= w <= 120]
+        bar = widths
         r.expect(bar and all(99.0 <= w <= 101.0 for w in bar), f"the 100 mm bar is drawn {bar} mm wide: the PDF engine is not printing at true size")
         return f"the bar is {bar[0]} mm in the PDF (so a print at Actual size gives 100 mm)"
     r.step("the PDF is at true size: the 100 mm bar is 100 mm", true_size)

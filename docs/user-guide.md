@@ -87,11 +87,11 @@ Help > Your plan shows the plan, its limits and what the site uses now. Help > G
 
 ## A sale paid in full now
 
-On the Sales Invoice tick "Paid in full now" and pick how it was paid (Cash, Credit Card, or another mode). The invoice is then paid when you submit it: no payment entry and no collection receipt is needed, because the invoice is the evidence of a cash sale. Not for a customer who withholds tax: take that payment with a Payment Entry so the 2307 is recorded.
+On the Sales Invoice tick "Paid in full now" and pick how it was paid (Cash, or another mode with an account for the company). The invoice is then paid when you submit it: no payment entry and no collection receipt is needed, because the invoice is the evidence of a cash sale. Not for a customer who withholds tax: take that payment with a Payment Entry so the 2307 is recorded.
 
 ## The company credit card
 
-The Philippine setup adds a Credit Card account (what the company owes on its card) and the payment mode Credit Card. Record an expense with Mode of payment Credit Card puts it on the card. The card is not cash, so it is left out of the cash books and the cash position; paying the card bill is a transfer from the bank.
+The Philippine setup adds a Company Credit Card account (what the company owes on its card). In Record an expense, pick it under Paid from to put the expense on the card. The card is not cash, so it is left out of the cash books and the cash position; paying the card bill is a Journal Entry from the bank. (The payment mode Credit Card is for customers who pay you by card.)
 
 ## Check the prints on paper
 

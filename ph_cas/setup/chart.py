@@ -63,32 +63,25 @@ def ensure_accounts(company: str) -> list[str]:
     return created
 
 
-CARD_ACCOUNT = "Credit Card"
-CARD_MODE = "Credit Card"
+CARD_ACCOUNT = "Company Credit Card"
 
 
 def ensure_card(company: str) -> str | None:
-    """B76 (after ECOUNT's card register): a company credit card is a liability account (type Bank, so
-    it can pay a bill or an expense) with the Mode of Payment "Credit Card" pointing to it. A card
-    purchase raises what is owed on the card; paying the card bill is a transfer from the bank. It is
-    not cash: the cash books and the cash position leave it out (ph_cas.books.common.cash_accounts)."""
+    """B76 (after ECOUNT's card register): the company's own credit card, a plain liability account
+    under Current Liabilities. An expense or bill paid with it (Record an expense > Paid from)
+    raises what is owed on the card; paying the card bill is a Journal Entry from the bank. It has
+    no account type, so nothing takes it for a bank account (and so no Mode of Payment can point to
+    it: ERPNext's "Credit Card" mode is for customers paying by card). It is not cash: the cash
+    books and the cash position leave it out (ph_cas.books.common.cash_accounts)."""
     abbr = frappe.get_cached_value("Company", company, "abbr")
     name = _acc(abbr, CARD_ACCOUNT)
     parent = _acc(abbr, "Current Liabilities")
     if not frappe.db.exists("Account", name):
         if not frappe.db.exists("Account", parent):
             return None
-        acc = frappe.get_doc({"doctype": "Account", "account_name": CARD_ACCOUNT, "parent_account": parent, "company": company,
-                              "account_type": "Bank", "is_group": 0})
+        acc = frappe.get_doc({"doctype": "Account", "account_name": CARD_ACCOUNT, "parent_account": parent, "company": company, "is_group": 0})
         acc.flags.ignore_permissions = True
         acc.insert()
-    if not frappe.db.exists("Mode of Payment", CARD_MODE):
-        frappe.get_doc({"doctype": "Mode of Payment", "mode_of_payment": CARD_MODE, "type": "Bank", "enabled": 1}).insert(ignore_permissions=True)
-    mop = frappe.get_doc("Mode of Payment", CARD_MODE)
-    if not any(a.company == company for a in mop.accounts):
-        mop.append("accounts", {"company": company, "default_account": name})
-        mop.flags.ignore_permissions = True
-        mop.save()
     return name
 
 
