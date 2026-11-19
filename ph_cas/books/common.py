@@ -73,7 +73,9 @@ def party_tin(party_type, party, cache: dict) -> str:
 
 
 def cash_accounts(company) -> set:
-    return set(frappe.get_all("Account", filters={"company": company, "account_type": ("in", ["Cash", "Bank"]), "is_group": 0}, pluck="name"))
+    """Cash on hand and in banks. A credit card (a Bank-type account under liabilities, B76) is not cash."""
+    return set(frappe.get_all("Account", filters={"company": company, "account_type": ("in", ["Cash", "Bank"]), "is_group": 0,
+                                                    "root_type": ("!=", "Liability")}, pluck="name"))
 
 
 def period_totals(company, start, end) -> dict:

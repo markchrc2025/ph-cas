@@ -129,7 +129,7 @@ def _mapped(company: str, purposes: list[str]) -> list[str]:
 
 def _cash_accounts(company: str) -> list[str]:
     return frappe.get_all(
-        "Account", filters={"company": company, "is_group": 0, "account_type": ["in", ["Cash", "Bank"]]}, pluck="name"
+        "Account", filters={"company": company, "is_group": 0, "account_type": ["in", ["Cash", "Bank"]], "root_type": ["!=", "Liability"]}, pluck="name"
     )
 
 
