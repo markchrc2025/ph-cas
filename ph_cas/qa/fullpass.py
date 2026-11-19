@@ -1673,10 +1673,186 @@ def s_expense(r: Runner):
     r.step("no expense account and no item: refused (never cost of goods sold by default)", needs_account)
 
 
+# ---- section: Philippine import templates and batch edit (B73) ----------------------------------
+IMPORT_CO = "QA4 Bagong Bukas Trading Corp."
+
+
+def _csv(rows):
+    import csv as _c
+    import io as _io
+
+    b = _io.StringIO()
+    _c.writer(b).writerows(rows)
+    return b.getvalue()
+
+
+def s_imports(r: Runner):
+    from frappe.utils import add_days
+
+    from ph_cas import imports as I
+    from ph_cas.golive import go_live_checklist
+
+    n = 1
+    while frappe.db.exists("Journal Entry", {"company": IMPORT_CO + (f" {n}" if n > 1 else ""), "is_opening": "Yes", "docstatus": 1}):
+        n += 1
+    co = IMPORT_CO + (f" {n}" if n > 1 else "")
+    state = {}
+    P_HEAD = ["Customer or Supplier", "Name", "Payee type", "TIN", "Branch code", "Registered name", "Last name", "First name", "Middle name", "VAT status",
+              "Government agency or GOCC", "Top withholding agent", "Withholding category", "Over the threshold or VAT-registered", "Address line 1", "Address line 2", "ZIP code"]
+
+    def template():
+        t = I.template_csv("parties")
+        lines = t.splitlines()
+        r.expect(lines[0].startswith("Customer or Supplier,Name,Payee type,TIN") and lines[1].startswith("# required") and lines[2].startswith("# e.g."), t[:200])
+        for k in I.TEMPLATES:
+            I.template_csv(k)
+        return f"4 templates; parties header: {lines[0][:90]}..."
+    r.step("templates: header, a help row and an example row, both skipped on import", template)
+
+    def bad_file():
+        bad = _csv([P_HEAD,
+                    ["Customer", "QA4 Imp Bad TIN", "Non-individual", "000123456000", "", "", "", "", "", "VAT"],
+                    ["Supplier", "QA4 Imp No Names", "Individual", "000-777-001", "00000", "", "", "", "", "Non-VAT", "", "", "professional"],
+                    ["Customer", "QA4 Imp Bad VAT", "Non-individual", "000-777-002", "00000", "", "", "", "", "VAT registered"],
+                    ["Customer", "QA4 Imp Cust EWT", "Non-individual", "000-777-003", "00000", "", "", "", "", "VAT", "", "", "rent"],
+                    ["Customer", "QA4 Imp Dup", "Non-individual", "000-777-003", "00000", "", "", "", "", "VAT", "", "", ""],
+                    ["Supplier", "QA4 Imp Bad Branch", "Non-individual", "000-777-004", "0001", "", "", "", "", "VAT", "", "", "", "", "", "", "18070"]])
+        res = I.check_import("parties", csv_text=bad)
+        lines = {e["line"]: " ".join(e["errors"]) for e in res["errors"]}
+        want = {2: "branch code", 3: "last name", 4: "VAT status", 5: "for suppliers", 6: "twice", 7: "5 digits"}
+        miss = {k: v for k, v in want.items() if v not in lines.get(k, "")}
+        r.expect(not res["ok"] and not miss, f"missing {miss}; got {lines}")
+        r.expect("Line 2" in refused(I.run_import, "parties", csv_text=bad), "imported")
+        r.expect(not frappe.db.exists("Customer", "QA4 Imp Bad VAT"), "a bad file saved a record")
+        return f"{len(lines)} lines refused with reasons: " + "; ".join(f"{k}: {v[:50]}" for k, v in sorted(lines.items()))
+    r.step("a bad customer/supplier file is checked line by line and nothing is saved", bad_file)
+
+    good = _csv([P_HEAD,
+                 ["# e.g. Customer", "example row, skipped"],
+                 ["Customer", "QA4 Imp Pasig Hardware Inc.", "Non-individual", "000-777-101", "00000", "PASIG HARDWARE INC.", "", "", "", "VAT", "", "yes", "", "", "8 Caruncho Ave", "Pasig City", "1600"],
+                 ["Customer", "QA4 Imp Generic Customer", "Non-individual", "000111222", "00000", "", "", "", "", "Non-VAT", "", "", "", "", "", "Makati City", ""],
+                 ["Supplier", "QA4 Imp Atty. Reyes", "Individual", "000-777-102", "00000", "", "REYES", "MARIA", "CRUZ", "VAT", "", "", "professional", "yes", "2 Shaw Blvd", "Mandaluyong City", "1550"],
+                 ["Supplier", "QA4 Imp Cebu Tiles Corp.", "Non-individual", "000-777-103", "00000", "", "", "", "", "VAT", "", "", "", "", "", "Cebu City", "6000"]])
+
+    def parties():
+        res = I.check_import("parties", csv_text=good)
+        r.expect(res["ok"] and res["rows"] == 4, f"check {res}")
+        out = I.run_import("parties", csv_text=good)
+        s_ = frappe.get_doc("Supplier", "QA4 Imp Atty. Reyes")
+        r.expect((s_.ph_tin, s_.ph_payee_type, s_.ph_ewt_category, s_.ph_over_threshold, s_.ph_last_name) == ("000-777-102", "Individual", "professional", 1, "REYES"), f"supplier {s_.as_dict()}")
+        c = frappe.get_doc("Customer", "QA4 Imp Pasig Hardware Inc.")
+        r.expect((c.ph_tin, c.ph_vat_status, c.ph_top_withholding_agent) == ("000-777-101", "VAT", 1), "customer fields")
+        r.expect(frappe.db.get_value("Customer", "QA4 Imp Generic Customer", "ph_tin") == "000-111-222", "walk-in TIN")
+        return f"created {len(out['created'])}, updated {len(out['updated'])}: TINs formatted, the lawyer is an individual professional over the threshold"
+    r.step("import customers and suppliers with their BIR details", parties)
+
+    def reimport():
+        before = frappe.db.count("Supplier", {"supplier_name": ("like", "QA4 Imp%")})
+        out = I.run_import("parties", csv_text=good)
+        r.expect(len(out["updated"]) == 4 and not out["created"] and frappe.db.count("Supplier", {"supplier_name": ("like", "QA4 Imp%")}) == before, f"{out}")
+        return "the same file again updates the 4 records; no duplicates"
+    r.step("importing the same file again updates, never duplicates", reimport)
+
+    def company():
+        c = _trading_company(co, f"Q4BK{n if n > 1 else ''}", "Periodic", "000-905-008")
+        c.ph_go_live_date = today()
+        c.save()
+        frappe.clear_document_cache("Company", co)
+        return f"{co}: live {today()}"
+    if not r.step("a fresh company going live today", company):
+        return
+
+    def items():
+        csv_ = _csv([["Item code", "Item name", "Item group", "Unit", "Stock item", "VAT class", "Capital good", "Selling price", "Cost", "Income account", "Expense account"],
+                     ["QA4-IMP-TILE", "Imported tile 30x30 (box)", "", "Nos", "yes", "VATable", "", "320", "250", "Sales", ""],
+                     ["QA4-IMP-RICE", "Rice, regular milled (sack)", "", "Nos", "yes", "VAT-exempt", "", "1,950.00", "1700", "", ""],
+                     ["QA4-IMP-BAD", "Bad item", "", "", "", "VAT", "", "abc", "", "No Such Account", ""]])
+        res = I.check_import("items", company=co, csv_text=csv_)
+        r.expect(not res["ok"] and [e["line"] for e in res["errors"]] == [4], f"{res}")
+        out = I.run_import("items", company=co, csv_text="\n".join(csv_.splitlines()[:3]))
+        it = frappe.get_doc("Item", "QA4-IMP-RICE")
+        r.expect(it.ph_vat_class == "VAT-exempt" and it.is_stock_item == 1, "rice")
+        d = next((x for x in frappe.get_doc("Item", "QA4-IMP-TILE").item_defaults if x.company == co), None)
+        r.expect(d and d.income_account == acc(co, "Sales"), "tile income account")
+        return f"bad row refused (VAT class, price, account); {len(out['created']) + len(out['updated'])} items saved; rice VAT-exempt; tile sells to {d.income_account}"
+    r.step("import items with VAT class, price and the company's accounts", items)
+
+    B_HEAD = ["Account", "Debit", "Credit"]
+    bal = [B_HEAD, ["Cash", "100,000.00", ""], ["Stock In Hand", "25000", ""], ["Debtors", "56000", ""], ["Creditors", "", "33600"], ["Capital Stock", "", "147400"]]
+
+    def unbalanced():
+        b = [list(x) for x in bal]
+        b[1][1] = "100,500.00"
+        res = I.check_import("balances", company=co, csv_text=_csv(b))
+        r.expect(not res["ok"] and any("differ by 500" in x for x in res["summary"]), f"{res}")
+        return refused(I.run_import, "balances", company=co, csv_text=_csv(b))
+    r.step("an old trial balance that does not balance is refused", unbalanced)
+
+    def balances():
+        out = I.run_import("balances", company=co, csv_text=_csv(bal))
+        je = frappe.get_doc("Journal Entry", out["posted"][0])
+        r.expect(str(je.posting_date) == str(add_days(today(), -1)) and je.is_opening == "Yes", f"{je.posting_date} {je.is_opening}")
+        temp = next(a.debit for a in je.accounts if frappe.db.get_value("Account", a.account, "account_type") == "Temporary")
+        r.expect(flt(temp) == 22400, f"temporary opening {temp}")
+        state["bal_je"] = je.name
+        return f"{je.name} dated the cut-over day; receivables less payables (22,400) wait on Temporary Opening"
+    r.step("import the opening account balances", balances)
+
+    def open_items():
+        O_HEAD = ["Customer or Supplier", "Name", "Old invoice or bill no.", "Date", "Amount still owed"]
+        late = _csv([O_HEAD, ["Customer", "QA4 Imp Pasig Hardware Inc.", "SI 9999", str(today()), "1000"]])
+        msg = refused(I.run_import, "open_items", company=co, csv_text=late)
+        r.expect("after the cut-over day" in msg, msg)
+        ok = _csv([O_HEAD,
+                   ["Customer", "QA4 Imp Pasig Hardware Inc.", "SI 001201", "2026-09-30", "30000"],
+                   ["Customer", "QA4 Imp Pasig Hardware Inc.", "SI 001234", "2026-10-15", "26,000"],
+                   ["Supplier", "QA4 Imp Cebu Tiles Corp.", "CT-0457", "2026-10-20", "33600"]])
+        out = I.run_import("open_items", company=co, csv_text=ok)
+        state["oi_je"] = out["posted"][0]
+        rows_ = _report("Accounts Receivable", {"company": co, "report_date": today(), "ageing_based_on": "Posting Date", "range": "30, 60, 90, 120"})
+        ar = sum(flt(x.get("outstanding")) for x in rows_ if x.get("voucher_no") == state["oi_je"])
+        r.expect(ar == 56000, f"AR {ar}")
+        from ph_cas.golive import _temporary_opening_balance
+
+        t = _temporary_opening_balance(co, add_days(today(), -1))
+        r.expect(abs(t) < 0.01, f"temporary opening still {t}")
+        return f"refused a date after cut-over; {out['posted'][0]}: Pasig Hardware owes 56,000 on two old invoices, owe Cebu Tiles 33,600; Temporary Opening back to zero"
+    r.step("import the open invoices and bills; Temporary Opening clears", open_items)
+
+    def checklist():
+        st = {i["key"]: i["status"] for i in go_live_checklist(co)}
+        r.expect(st["balances"] == "done" and st["open_items"] == "done", f"{st}")
+        return f"balances: {st['balances']}, open items: {st['open_items']}"
+    r.step("the go-live checklist shows balances and open items done", checklist)
+
+    def batch():
+        out = I.batch_update("Supplier", ["QA4 Imp Atty. Reyes", "QA4 Imp Cebu Tiles Corp."], {"ph_payee_type": "Individual"})
+        r.expect(out["changed"] == ["QA4 Imp Atty. Reyes"] and [x["name"] for x in out["refused"]] == ["QA4 Imp Cebu Tiles Corp."], f"{out}")
+        out2 = I.batch_update("Supplier", ["QA4 Imp Atty. Reyes", "QA4 Imp Cebu Tiles Corp."], {"ph_vat_status": "VAT"})
+        r.expect(len(out2["changed"]) == 2, f"{out2}")
+        r.expect(refused(I.batch_update, "Supplier", ["QA4 Imp Cebu Tiles Corp."], {"ph_tin": "000-000-000"}), "a TIN was batch edited")
+        return f"2 changed; a corporation cannot become an individual without names: {out['refused'][0]['reason'][:80]}"
+    r.step("batch edit: each record through its own validation; the TIN is not batch editable", batch)
+
+    def cashier():
+        from ph_cas.setup import roles as R
+
+        email = "qa4.cashier@example.com"
+        if not frappe.db.exists("User", email):
+            frappe.get_doc({"doctype": "User", "email": email, "first_name": "QA4 Cashier", "send_welcome_email": 0, "role_profiles": [{"role_profile": R.CASHIER}]}).insert()
+        me = frappe.session.user
+        frappe.set_user(email)
+        try:
+            return refused(I.run_import, "parties", csv_text=_csv([P_HEAD, ["Supplier", "QA4 Imp Cashier Supplier", "Non-individual", "000-777-199", "00000", "", "", "", "", "VAT"]]))
+        finally:
+            frappe.set_user(me)
+    r.step("a Cashier cannot import suppliers", cashier)
+
+
 SECTIONS = {
     "companies": s_companies, "purchasing": s_purchasing, "sales": s_sales, "tasks": s_tasks, "inventory": s_inventory,
     "projects": s_projects, "assets": s_assets, "quality": s_quality, "crm": s_crm, "support": s_support,
-    "industries": s_industries, "forms": s_forms, "inventory_tracking": s_inventory_tracking, "roles": s_roles, "reports": s_reports, "go_live": s_go_live, "expense": s_expense,
+    "industries": s_industries, "forms": s_forms, "inventory_tracking": s_inventory_tracking, "roles": s_roles, "reports": s_reports, "go_live": s_go_live, "expense": s_expense, "imports": s_imports,
 }
 
 

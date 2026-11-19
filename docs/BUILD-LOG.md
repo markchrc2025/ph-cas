@@ -2,6 +2,13 @@
 
 One entry per bundle, newest first. Counts are the test totals on main after the merge.
 
+## B73 Philippine import templates and batch edit (after ECOUNT's Excel upload and Change Selected) (19 Nov 2026)
+- PR: (filled in at merge)
+- Built: ph_cas.imports. Four CSV templates (they open in Excel; Excel files are read too): customers and suppliers with TIN, branch code, payee type and the individual's names, VAT status, government and top withholding agent flags and the supplier's withholding category; items with VAT class, stock, capital good, price, cost and the company's income and expense accounts; opening account balances; open invoices and bills from the old books. "Check the file" reports every line's problems without saving; Import saves only when every line passes, all lines or none. A file imported again updates the same records. Opening balances post one opening Journal Entry dated the cut-over day; receivable and payable totals wait on Temporary Opening until the open items import lists them by customer and supplier, which clears it (the Go-live checklist shows it). Batch edit BIR fields on the Customer, Supplier and Item lists changes many records at once, each through its own validation; the TIN is not batch editable.
+- Where: Customer, Supplier and Item lists (Import from a template; Actions > Batch edit BIR fields); Company > Sentire Ledger > Import from a template.
+- Full pass: section imports (12 steps).
+- Tests: +1 (test_b73_imports).
+
 ## B72 Record an expense (after ECOUNT's payment journal) (19 Nov 2026)
 - PR: (filled in at merge)
 - Built: ph_cas.expense and a "Record an expense" button on the Purchase Invoice list. One dialog: paid to, what for, item or expense account, VAT class, the amount on the receipt, receipt number and date, paid from, mode of payment; Preview shows net of VAT, input VAT, EWT and cash paid without posting; Post makes one paid Purchase Invoice (Is Paid), so the tax engine, the 2307, the books and the returns treat it like any bill. VAT is worked back from the receipt for a VAT supplier on a VATable line; EWT is on the net. The expense account is chosen or comes from the item, never the company default (cost of goods sold). A Cashier may not record one.

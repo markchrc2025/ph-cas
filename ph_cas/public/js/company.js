@@ -63,6 +63,8 @@ frappe.ui.form.on("Company", {
                             + __("Opening balances: one Journal Entry, Entry Type Opening Entry, dated the day before go-live. Customers' and suppliers' open items go on Debtors and Creditors with the party and the old invoice number in the remark. Stock: an opening stock count on the same day.") + `</p>` });
                 });
             }, ph_cas_menu());
+            // B73: Philippine import templates (customers, suppliers, items, opening balances, open items)
+            frm.add_custom_button(__("Import from a template"), () => ph_cas.import_dialog({ company: frm.doc.name, kind: "balances" }), ph_cas_menu());
             if (!frm.doc.enable_perpetual_inventory) {
                 // B69: periodic method; the year-end count becomes the inventory adjustment
                 frm.add_custom_button(__("Year-end inventory adjustment"), () => {

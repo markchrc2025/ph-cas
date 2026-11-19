@@ -64,3 +64,9 @@ Old invoices are not re-entered as invoices. Company > Sentire Ledger > Go-live 
 ## Record an expense
 
 Purchase Invoice list > Record an expense: for a bill already paid (fares, supplies, a notarial fee). Enter who was paid, what for, the expense account, the amount on the receipt and where the money came from; Preview shows the input VAT, the tax withheld and the cash paid. Post makes a paid bill, so the 2307 and the returns pick it up.
+
+## Import from a template
+
+Customer, Supplier or Item list > Import from a template (or Company > Sentire Ledger > Import from a template for opening balances). Download the template, fill it in Excel, attach it and press Check the file: every line with a problem is listed with the reason, and nothing is saved. Import saves only when every line passes. Import in this order when going live: customers and suppliers, items, opening account balances, then open invoices and bills. The go-live date must be set first; opening entries are dated the day before it.
+
+To change a BIR field on many records at once (for example the VAT status of several suppliers), tick them on the list and choose Actions > Batch edit BIR fields. A record the change does not fit is refused and named; the others change.
