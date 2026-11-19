@@ -6,6 +6,11 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      publish:
+        description: "Push the image to GHCR (untick to only test that it builds)"
+        type: boolean
+        default: true
 # Only the newest main needs an image: a newer push cancels an older build.
 concurrency:
   group: image-${{ github.ref }}
@@ -34,8 +39,12 @@ jobs:
       - uses: docker/build-push-action@v6
         with:
           context: .
-          push: true
+          push: ${{ github.event_name == 'push' || inputs.publish }}
           platforms: linux/amd64
+          # JavaScript/CSS are compiled natively on the Arm runner (esbuild crashes under
+          # QEMU); see the ASSETS note at the top of the Dockerfile.
+          build-args: |
+            ASSETS=native-assets
           tags: |
             ghcr.io/${{ github.repository }}:latest
             ghcr.io/${{ github.repository }}:${{ github.sha }}
