@@ -26,8 +26,8 @@ Y = allowed, N = refused, R = read only. "Enforced by" names where the rule live
 | 7 | Sales invoice: create and submit | Y | Y | Y | Y | Accounts User | LDG-RP-014, 015 |
 | 8 | Sales invoice: cancel an issued one | N | N | N | N | invoicing.rules.refuse_cancel (all roles) | LDG-RP-016 |
 | 9 | Collection (Payment Entry, Receive) | Y | Y | Y | Y | Accounts User | LDG-RP-017 |
-| 10 | Payment out (Payment Entry, Pay) | Y | Y | Y | N | roles.cashier_limit | LDG-RP-018, 019 |
-| 11 | Bill (Purchase Invoice), Record an expense | Y | Y | Y | N | roles.cashier_limit | LDG-RP-020, 021 |
+| 10 | Payment out (Payment Entry, Pay) | Y | Y | Y | N | roles.cashier_limit | LDG-RP-018, 020 |
+| 11 | Bill (Purchase Invoice), Record an expense | Y | Y | Y | N | roles.cashier_limit | LDG-RP-019, 021 |
 | 12 | Journal Entry dated today | Y | Y | Y | N | roles.cashier_limit | LDG-RP-022, 023 |
 | 13 | Journal Entry or bill with an earlier date (with a reason) | Y | Y | N | N | controls.dates (Accounting Manager role) | LDG-RP-024, 025 |
 | 14 | Accounting Period (close a month) | Y | Y | N | N | controls.dates.manager_only_permission | LDG-RP-026, 027 |

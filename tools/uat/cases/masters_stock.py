@@ -35,7 +35,7 @@ CASES = [
          ["New Stock Entry as LDG-MS-006 with Edit Posting Date on and date T-1; Save"], "None",
          ["Message: \"Stock Entry: Edit Posting Date and Time is not available. Documents carry the day they are posted.\""], "P1", "LDG-MS-004"),
     case("LDG-MS-008", "Sales Invoice", I, "Staff sells from stock and the quantity drops", "Staff A", "LDG-MS-006 done",
-         ["New sales invoice: UAT-PN-001 Juan Dela Cruz (or any non-VAT walk-in); UAT-MS-004-NAIL Qty 5 at 99.00; tick Update Stock (warehouse Stores - TTC); Manual invoice number UAT-MS-008; Submit"],
+         ["New sales invoice: UAT-PN-001 Juan Dela Cruz; UAT-MS-004-NAIL Qty 5 at 99.00; tick Update Stock (warehouse Stores - TTC); Manual invoice number UAT-MS-008; Submit"],
          "None", ["Working: 5 x 99.00 = 495.00 + 59.40 VAT = 554.40", "Grand Total 554.40", "Stock Balance: 45 left"], "P1", "LDG-MS-006",
          "IRREVERSIBLE: issues a BIR invoice and moves stock"),
     case("LDG-MS-009", "Stock Reconciliation", I, "The Accounting Manager counts and corrects the stock", "Accounting Manager A", "LDG-MS-008 done",

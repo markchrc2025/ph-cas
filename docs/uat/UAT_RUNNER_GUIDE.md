@@ -28,12 +28,30 @@ Follow the order in the master checklist. For each workbook:
 
 1. Open a chat in the Sentire Software Project and say: `Run UAT for LDG-<task>`. Attach the workbook from `docs/uat/<slug>/`, or give its repo path.
 2. The runner shows its plan: the cases, their side effects and anything marked IRREVERSIBLE. Approve it, or strike cases.
-3. The runner signs in as the role each case names, one browser profile per account, and runs the cases in order.
-   - It marks columns M to S only.
-   - It logs one Bug per failure in LDG, titled "[UAT] <case id>: <failure>".
-4. Cases that start with HUMAN: (printing, opening a downloaded file in another program) are done by you. The runner marks them from what you report.
-5. At the end the runner commits the marked copy to `docs/uat/<slug>/results/`, comments the totals on the UAT task, and recommends Ready, Ready with conditions, or Not ready.
-6. You decide. Set the UAT task to Done to accept the workbook. Otherwise leave it In review and send it back.
+3. The runner signs in as the role each case names.
+   - One browser profile is enough: it signs out and signs in again per role.
+   - The counter view choice (Sales Invoice, Payment Entry) is stored per browser, not per user, and signing out does not clear it. LDG-RH-004 to 006 and LDG-PN-013 and 014 clear it themselves.
+4. The runner tests only. It never fixes, changes data a case does not ask for, edits columns A to L, restarts or deploys staging, or retries a failed step another way.
+5. The runner records results in columns M to S only, exactly as the workbook's header names them:
+
+   | Column | Header | What goes in |
+   | --- | --- | --- |
+   | M | UAT Status | Passed, Failed, Blocked or Not Tested |
+   | N | Actual Result | What happened, with messages word for word and the figures |
+   | O | Remarks | Notes, evidence (screenshot names), what a Blocked case is missing |
+   | P | Severity | Critical, High, Medium or Low, for each Failed case |
+   | Q | Bug ID | The LDG Bug key of the failure |
+   | R | Tested On | Date and time |
+   | S | Tested By | The tester |
+
+6. Every failure is logged as one Bug in LDG: "[UAT] <case id>: <what failed>", labels uat and uat-fail, parent the workbook's UAT task. Its key goes in column Q.
+7. Every gap is logged as a Task in LDG: "[UAT gap] <what is missing>", labels uat and uat-gap, parent the workbook's UAT task. A gap is something a user needs or trips over that no case covers. A gap never changes a case's status.
+8. Cases that start with HUMAN: (printing, opening a downloaded file) are done by you. The runner marks them from what you report.
+9. At the end of the workbook, the runner:
+   - sends you the marked workbook, named as the original with "_RESULTS" before .xlsx, and commits it to `docs/uat/<slug>/results/`;
+   - comments the totals, Bug keys and gap keys on the UAT task;
+   - recommends Ready, Ready with conditions, or Not ready.
+10. You decide. Set the UAT task to Done to accept the workbook. Otherwise leave it In review and send it back.
 
 ## 4. Fixes and retests
 
