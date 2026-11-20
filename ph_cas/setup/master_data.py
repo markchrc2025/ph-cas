@@ -203,3 +203,12 @@ def payee_name_parts(party_doctype: str, party: str) -> dict:
     if d.get("ph_payee_type") == "Individual":
         return {"registered_name": "", "last": d.get("ph_last_name") or "", "first": d.get("ph_first_name") or "", "middle": d.get("ph_middle_name") or ""}
     return {"registered_name": d.get("ph_registered_name") or d.get("customer_name") or d.get("supplier_name") or d.name, "last": "", "first": "", "middle": ""}
+
+
+def leaf_group(doctype: str, preferred: str | None = None) -> str | None:
+    """B80: a group a party can belong to. ERPNext v16.60 refuses a group-type Supplier or
+    Customer Group (such as "All Supplier Groups"), so take the preferred one if it is a leaf,
+    else the first leaf group on the site."""
+    if preferred and frappe.db.exists(doctype, {"name": preferred, "is_group": 0}):
+        return preferred
+    return frappe.db.get_value(doctype, {"is_group": 0}, "name", order_by="lft asc")

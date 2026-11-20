@@ -2,6 +2,13 @@
 
 One entry per bundle, newest first. Counts are the test totals on main after the merge.
 
+## B80 Frappe v16.60.2 and ERPNext v16.60.0; no update popup for clients (20 Nov 2026)
+- Asked by the owner (20 Nov 2026): live showed Administrator "New updates are available: Frappe Framework v16.60.2 (contains 1 security fix), ERPNext v16.60.0".
+- Pins: Frappe v16.55.2 to v16.60.2, ERPNext v16.54.0 to v16.60.0 (Dockerfile, scripts/bootstrap.sh, VERSIONS.md). Same major version (v16); the full suite re-runs on the new pins in CI.
+- System Settings "Disable System Update Notification" is now forced on (controls.security FORCED_SYSTEM_SETTINGS), so no client site shows the popup and a System Manager cannot turn it back on. Sentire updates every site through a pinned bundle instead.
+- Found by the full suite on the new pins: ERPNext v16.60 refuses a group-type Supplier or Customer Group ("Cannot select a Group type Supplier Group"). The import templates fell back to "All Supplier Groups" and "All Customer Groups", so importing suppliers would have failed on live after the update. New master_data.leaf_group picks the settings' group if it is a leaf, else the first leaf group; imports, the QA seed and the full pass use it.
+- Tests: +1 (test_b05_security.test_no_update_popup_for_clients).
+
 ## B79 Four role sets, the Reports page, the modules note and the full UAT checklist (20 Nov 2026)
 - PR: (this one)
 - Asked by the owner (20 Nov 2026): every role tested in every module; "where are the Reports?"; "why did the Administrator lose the modules?".
