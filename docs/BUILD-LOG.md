@@ -9,7 +9,7 @@ One entry per bundle, newest first. Counts are the test totals on main after the
 - Users still see Sentire Ledger only (B38). The licences line in About, the registration pack and the sworn statement now name "Sentire Framework v16.60.2-sentire.1 (based on Frappe Framework 16.60.2)" (audit.header.framework_label).
 - System Settings "Disable Product Suggestion" is now forced on (no Frappe CRM or Helpdesk ads for System Managers).
 - Docs: docs/LEGAL-FRAMEWORK.md, docs/runbooks/framework-upstream-sync.md. D1 updated.
-- Tests: +9 (test_b81_framework). UAT: tools/uat/cases/framework_branding.py (6 cases), to hand off after the current UAT run.
+- Tests: +10 (test_b81_framework). UAT: tools/uat/cases/framework_branding.py (6 cases), to hand off after the current UAT run.
 ## B82 Fixes from the first full UAT run (21 Nov 2026)
 - Asked by the owner (21 Nov 2026): fix every finding of the UAT run on 0.1.0+1d56e40d2b40 (227 cases: 158 passed, 37 failed, 14 blocked, 18 not tested; 37 bugs, 25 gaps), then retest.
 - Controls: saving an enabled approval chain switches approval chains on for the business, so the chain is never silently ignored (LDG-205). A journal entry whose debits and credits differ is refused on save, not only on submit (LDG-208). A credit note against an invoice with an outstanding balance reduces that balance by default (LDG-197).

@@ -63,18 +63,41 @@ class TestB81Framework(IntegrationTestCase):
         self.assertIn("(MIT)", text)
 
     def test_login_page_shows_the_product_not_frappe(self):
+        import os
+
+        from frappe.www import login
+
+        from frappe.utils import set_request
+
         frappe.set_user("Guest")
         try:
-            from frappe.website.serve import get_response_content
+            set_request(method="GET", path="/login")
+            context = frappe._dict()
+            login.get_context(context)
+            # the full page needs built assets, which the CI bench skips (same as B38)
+            html = None
+            if os.path.exists(os.path.join(frappe.local.sites_path, "assets", "assets.json")):
+                from frappe.website.serve import get_response_content
 
-            html = get_response_content("login")
+                html = get_response_content("login")
         finally:
             frappe.set_user("Administrator")
-        text = visible_text(html)
-        self.assertIn("Sentire Ledger", text)
-        self.assertNotIn("Frappe", text)
-        self.assertNotIn("ERPNext", text)
-        self.assertIn('content="sentire-framework"', html)
+        self.assertEqual(context.app_name, "Sentire Ledger")
+        self.assertIn("ph_cas", str(context.logo))
+        if html:
+            text = visible_text(html)
+            self.assertIn("Sentire Ledger", text)
+            self.assertNotIn("Frappe", text)
+            self.assertNotIn("ERPNext", text)
+            self.assertIn('content="sentire-framework"', html)
+
+    def test_page_template_carries_the_sentire_generator(self):
+        from frappe import get_app_path
+
+        with open(get_app_path("frappe", "templates", "base.html")) as f:
+            base = f.read()
+        self.assertIn('content="sentire-framework"', base)
+        self.assertNotIn("frappeframework.com", base)
 
     def test_boot_shows_the_product_not_frappe(self):
         from frappe.boot import get_bootinfo
