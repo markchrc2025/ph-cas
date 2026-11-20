@@ -58,13 +58,13 @@ def case(cid, module, issue, scenario, role, pre, steps, data, expected, prio, d
 # The order a UAT session runs the workbooks in: later workbooks use data the earlier ones made.
 RUN_ORDER = [
     ("setup-company", "Company setup and modules"),
+    ("paid-now-card-counter", "Paid in full now, credit card and counter views"),
+    ("record-expense", "Record an expense"),
     ("roles-permissions", "Roles and permissions"),
     ("role-homes", "Role homes, counter view and Help menu"),
     ("reports-page", "Reports page"),
-    ("paid-now-card-counter", "Paid in full now, credit card and counter views"),
     ("sales-collections", "Sales and collections"),
     ("masters-stock", "Masters and stock"),
-    ("record-expense", "Record an expense"),
     ("purchases-payables", "Purchases and payables"),
     ("approvals", "Approvals"),
     ("journals-periods", "Journals and periods"),

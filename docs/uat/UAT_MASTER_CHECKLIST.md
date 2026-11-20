@@ -1,29 +1,29 @@
 # Sentire Ledger: full UAT checklist
 
-Build 0.1.0+1d56e40d2b40 (commit 6d212e8). Made by tools/uat/make_workbooks.py; do not edit by hand.
+Build 0.1.0+1d56e40d2b40 (commit 7c16bd8). Made by tools/uat/make_workbooks.py; do not edit by hand.
 
 Run the workbooks in this order, one UAT chat per workbook ("Run UAT for LDG-n"), on staging restarted once before the first. Later workbooks use data the earlier ones made; never deploy to staging during the run. The role sets and what each may do: [ROLE_MATRIX.md](ROLE_MATRIX.md). How to run: [UAT_RUNNER_GUIDE.md](UAT_RUNNER_GUIDE.md).
 
 | # | Workbook | UAT task | Cases | P1 | HUMAN | Owner A | Accounting Manager A | Accountant A | Staff A | Accountant B |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 1 | [Company setup and modules](setup-company/UAT_LDG_setup-company_0.1.0+1d56e40d2b40.xlsx) | LDG-163 | 8 | 2 | 0 | 6 | 1 | 1 | 0 | 0 |
-| 2 | [Roles and permissions](roles-permissions/UAT_LDG_roles-permissions_0.1.0+1d56e40d2b40.xlsx) | LDG-154 | 40 | 29 | 0 | 5 | 11 | 15 | 13 | 4 |
-| 3 | [Role homes, counter view and Help menu](role-homes/UAT_LDG_role-homes_0.1.0+1d56e40d2b40.xlsx) | LDG-147 | 10 | 2 | 0 | 4 | 1 | 2 | 3 | 0 |
-| 4 | [Reports page](reports-page/UAT_LDG_reports-page_0.1.0+1d56e40d2b40.xlsx) | LDG-155 | 12 | 7 | 1 | 6 | 1 | 3 | 3 | 0 |
-| 5 | [Paid in full now, credit card and counter views](paid-now-card-counter/UAT_LDG_paid-now-card-counter_0.1.0+1d56e40d2b40.xlsx) | LDG-148 | 15 | 7 | 0 | 10 | 0 | 1 | 3 | 1 |
-| 6 | [Sales and collections](sales-collections/UAT_LDG_sales-collections_0.1.0+1d56e40d2b40.xlsx) | LDG-156 | 15 | 9 | 1 | 3 | 1 | 8 | 2 | 1 |
-| 7 | [Masters and stock](masters-stock/UAT_LDG_masters-stock_0.1.0+1d56e40d2b40.xlsx) | LDG-161 | 11 | 7 | 0 | 0 | 2 | 6 | 4 | 1 |
-| 8 | [Record an expense](record-expense/UAT_LDG_record-expense_0.1.0+1d56e40d2b40.xlsx) | LDG-144 | 9 | 7 | 0 | 0 | 0 | 7 | 1 | 1 |
+| 1 | [Company setup and modules](setup-company/UAT_LDG_setup-company_0.1.0+1d56e40d2b40.xlsx) | LDG-163 | 8 | 2 | 1 | 6 | 1 | 1 | 0 | 0 |
+| 2 | [Paid in full now, credit card and counter views](paid-now-card-counter/UAT_LDG_paid-now-card-counter_0.1.0+1d56e40d2b40.xlsx) | LDG-148 | 15 | 7 | 0 | 10 | 0 | 1 | 3 | 1 |
+| 3 | [Record an expense](record-expense/UAT_LDG_record-expense_0.1.0+1d56e40d2b40.xlsx) | LDG-144 | 9 | 7 | 0 | 0 | 0 | 7 | 1 | 1 |
+| 4 | [Roles and permissions](roles-permissions/UAT_LDG_roles-permissions_0.1.0+1d56e40d2b40.xlsx) | LDG-154 | 40 | 29 | 0 | 6 | 11 | 15 | 13 | 4 |
+| 5 | [Role homes, counter view and Help menu](role-homes/UAT_LDG_role-homes_0.1.0+1d56e40d2b40.xlsx) | LDG-147 | 10 | 2 | 0 | 4 | 1 | 2 | 3 | 0 |
+| 6 | [Reports page](reports-page/UAT_LDG_reports-page_0.1.0+1d56e40d2b40.xlsx) | LDG-155 | 12 | 7 | 1 | 6 | 1 | 3 | 3 | 0 |
+| 7 | [Sales and collections](sales-collections/UAT_LDG_sales-collections_0.1.0+1d56e40d2b40.xlsx) | LDG-156 | 15 | 9 | 1 | 3 | 1 | 8 | 2 | 1 |
+| 8 | [Masters and stock](masters-stock/UAT_LDG_masters-stock_0.1.0+1d56e40d2b40.xlsx) | LDG-161 | 11 | 7 | 0 | 0 | 2 | 6 | 4 | 1 |
 | 9 | [Purchases and payables](purchases-payables/UAT_LDG_purchases-payables_0.1.0+1d56e40d2b40.xlsx) | LDG-157 | 11 | 7 | 1 | 0 | 1 | 7 | 2 | 1 |
 | 10 | [Approvals](approvals/UAT_LDG_approvals_0.1.0+1d56e40d2b40.xlsx) | LDG-162 | 10 | 6 | 0 | 0 | 5 | 5 | 1 | 0 |
 | 11 | [Journals and periods](journals-periods/UAT_LDG_journals-periods_0.1.0+1d56e40d2b40.xlsx) | LDG-158 | 8 | 4 | 0 | 3 | 2 | 3 | 1 | 0 |
 | 12 | [BIR returns](bir-returns/UAT_LDG_bir-returns_0.1.0+1d56e40d2b40.xlsx) | LDG-159 | 17 | 10 | 0 | 1 | 5 | 10 | 1 | 1 |
-| 13 | [Books and audit](books-audit/UAT_LDG_books-audit_0.1.0+1d56e40d2b40.xlsx) | LDG-160 | 14 | 10 | 1 | 3 | 2 | 8 | 1 | 0 |
-| 14 | [Subsidiary ledgers and cash position](ledgers-cash-position/UAT_LDG_ledgers-cash-position_0.1.0+1d56e40d2b40.xlsx) | LDG-146 | 10 | 7 | 0 | 5 | 0 | 2 | 1 | 2 |
-| 15 | [Import templates and batch edit](import-templates/UAT_LDG_import-templates_0.1.0+1d56e40d2b40.xlsx) | LDG-145 | 16 | 11 | 0 | 6 | 0 | 8 | 1 | 1 |
+| 13 | [Books and audit](books-audit/UAT_LDG_books-audit_0.1.0+1d56e40d2b40.xlsx) | LDG-160 | 14 | 10 | 2 | 3 | 2 | 8 | 1 | 0 |
+| 14 | [Subsidiary ledgers and cash position](ledgers-cash-position/UAT_LDG_ledgers-cash-position_0.1.0+1d56e40d2b40.xlsx) | LDG-146 | 10 | 7 | 5 | 5 | 0 | 2 | 1 | 2 |
+| 15 | [Import templates and batch edit](import-templates/UAT_LDG_import-templates_0.1.0+1d56e40d2b40.xlsx) | LDG-145 | 16 | 11 | 1 | 6 | 0 | 8 | 1 | 1 |
 | 16 | [Go-live and opening balances](go-live/UAT_LDG_go-live_0.1.0+1d56e40d2b40.xlsx) | LDG-143 | 14 | 10 | 0 | 12 | 0 | 1 | 0 | 1 |
-| 17 | [Print pack for the paper check](paper-check-pack/UAT_LDG_paper-check-pack_0.1.0+1d56e40d2b40.xlsx) | LDG-149 | 7 | 6 | 2 | 5 | 0 | 1 | 0 | 1 |
-| | **Total** | | **227** | **141** | **6** | **69** | **32** | **88** | **37** | **15** |
+| 17 | [Print pack for the paper check](paper-check-pack/UAT_LDG_paper-check-pack_0.1.0+1d56e40d2b40.xlsx) | LDG-149 | 7 | 6 | 4 | 5 | 0 | 1 | 0 | 1 |
+| | **Total** | | **227** | **141** | **16** | **70** | **32** | **88** | **37** | **15** |
 
 Role columns count the cases that sign in as that account (in the Role column or in the steps).
 
@@ -31,14 +31,38 @@ Role columns count the cases that sign in as that account (in the Role column or
 
 | Case | Workbook | Priority | Role | Scenario |
 | --- | --- | --- | --- | --- |
-| LDG-SU-001 | setup-company | P1 | Owner A | The Owner runs Set up Philippine company on a fresh company |
-| LDG-SU-002 | setup-company | P2 | Accountant A | Only managers create a BIR series |
+| LDG-SU-001 | setup-company | P1 | Owner A | Set up Philippine company is safe to run again on a company already set up |
+| LDG-SU-002 | setup-company | P2 | Accountant A | The Accountant cannot create a BIR series |
 | LDG-SU-003 | setup-company | P1 | Accounting Manager A | A disabled series stops invoicing until it is enabled again |
-| LDG-SU-004 | setup-company | P2 | Owner A | The registration pack downloads |
-| LDG-SU-005 | setup-company | P2 | Owner A | Your plan shows the user count including the UAT users |
+| LDG-SU-004 | setup-company | P2 | Owner A | HUMAN: the registration pack holds the expected files |
+| LDG-SU-005 | setup-company | P2 | Owner A | Your plan counts a new user and stops counting it when disabled |
 | LDG-SU-006 | setup-company | P2 | Owner A | An industry preset sets the starting modules |
-| LDG-SU-007 | setup-company | P2 | Owner A | A switched-off module's page by URL goes Home with a notice |
-| LDG-SU-008 | setup-company | P3 | Owner A | A user without a role set is flagged on the go-live checklist |
+| LDG-SU-007 | setup-company | P2 | Owner A | A switched-off module's page opened by URL goes Home with a notice |
+| LDG-SU-008 | setup-company | P3 | Owner A | The go-live checklist counts the users that have a role set, and not one without |
+| LDG-PN-001 | paid-now-card-counter | P2 | Owner A | Owner adds a walk-in customer, a withholding customer and a service item |
+| LDG-PN-002 | paid-now-card-counter | P2 | Owner A | Owner notes the starting numbers before the cash sale |
+| LDG-PN-003 | paid-now-card-counter | P1 | Staff A | The Staff user makes a sale paid in full now |
+| LDG-PN-004 | paid-now-card-counter | P1 | Owner A | No collection receipt and no payment entry are made for the paid sale |
+| LDG-PN-005 | paid-now-card-counter | P1 | Owner A | The paid sale posts cash, sales and output VAT |
+| LDG-PN-006 | paid-now-card-counter | P1 | Owner A | The cash sale reaches the Cash Receipts Book and the cash position |
+| LDG-PN-007 | paid-now-card-counter | P1 | Owner A | A customer who withholds tax cannot be paid in full now |
+| LDG-PN-008 | paid-now-card-counter | P2 | Owner A | A credit note from a paid sale is not itself paid now; ticking it is refused |
+| LDG-PN-009 | paid-now-card-counter | P2 | Owner A | A payment mode with no account for the company is refused |
+| LDG-PN-010 | paid-now-card-counter | P2 | Owner A | The Philippine setup has added the company credit card |
+| LDG-PN-011 | paid-now-card-counter | P1 | Accountant A | An expense paid by card goes on the card, not on cash |
+| LDG-PN-012 | paid-now-card-counter | P3 | Owner A | The go-live checklist shows the credit card |
+| LDG-PN-013 | paid-now-card-counter | P2 | Staff A | A Staff user's Payment Entry opens in the counter view |
+| LDG-PN-014 | paid-now-card-counter | P3 | Staff A | The Payment Entry view can be switched and is remembered |
+| LDG-PN-015 | paid-now-card-counter | P1 | Accountant B | Company B's user cannot open Company A's paid sale by its link |
+| LDG-EX-001 | record-expense | P2 | Accountant A | Accountant adds an individual lawyer and a non-VAT driver as suppliers |
+| LDG-EX-002 | record-expense | P1 | Accountant A | Preview works the VAT back from the receipt and the EWT on the net, without posting |
+| LDG-EX-003 | record-expense | P1 | Accountant A | Post makes one paid bill |
+| LDG-EX-004 | record-expense | P1 | Accountant A | The bill's postings are right |
+| LDG-EX-005 | record-expense | P1 | Accountant A | The expense reaches the books |
+| LDG-EX-006 | record-expense | P2 | Accountant A | A small fare from a non-VAT driver carries no VAT and no EWT |
+| LDG-EX-007 | record-expense | P1 | Accountant A | Without an expense account or item the expense is refused (never cost of goods sold by default) |
+| LDG-EX-008 | record-expense | P1 | Staff A | A Staff user cannot record an expense |
+| LDG-EX-009 | record-expense | P1 | Accountant B | Company B's user cannot open Company A's expense by its link |
 | LDG-RP-001 | roles-permissions | P1 | Owner A | Each UAT account carries exactly one role set |
 | LDG-RP-002 | roles-permissions | P1 | Owner A | The four role sets exist and the old names are gone |
 | LDG-RP-003 | roles-permissions | P1 | Owner A | The Owner adds a user and gives a role set |
@@ -57,8 +81,8 @@ Role columns count the cases that sign in as that account (in the Role column or
 | LDG-RP-016 | roles-permissions | P1 | Owner A | No role cancels an issued invoice, the Owner included |
 | LDG-RP-017 | roles-permissions | P1 | Staff A | Staff records a collection |
 | LDG-RP-018 | roles-permissions | P1 | Staff A | Staff cannot pay money out |
-| LDG-RP-019 | roles-permissions | P2 | Accountant A | The Accountant pays a supplier |
-| LDG-RP-020 | roles-permissions | P1 | Accountant A | The Accountant records a bill |
+| LDG-RP-019 | roles-permissions | P1 | Accountant A | The Accountant records a bill |
+| LDG-RP-020 | roles-permissions | P2 | Accountant A | The Accountant pays a supplier |
 | LDG-RP-021 | roles-permissions | P1 | Staff A | Staff cannot record a bill or an expense |
 | LDG-RP-022 | roles-permissions | P1 | Accountant A | The Accountant posts a journal entry dated today |
 | LDG-RP-023 | roles-permissions | P1 | Staff A | Staff cannot post a journal entry |
@@ -69,7 +93,7 @@ Role columns count the cases that sign in as that account (in the Role column or
 | LDG-RP-028 | roles-permissions | P2 | Staff A | Staff adds a walk-in customer |
 | LDG-RP-029 | roles-permissions | P1 | Staff A | Staff cannot add a supplier; the Accountant can |
 | LDG-RP-030 | roles-permissions | P2 | Staff A | Staff reads items but cannot add one or change a price |
-| LDG-RP-031 | roles-permissions | P2 | Staff A | Staff issues stock |
+| LDG-RP-031 | roles-permissions | P2 | Staff A | Staff receives and issues stock |
 | LDG-RP-032 | roles-permissions | P1 | Accountant A | The Accountant cannot post a stock count |
 | LDG-RP-033 | roles-permissions | P2 | Accounting Manager A | The Accounting Manager posts a stock count |
 | LDG-RP-034 | roles-permissions | P1 | Accountant A | The Accountant prepares a return; Staff cannot |
@@ -101,21 +125,6 @@ Role columns count the cases that sign in as that account (in the Role column or
 | LDG-RE-010 | reports-page | P3 | Accountant A | The search box filters the list |
 | LDG-RE-011 | reports-page | P1 | Owner A | A switched-off module hides its reports and the page says so |
 | LDG-RE-012 | reports-page | P3 | Accountant A | A user who is not a System Manager is told nothing about modules |
-| LDG-PN-001 | paid-now-card-counter | P2 | Owner A | Owner adds a walk-in customer, a withholding customer and a service item |
-| LDG-PN-002 | paid-now-card-counter | P2 | Owner A | Owner notes the starting numbers before the cash sale |
-| LDG-PN-003 | paid-now-card-counter | P1 | Staff A | The Staff user makes a sale paid in full now |
-| LDG-PN-004 | paid-now-card-counter | P1 | Owner A | No collection receipt and no payment entry are made for the paid sale |
-| LDG-PN-005 | paid-now-card-counter | P1 | Owner A | The paid sale posts cash, sales and output VAT |
-| LDG-PN-006 | paid-now-card-counter | P1 | Owner A | The cash sale reaches the Cash Receipts Book and the cash position |
-| LDG-PN-007 | paid-now-card-counter | P1 | Owner A | A customer who withholds tax cannot be paid in full now |
-| LDG-PN-008 | paid-now-card-counter | P2 | Owner A | A credit note from a paid sale is not itself paid now; ticking it is refused |
-| LDG-PN-009 | paid-now-card-counter | P2 | Owner A | A payment mode with no account for the company is refused |
-| LDG-PN-010 | paid-now-card-counter | P2 | Owner A | The Philippine setup has added the company credit card |
-| LDG-PN-011 | paid-now-card-counter | P1 | Accountant A | An expense paid by card goes on the card, not on cash |
-| LDG-PN-012 | paid-now-card-counter | P3 | Owner A | The go-live checklist shows the credit card |
-| LDG-PN-013 | paid-now-card-counter | P2 | Staff A | A Staff user's Payment Entry opens in the counter view |
-| LDG-PN-014 | paid-now-card-counter | P3 | Staff A | The Payment Entry view can be switched and is remembered |
-| LDG-PN-015 | paid-now-card-counter | P1 | Accountant B | Company B's user cannot open Company A's paid sale by its link |
 | LDG-SL-001 | sales-collections | P2 | Accountant A | The Accountant adds a VAT customer and a goods item |
 | LDG-SL-002 | sales-collections | P2 | Accountant A | Note the next Sales Invoice serial |
 | LDG-SL-003 | sales-collections | P1 | Accountant A | The Accountant issues a VAT invoice; VAT is computed at 12% |
@@ -142,16 +151,7 @@ Role columns count the cases that sign in as that account (in the Role column or
 | LDG-MS-009 | masters-stock | P1 | Accounting Manager A | The Accounting Manager counts and corrects the stock |
 | LDG-MS-010 | masters-stock | P1 | Accountant A | The Accountant and Staff cannot count stock |
 | LDG-MS-011 | masters-stock | P2 | Accountant B | Company B's Accountant does not see Company A's suppliers' bills |
-| LDG-EX-001 | record-expense | P2 | Accountant A | Accountant adds an individual lawyer and a non-VAT driver as suppliers |
-| LDG-EX-002 | record-expense | P1 | Accountant A | Preview works the VAT back from the receipt and the EWT on the net, without posting |
-| LDG-EX-003 | record-expense | P1 | Accountant A | Post makes one paid bill |
-| LDG-EX-004 | record-expense | P1 | Accountant A | The bill's postings are right |
-| LDG-EX-005 | record-expense | P1 | Accountant A | The expense reaches the books |
-| LDG-EX-006 | record-expense | P2 | Accountant A | A small fare from a non-VAT driver carries no VAT and no EWT |
-| LDG-EX-007 | record-expense | P1 | Accountant A | Without an expense account or item the expense is refused (never cost of goods sold by default) |
-| LDG-EX-008 | record-expense | P1 | Staff A | A Staff user cannot record an expense |
-| LDG-EX-009 | record-expense | P1 | Accountant B | Company B's user cannot open Company A's expense by its link |
-| LDG-PU-001 | purchases-payables | P2 | Accountant A | The Accountant adds a VAT supplier of services with expanded withholding |
+| LDG-PU-001 | purchases-payables | P2 | Accountant A | The Accountant adds a VAT supplier of services with expanded withholding, and the service bought |
 | LDG-PU-002 | purchases-payables | P1 | Accountant A | A bill with input VAT and 2% withholding |
 | LDG-PU-003 | purchases-payables | P1 | Accountant A | The Accountant cannot back-date a bill |
 | LDG-PU-004 | purchases-payables | P2 | Accounting Manager A | The Accounting Manager back-dates a bill with a reason |
@@ -174,7 +174,7 @@ Role columns count the cases that sign in as that account (in the Role column or
 | LDG-AP-010 | approvals | P2 | Accounting Manager A | The Accounting Manager disables the chain |
 | LDG-JP-001 | journals-periods | P1 | Accountant A | An unbalanced entry is refused |
 | LDG-JP-002 | journals-periods | P1 | Owner A | No one posts a future date |
-| LDG-JP-003 | journals-periods | P1 | Owner A | A posted entry cannot be deleted |
+| LDG-JP-003 | journals-periods | P1 | Owner A | A posted entry can be cancelled but never deleted |
 | LDG-JP-004 | journals-periods | P2 | Accountant A | A draft journal entry cannot be printed |
 | LDG-JP-005 | journals-periods | P1 | Owner A | Posting into a closed month is refused for every role |
 | LDG-JP-006 | journals-periods | P2 | Accounting Manager A | No role can be exempted from a closed period |
