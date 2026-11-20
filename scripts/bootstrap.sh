@@ -5,7 +5,10 @@
 set -euo pipefail
 BENCH_DIR="${1:-$HOME/ph-cas-bench}"
 SITE="${SITE:-test_site}"
-FRAPPE_TAG="${FRAPPE_TAG:-v16.60.2}"
+# B81: the framework is Sentire Framework (based on Frappe), pinned to an immutable tag
+FRAPPE_REPO="${FRAPPE_REPO:-https://github.com/markchrc2025/sentire-framework}"
+FRAPPE_TAG="${FRAPPE_TAG:-v16.60.2-sentire.1}"
+BENCH_VERSION="${BENCH_VERSION:-5.31.1}"
 ERPNEXT_TAG="${ERPNEXT_TAG:-v16.60.0}"
 APP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 DB_ROOT_PASSWORD="${DB_ROOT_PASSWORD:-root}"
@@ -40,12 +43,13 @@ corepack enable >/dev/null 2>&1 || true
 command -v yarn >/dev/null || npm install -g yarn >/dev/null
 
 echo "== bench CLI"
-uv tool install --python "$PY" frappe-bench >/dev/null 2>&1 || uv tool upgrade frappe-bench >/dev/null
+# pinned: B81 relies on bench renaming the cloned sentire-framework folder to apps/frappe
+uv tool install --force --python "$PY" "frappe-bench==$BENCH_VERSION" >/dev/null
 export PATH="$HOME/.local/bin:$PATH"
 
-echo "== bench init ($FRAPPE_TAG)"
+echo "== bench init (Sentire Framework $FRAPPE_TAG)"
 if [ ! -d "$BENCH_DIR" ]; then
-  bench init "$BENCH_DIR" --python "$PY" --frappe-branch "$FRAPPE_TAG" ${SKIP_ASSETS:+--skip-assets} --no-backups
+  bench init "$BENCH_DIR" --python "$PY" --frappe-path "$FRAPPE_REPO" --frappe-branch "$FRAPPE_TAG" ${SKIP_ASSETS:+--skip-assets} --no-backups
 fi
 cd "$BENCH_DIR"
 # Use the system Redis (bench start would run its own on 11000 and 13000)

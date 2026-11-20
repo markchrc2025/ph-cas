@@ -29,6 +29,8 @@ FORCED_SYSTEM_SETTINGS = {
     # B80: clients never see Frappe's "New updates are available" popup; Sentire updates every
     # site through a pinned bundle (VERSIONS.md), so the notice would only confuse them
     "disable_system_update_notification": (1, "eq"),
+    # B81: no "Switch to Frappe CRM / Helpdesk" ads in the sidebar for System Managers
+    "disable_product_suggestion": (1, "eq"),
 }
 
 

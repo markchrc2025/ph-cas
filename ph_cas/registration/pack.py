@@ -24,6 +24,7 @@ from frappe import _
 from frappe.utils import add_days, get_first_day, get_last_day, now_datetime, nowdate
 
 import ph_cas
+from ph_cas.audit.header import framework_label
 from ph_cas.audit.header import company_facts, ph_header_lines, platform_version, software_name, software_version
 
 
@@ -168,7 +169,7 @@ def conformance_report() -> str:
     yes = sum(1 for r in rows if r["answer"] == "YES")
     lines = [
         "CONFORMANCE REPORT",
-        f"ph_cas {ph_cas.__version__} on ERPNext {erp}, Frappe {frappe.__version__}",
+        f"ph_cas {ph_cas.__version__} on ERPNext {erp}, {framework_label()}",
         f"Annex B items answered YES: {yes} of {len(rows)}",
         "",
     ] + [f"{r['item']}: {r['answer']} ({r['status']})" for r in rows]
