@@ -24,6 +24,11 @@ class TestB05Security(IntegrationTestCase):
             if settings.meta.has_field(field):
                 self.assertTrue(_ok(settings.get(field), forced, how), field)
 
+    def test_no_update_popup_for_clients(self):
+        # B80: Frappe's "New updates are available" popup stays off on every site
+        force_system_settings()
+        self.assertEqual(frappe.db.get_single_value("System Settings", "disable_system_update_notification"), 1)
+
     def test_weakening_a_setting_is_refused(self):
         settings = frappe.get_doc("System Settings")
         settings.deny_multiple_sessions = 0

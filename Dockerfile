@@ -8,8 +8,8 @@
 # copied in. Dokploy passes nothing: ASSETS defaults to "no-prebuilt-assets", the native
 # stage is never built, and the image runs `bench build --production` itself, as before.
 ARG ASSETS=no-prebuilt-assets
-ARG FRAPPE_TAG=v16.55.2
-ARG ERPNEXT_TAG=v16.54.0
+ARG FRAPPE_TAG=v16.60.2
+ARG ERPNEXT_TAG=v16.60.0
 
 FROM --platform=$BUILDPLATFORM python:3.14-bookworm AS native-assets-build
 ARG FRAPPE_TAG

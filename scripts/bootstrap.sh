@@ -5,8 +5,8 @@
 set -euo pipefail
 BENCH_DIR="${1:-$HOME/ph-cas-bench}"
 SITE="${SITE:-test_site}"
-FRAPPE_TAG="${FRAPPE_TAG:-v16.55.2}"
-ERPNEXT_TAG="${ERPNEXT_TAG:-v16.54.0}"
+FRAPPE_TAG="${FRAPPE_TAG:-v16.60.2}"
+ERPNEXT_TAG="${ERPNEXT_TAG:-v16.60.0}"
 APP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 DB_ROOT_PASSWORD="${DB_ROOT_PASSWORD:-root}"
 ADMIN_PASSWORD="${ADMIN_PASSWORD:-admin}"
