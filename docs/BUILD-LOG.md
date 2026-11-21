@@ -16,6 +16,7 @@ One entry per bundle, newest first. Counts are the test totals on main after the
 - General Journal: a journal entry's lines whose ledger remark is empty show the entry's User Remark (LDG-210).
 - Modules: a switched-off module's address now sends the browser to the Sentire Ledger home and shows the notice there; Frappe's start-up routing had overruled the earlier redirect (LDG-165).
 - Deleting: a posted voucher or a filed return deleted from the list or the form gets the app's message before Frappe's "Cancel it first". An issued BIR document says "... (BIR serial ...) has been issued and cannot be deleted. Correct it with a credit note or a debit note." (LDG-222). Managers (and the Owner) may delete BIR returns, so a draft can be removed and a filed one shows its sealed message (LDG-214).
+- Customer and Supplier: the BIR details sit in a tab of their own, "BIR details", on the new form too. Frappe 16.60 had moved the section into the Items tab, which shows only after the first save (LDG-229, LDG-171).
 - Approvals: an empty rejection reason gets "Give the reason for the rejection." instead of the generic Missing Values dialog (LDG-233).
 - UAT cases corrected (owner approval asked): AP-003 (no Submit, Request approval instead; LDG-232), AP-010 (a step that posts a new bill over the amount), BR-011 (Open amendment no longer offered once an amendment exists; LDG-216), SL-010 (ERPNext's status Credit Note Issued; LDG-231), BA-013 (the new message).
 - Tests: +4 (test_b83_retest_fixes).

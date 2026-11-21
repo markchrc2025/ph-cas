@@ -59,8 +59,12 @@ def company_fields():
 
 
 def party_fields(prefix_after: str):
+    # B83 (LDG-229): a tab of its own, so the section is on the new form. Frappe 16.60 moves a
+    # custom Section Break to the next standard section, which put it in the Items tab (shown
+    # only after the first save); a custom Tab Break lands before the next tab instead.
     return [
-        {"fieldname": "ph_section", "fieldtype": "Section Break", "label": "BIR details (Philippines)", "insert_after": prefix_after},
+        {"fieldname": "ph_tab", "fieldtype": "Tab Break", "label": "BIR details", "insert_after": prefix_after},
+        {"fieldname": "ph_section", "fieldtype": "Section Break", "label": "BIR details (Philippines)", "insert_after": "ph_tab"},
         {"fieldname": "ph_tin", "fieldtype": "Data", "label": "TIN (9 digits)", "length": 11, "insert_after": "ph_section", "in_list_view": 1, "in_standard_filter": 1},
         {"fieldname": "ph_branch_code", "fieldtype": "Data", "label": "Branch code (5 digits)", "default": "00000", "length": 5, "insert_after": "ph_tin"},
         {"fieldname": "ph_registered_name", "fieldtype": "Data", "label": "Registered name (non-individual)", "insert_after": "ph_branch_code"},
@@ -99,8 +103,8 @@ def line_fields(after: str):
 def setup():
     fields = {
         "Company": company_fields(),
-        "Customer": party_fields("tax_id"),
-        "Supplier": party_fields("tax_id"),
+        "Customer": party_fields("tax_withholding_category"),
+        "Supplier": party_fields("tax_withholding_category"),
         "Item": item_fields(),
         "Sales Invoice Item": line_fields("item_name"),
         "Purchase Invoice Item": line_fields("item_name"),
