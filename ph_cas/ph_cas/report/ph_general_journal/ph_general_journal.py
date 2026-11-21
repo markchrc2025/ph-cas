@@ -21,9 +21,16 @@ def execute(filters=None):
         {"fieldname": "debit", "label": _("Debit"), "fieldtype": "Currency", "width": 130},
         {"fieldname": "credit", "label": _("Credit"), "fieldtype": "Currency", "width": 130},
     ]
-    cache, pcache = {}, {}
+    cache, pcache, jcache = {}, {}, {}
     rows, td, tc = [], 0.0, 0.0
     for g in gl_rows(f.company, f.from_date, f.to_date):
+        if not (g.remarks or "").strip() and g.voucher_type == "Journal Entry":
+            # B83 (LDG-210): a journal entry's ledger lines may carry no remark; the book shows
+            # the entry's own User Remark (or Remark) instead
+            if g.voucher_no not in jcache:
+                je = frappe.db.get_value("Journal Entry", g.voucher_no, ["user_remark", "remark"], as_dict=True) or {}
+                jcache[g.voucher_no] = je.get("user_remark") or je.get("remark") or ""
+            g.remarks = jcache[g.voucher_no]
         rows.append({
             "posting_date": g.posting_date,
             "reference": voucher_serial(g.voucher_type, g.voucher_no, cache),

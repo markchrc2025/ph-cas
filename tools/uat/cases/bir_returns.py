@@ -53,7 +53,7 @@ CASES = [
          "None (refused)"),
     case("LDG-BR-011", "PH Tax Return", I, "The Accounting Manager opens an amendment", "Accounting Manager A", "LDG-BR-010 done",
          ["Open the filed return > Open amendment; reason UAT-BR-011 late invoice found"], "None",
-         ["A new draft named <original>-A1 opens, amending the original", "The original shows Amended by <original>-A1; a second Open amendment gives \"<original>-A1 already amends this return.\""],
+         ["A new draft named <original>-A1 opens, amending the original", "The original shows Amended by <original>-A1 and no longer offers Open amendment (a second one sent any other way is refused: \"<original>-A1 already amends this return.\")"],
          "P1", "LDG-BR-010", "Creates an amendment draft"),
     case("LDG-BR-012", "PH Tax Return", I, "The 1601-EQ and its QAP for the quarter", "Accountant A", "None (the figures are whatever the books hold for Q-1; the bills of this run fall in the current quarter, not Q-1)",
          ["BIR Returns > + Add; Form 1601-EQ; Period " + Q + "; Save; Refresh from books", "Click Generate QAP (.dat)"], "None",
