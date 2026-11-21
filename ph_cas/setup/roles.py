@@ -35,39 +35,68 @@ CASHIER_ROLE = "Cashier"  # the counter marker role carried by the Staff set
 WIDER = {"System Manager", "Accounting Manager", "Accounts Manager", "Purchase User", "Purchase Manager"}
 COUNTER_LIMITED = ("Purchase Invoice", "Purchase Order", "Purchase Receipt", "Journal Entry", "Supplier", "Payment Entry",
                    "PH Tax Return", "PH 2307 Issued", "PH Alphalist File")  # B79: the BIR returns too
+# B82 (UAT LDG-183, 209, 225, 196, 204): Staff does not even read these; its menus leave them out
+COUNTER_HIDDEN = tuple(d for d in COUNTER_LIMITED if d != "Payment Entry") + ("PH Approval Chain", "PH Approval Request")
+# every role set may read the background ("prepared") reports it runs, such as Stock Balance (UAT LDG-198)
+PREPARED = "Prepared Report User"
 
 PROFILES = {
     OWNER: [
         "System Manager", "Accounting Manager", "Accounts Manager", "Accounts User", "Sales Manager", "Sales User", "Sales Master Manager",
         "Purchase Manager", "Purchase User", "Purchase Master Manager", "Stock Manager", "Stock User", "Item Manager",
         "Manufacturing Manager", "Manufacturing User", "Projects Manager", "Projects User", "Quality Manager", "Support Team",
-        "Maintenance Manager", "Maintenance User", "Auditor",
+        "Maintenance Manager", "Maintenance User", "Auditor", PREPARED,
     ],
     ACCOUNTING_MANAGER: [
         "Accounting Manager", "Accounts Manager", "Accounts User", "Sales Manager", "Sales User", "Sales Master Manager",
         "Purchase Manager", "Purchase User", "Purchase Master Manager", "Stock Manager", "Stock User", "Item Manager",
-        "Projects User", "Auditor",
+        "Projects User", "Auditor", PREPARED,
     ],
     ACCOUNTANT: [
         "Accounts User", "Sales User", "Sales Master Manager", "Purchase User", "Purchase Master Manager",
-        "Stock User", "Item Manager", "Projects User", "Auditor",
+        "Stock User", "Item Manager", "Projects User", "Auditor", PREPARED,
     ],
-    STAFF: [CASHIER_ROLE, "Sales User", "Accounts User", "Stock User"],
+    STAFF: [CASHIER_ROLE, "Sales User", "Accounts User", "Stock User", PREPARED],
 }
 
 
 def cashier_limit(doc, ptype=None, user=None, debug=False):
-    """hooks.has_permission for COUNTER_LIMITED: a cashier reads them but does not make them,
-    except a collection (Payment Entry of type Receive)."""
-    if ptype in (None, "read", "report", "export", "print", "email", "select", "share"):
-        return True
+    """hooks.has_permission for COUNTER_LIMITED: Staff neither reads nor makes them (B82),
+    except a collection (Payment Entry of type Receive), which it makes and reads."""
     roles = set(frappe.get_roles(user))
     if CASHIER_ROLE not in roles or roles & WIDER:
         return True
     doctype = doc if isinstance(doc, str) else doc.doctype
-    if doctype == "Payment Entry" and not isinstance(doc, str) and (doc.get("payment_type") or "Receive") == "Receive":
-        return True
+    if doctype == "Payment Entry":
+        if ptype in (None, "read", "report", "export", "print", "email", "select", "share"):
+            return isinstance(doc, str) or (doc.get("payment_type") or "Receive") == "Receive"
+        return not isinstance(doc, str) and (doc.get("payment_type") or "Receive") == "Receive"
     return False
+
+
+def counter_query(user=None, doctype=None):
+    """hooks.permission_query_conditions for COUNTER_LIMITED: Staff's lists of them are empty,
+    and its Payment Entry list holds collections only."""
+    user = user or frappe.session.user
+    if user == "Administrator" or not counter_limited(user):
+        return ""
+    if doctype == "Payment Entry":
+        return "`tabPayment Entry`.payment_type = 'Receive'"
+    return "1=0"
+
+
+def extend_bootinfo(bootinfo):
+    """B82: Staff's menus, search bar and sidebar leave out what it may not open: the hidden
+    doctypes and every report but the counter's (UAT LDG-196)."""
+    from ph_cas.hosting.tiers import is_provider
+
+    bootinfo.ph_cas_user = {"provider_staff": is_provider()}
+    if frappe.session.user in ("Guest", "Administrator") or not counter_limited():
+        return
+    from ph_cas.modules.api import prune_boot
+
+    reports = set(frappe.get_all("Report", pluck="name")) - STAFF_REPORTS
+    prune_boot(bootinfo, {"doctypes": set(COUNTER_HIDDEN), "reports": reports, "workspaces": set(), "sidebars": set()}, every_list=True)
 
 
 def _rename_old_profiles():

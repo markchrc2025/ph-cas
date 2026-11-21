@@ -70,6 +70,9 @@ class TestG4Approvals(IntegrationTestCase):
     def test_nothing_on_by_default_and_the_module_switch(self):
         frappe.db.set_single_value("PH CAS Settings", "approval_chains_enabled", 0)
         chain("Journal Entry", [step(1, "Boss", user=BOSS)])
+        # B82: saving an enabled chain switches the module on (UAT LDG-205)
+        self.assertTrue(chains.module_on())
+        frappe.db.set_single_value("PH CAS Settings", "approval_chains_enabled", 0)
         je = self._je(60000)
         self.assertIsNone(chains.chain_for(je))
         je.submit()

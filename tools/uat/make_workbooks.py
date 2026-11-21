@@ -9,6 +9,7 @@ into Cover column B and Test Cases columns A to L; columns M to S stay empty for
 
 import importlib.util
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -32,6 +33,36 @@ def load(path):
     m = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(m)
     return m
+
+
+CASE_REF = re.compile(r"LDG-[A-Z]{2}-\d{3}")
+
+
+def complete_depends(m):
+    """A case whose preconditions, steps or data name an earlier case of the same workbook depends
+    on it: add it to Depends On, so the column never stays blank where the text names a case."""
+    ids = [c["Case ID"] for c in m.CASES]
+    for n, c in enumerate(m.CASES):
+        have = [d.strip() for d in (c.get("Depends On") or "").split(",") if d.strip()]
+        named = CASE_REF.findall(" ".join(c[k] for k in ("Preconditions", "Test Steps", "Test Data")))
+        for ref in named:
+            if ref in ids[:n] and ref not in have:
+                have.append(ref)
+        c["Depends On"] = ", ".join(sorted(set(have), key=ids.index))
+
+
+def check_order(mods):
+    """Every case named from another workbook belongs to a workbook that runs earlier (RUN_ORDER)."""
+    from _common import RUN_ORDER
+
+    order = {slug: i for i, (slug, _t) in enumerate(RUN_ORDER)}
+    owner = {c["Case ID"]: m.SLUG for m in mods for c in m.CASES}
+    for m in mods:
+        for c in m.CASES:
+            for ref in set(CASE_REF.findall(" ".join(c[k] for k in ("Preconditions", "Test Steps", "Test Data")))) - {c["Case ID"]}:
+                other = owner.get(ref)
+                assert other, f"{c['Case ID']}: names {ref}, which is in no workbook"
+                assert order[other] <= order[m.SLUG], f"{c['Case ID']}: names {ref} of {other}, which runs after {m.SLUG}"
 
 
 def check(m):
@@ -126,13 +157,16 @@ def master(made, commit):
 
 if __name__ == "__main__":
     commit = subprocess.check_output(["git", "-C", ROOT, "rev-parse", sys.argv[1] if len(sys.argv) > 1 else "HEAD"], text=True).strip()
-    branch = subprocess.check_output(["git", "-C", ROOT, "rev-parse", "--abbrev-ref", "HEAD"], text=True).strip()
+    # the branch the commit was taken from (BRANCH=main when making workbooks for a commit already on main)
+    branch = os.environ.get("BRANCH") or subprocess.check_output(["git", "-C", ROOT, "rev-parse", "--abbrev-ref", "HEAD"], text=True).strip()
     want = set(sys.argv[2:])
     made = []
-    for f in sorted(os.listdir(os.path.join(ROOT, "tools", "uat", "cases"))):
-        if not f.endswith(".py") or f.startswith("_"):
-            continue
-        m = load(os.path.join(ROOT, "tools", "uat", "cases", f))
+    mods = [load(os.path.join(ROOT, "tools", "uat", "cases", f)) for f in sorted(os.listdir(os.path.join(ROOT, "tools", "uat", "cases")))
+            if f.endswith(".py") and not f.startswith("_")]
+    for m in mods:
+        complete_depends(m)
+    check_order(mods)
+    for m in mods:
         if want and m.SLUG not in want:
             continue
         check(m)

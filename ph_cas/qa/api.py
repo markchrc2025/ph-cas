@@ -10,6 +10,7 @@ import os
 import frappe
 from frappe import _
 from frappe.utils import add_days, getdate, today
+from ph_cas.setup.master_data import leaf_group
 
 QA_USER = "qa.admin@sentire.solutions"
 QA_ROLES = (
@@ -131,13 +132,13 @@ def _item(code, vat_class="VATable", group="Services"):
 
 def _customer(name, **f):
     if not frappe.db.exists("Customer", name):
-        frappe.get_doc({"doctype": "Customer", "customer_name": name, "customer_type": "Company", "customer_group": "Commercial" if frappe.db.exists("Customer Group", "Commercial") else "All Customer Groups", "territory": "All Territories", **f}).insert(ignore_permissions=True)
+        frappe.get_doc({"doctype": "Customer", "customer_name": name, "customer_type": "Company", "customer_group": leaf_group("Customer Group", "Commercial"), "territory": "All Territories", **f}).insert(ignore_permissions=True)
     return name
 
 
 def _supplier(name, **f):
     if not frappe.db.exists("Supplier", name):
-        frappe.get_doc({"doctype": "Supplier", "supplier_name": name, "supplier_type": "Company", "supplier_group": "All Supplier Groups", **f}).insert(ignore_permissions=True)
+        frappe.get_doc({"doctype": "Supplier", "supplier_name": name, "supplier_type": "Company", "supplier_group": leaf_group("Supplier Group", "Services"), **f}).insert(ignore_permissions=True)
     return name
 
 

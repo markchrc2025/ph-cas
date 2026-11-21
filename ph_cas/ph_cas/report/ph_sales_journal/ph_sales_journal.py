@@ -9,12 +9,14 @@ from frappe.utils import flt
 
 from ph_cas.books.common import tie_row
 from ph_cas.setup.chart import account_for
+from ph_cas.books.common import check_company
 
 COLS = ["ph_vatable_sales", "ph_exempt_sales", "ph_zero_rated_sales", "ph_vat_amount", "ph_wht_total", "grand_total"]
 
 
 def execute(filters=None):
     f = frappe._dict(filters or {})
+    check_company(f.get("company"))
     columns = [
         {"fieldname": "posting_date", "label": _("Date"), "fieldtype": "Date", "width": 95},
         {"fieldname": "bir_serial", "label": _("Invoice No."), "fieldtype": "Data", "width": 110},
@@ -63,5 +65,5 @@ def execute(filters=None):
            where company = %s and is_cancelled = 0 and account = %s and voucher_type = 'Sales Invoice' and posting_date between %s and %s""",
         (f.company, account_for(f.company, "output_vat"), f.from_date, f.to_date),
     )[0][0]
-    rows.append(tie_row(_("Tie-out of output VAT"), flt(totals["ph_vat_amount"], 2) == flt(ledger_vat, 2), f"ledger {flt(ledger_vat):,.2f}"))
+    rows.append(tie_row(_("Tie-out of output VAT"), flt(totals["ph_vat_amount"], 2) == flt(ledger_vat, 2), f"ledger {flt(ledger_vat):,.2f}", "bir_serial", "customer_name"))
     return columns, rows

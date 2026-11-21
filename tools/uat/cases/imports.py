@@ -14,7 +14,7 @@ CASES = [
     {"Case ID": "LDG-IM-001", "Module": "Customer", "Linked Issue": "LDG-136",
      "Test Scenario": "Accountant downloads the customers and suppliers template",
      "Role": "Accountant A", "Preconditions": "None",
-     "Test Steps": "1. Selling > Customer (list)\n2. Click \"Import from a template\"\n3. What to import: Customers and suppliers\n4. Click \"Download the template (CSV, opens in Excel)\"\n5. Open the downloaded file",
+     "Test Steps": "HUMAN: 1. Selling > Customer (list)\n2. Click \"Import from a template\"\n3. What to import: Customers and suppliers\n4. Click \"Download the template (CSV, opens in Excel)\"\n5. Open the downloaded file",
      "Test Data": "None",
      "Expected Result": "1. File sentire-ledger-parties-template.csv downloads\n2. Line 1 is the header: " + PH + "\n3. Line 2 starts \"# required. Customer or Supplier\"\n4. Line 3 starts \"# e.g. Customer\"",
      "Priority": "P2", "Depends On": "", "Side Effects": "Downloads a file"},

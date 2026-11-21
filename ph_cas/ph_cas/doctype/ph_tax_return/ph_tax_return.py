@@ -124,6 +124,9 @@ class PHTaxReturn(Document):
     def on_trash(self):
         if self.docstatus == 1:
             frappe.throw(_(SEALED))
+        if self.amends and frappe.db.get_value("PH Tax Return", self.amends, "amended_by") == self.name:
+            # a deleted draft amendment frees the original for a new one
+            frappe.db.set_value("PH Tax Return", self.amends, "amended_by", None, update_modified=False)
 
     # ---- the seal ------------------------------------------------------------------
     def before_submit(self):
@@ -339,6 +342,10 @@ class PHTaxReturn(Document):
             frappe.throw(_("Only an accounts manager may open an amendment of a filed return; ask for one with Request change."))
         if self.amended_by:
             frappe.throw(_("{0} already amends this return.").format(self.amended_by))
+        # B82 (LDG-216): one amendment at a time; an open draft amendment blocks a second
+        draft = frappe.db.get_value("PH Tax Return", {"amends": self.name, "docstatus": 0}, "name")
+        if draft:
+            frappe.throw(_("{0} already amends this return. Finish or delete that draft first.").format(draft))
         doc = frappe.copy_doc(self)
         doc.docstatus = 0
         doc.amends = self.name
@@ -352,6 +359,8 @@ class PHTaxReturn(Document):
         from ph_cas.audit.events import record
 
         record("tax_return.amendment_opened", "PH Tax Return", self.name, 1, {"amendment": doc.name, "reason": reason.strip()})
+        # the original shows its amendment at once; it turns Amended when the amendment is filed
+        frappe.db.set_value("PH Tax Return", self.name, "amended_by", doc.name, update_modified=False)
         return doc.name
 
 

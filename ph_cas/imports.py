@@ -370,12 +370,14 @@ def _save_party(company, r):
     base = {"doctype": pt, **values}
     kind = "Individual" if payee == "Individual" else "Company"
     if pt == "Customer":
-        group = frappe.db.get_single_value("Selling Settings", "customer_group") or ("Commercial" if frappe.db.exists("Customer Group", "Commercial") else "All Customer Groups")
+        from ph_cas.setup.master_data import leaf_group
+
+        group = leaf_group("Customer Group", frappe.db.get_single_value("Selling Settings", "customer_group") or "Commercial")
         base.update({"customer_name": r["name"], "customer_type": kind, "customer_group": group,
                      "territory": frappe.db.get_single_value("Selling Settings", "territory") or "All Territories"})
     else:
         base.update({"supplier_name": r["name"], "supplier_type": kind,
-                     "supplier_group": frappe.db.get_single_value("Buying Settings", "supplier_group") or "All Supplier Groups"})
+                     "supplier_group": _supplier_group()})
     doc = frappe.get_doc(base)
     doc.insert()
     return doc.name, "created"
@@ -561,3 +563,9 @@ def batch_update(doctype: str, names, values) -> dict:
 def meta_is_check(doctype, fieldname) -> bool:
     df = frappe.get_meta(doctype).get_field(fieldname)
     return bool(df and df.fieldtype == "Check")
+
+
+def _supplier_group():
+    from ph_cas.setup.master_data import leaf_group
+
+    return leaf_group("Supplier Group", frappe.db.get_single_value("Buying Settings", "supplier_group") or "Services")

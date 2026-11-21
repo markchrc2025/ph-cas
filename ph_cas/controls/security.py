@@ -26,6 +26,9 @@ FORCED_SYSTEM_SETTINGS = {
     "enable_two_factor_auth": (1, "eq"),
     "two_factor_method": ("OTP App", "eq"),
     "bypass_2fa_for_retricted_ip_users": (0, "eq"),
+    # B80: clients never see Frappe's "New updates are available" popup; Sentire updates every
+    # site through a pinned bundle (VERSIONS.md), so the notice would only confuse them
+    "disable_system_update_notification": (1, "eq"),
 }
 
 

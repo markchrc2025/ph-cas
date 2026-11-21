@@ -22,6 +22,7 @@ import frappe
 from frappe.utils import add_days, flt, getdate, nowdate, today
 
 from ph_cas.qa.api import is_staging
+from ph_cas.setup.master_data import leaf_group
 
 # ---- the four taxpayer types --------------------------------------------------------------------
 COMPANIES = {
@@ -147,12 +148,12 @@ def item(code, vat_class="VATable", stock=0, group=None, **extra):
 
 
 def customer(name, **f):
-    return ensure("Customer", name, {"customer_name": name, "customer_type": f.pop("customer_type", "Company"), "customer_group": "Commercial" if frappe.db.exists("Customer Group", "Commercial") else "Individual",
+    return ensure("Customer", name, {"customer_name": name, "customer_type": f.pop("customer_type", "Company"), "customer_group": leaf_group("Customer Group", "Commercial"),
                                      "territory": "All Territories", **f})
 
 
 def supplier(name, **f):
-    return ensure("Supplier", name, {"supplier_name": name, "supplier_type": f.pop("supplier_type", "Company"), "supplier_group": "All Supplier Groups", **f})
+    return ensure("Supplier", name, {"supplier_name": name, "supplier_type": f.pop("supplier_type", "Company"), "supplier_group": leaf_group("Supplier Group", "Services"), **f})
 
 
 def sales_invoice(company, cust, lines, submit=True, **f):
