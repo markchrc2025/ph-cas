@@ -2,6 +2,25 @@
 
 One entry per bundle, newest first. Counts are the test totals on main after the merge.
 
+## B81 Ledger runs on Sentire Framework (21 Nov 2026)
+- Asked by the owner (20 Nov 2026): build Sentire Framework, Sentire's own framework, and run Ledger on it. Issue LDG-184.
+- Pins: framework from plain Frappe v16.60.2 to Sentire Framework v16.60.2-sentire.1 (github.com/markchrc2025/sentire-framework, release branch release/v16.60.2-sentire.1, commit 0e53f54d; the build checks the exact commit, based on Frappe v16.60.2). ERPNext stays upstream v16.60.0. bench CLI pinned to 5.31.1 (it renames the cloned sentire-framework folder to apps/frappe). Dockerfile, scripts/bootstrap.sh, VERSIONS.md.
+- The framework keeps the `frappe` package and upstream's `__version__`, so ERPNext and ph_cas install unchanged. Its changes (name, logos, no update calls, no product ads, the event format and the TypeScript kit) are listed in the framework's CHANGES-SENTIRE.md.
+- Users still see Sentire Ledger only (B38). The licences line in About, the registration pack and the sworn statement now name "Sentire Framework v16.60.2-sentire.1 (based on Frappe Framework 16.60.2)" (audit.header.framework_label).
+- System Settings "Disable Product Suggestion" is now forced on (no Frappe CRM or Helpdesk ads for System Managers).
+- Docs: docs/LEGAL-FRAMEWORK.md, docs/runbooks/framework-upstream-sync.md. D1 updated.
+- Tests: +10 (test_b81_framework). UAT: tools/uat/cases/framework_branding.py (6 cases), to hand off after the current UAT run.
+## B83 Fixes from the B82 retest (21 Nov 2026)
+- Asked by the owner (21 Nov 2026): fix every failure of the retest on 0.1.0+5195441c14c2 (78 cases: 63 passed, 9 failed, 3 blocked, 3 human), then retest.
+- Chart of accounts: Frappe 16.60's row menu ran Add Child on the selected node, not on the row clicked, so a new account landed under Expenses; each row action now selects its own row first (tree_fix.js, LDG-230).
+- General Journal: a journal entry's lines whose ledger remark is empty show the entry's User Remark (LDG-210).
+- Modules: a switched-off module's address now sends the browser to the Sentire Ledger home and shows the notice there; Frappe's start-up routing had overruled the earlier redirect (LDG-165).
+- Deleting: a posted voucher or a filed return deleted from the list or the form gets the app's message before Frappe's "Cancel it first". An issued BIR document says "... (BIR serial ...) has been issued and cannot be deleted. Correct it with a credit note or a debit note." (LDG-222). Managers (and the Owner) may delete BIR returns, so a draft can be removed and a filed one shows its sealed message (LDG-214).
+- Customer and Supplier: the BIR details sit in a tab of their own, "BIR details", on the new form too. Frappe 16.60 had moved the section into the Items tab, which shows only after the first save (LDG-229, LDG-171).
+- Approvals: an empty rejection reason gets "Give the reason for the rejection." instead of the generic Missing Values dialog (LDG-233).
+- UAT cases corrected (owner approval asked): AP-003 (no Submit, Request approval instead; LDG-232), AP-010 (a step that posts a new bill over the amount), BR-011 (Open amendment no longer offered once an amendment exists; LDG-216), SL-010 (ERPNext's status Credit Note Issued; LDG-231), BA-013 (the new message).
+- Tests: +4 (test_b83_retest_fixes).
+
 ## B82 Fixes from the first full UAT run (21 Nov 2026)
 - Asked by the owner (21 Nov 2026): fix every finding of the UAT run on 0.1.0+1d56e40d2b40 (227 cases: 158 passed, 37 failed, 14 blocked, 18 not tested; 37 bugs, 25 gaps), then retest.
 - Controls: saving an enabled approval chain switches approval chains on for the business, so the chain is never silently ignored (LDG-205). A journal entry whose debits and credits differ is refused on save, not only on submit (LDG-208). A credit note against an invoice with an outstanding balance reduces that balance by default (LDG-197).

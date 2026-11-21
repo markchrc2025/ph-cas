@@ -48,15 +48,37 @@ frappe.provide("ph_cas.modules");
 	function guard() {
 		const what = M.blocked() || M.blocked_slug();
 		if (!what) return;
-		notice(what);
-		go_home();
+		go_home(what);
 	}
 
-	// B82 (LDG-165): land on the Sentire Ledger home, not the Desktop app page
-	function go_home() {
+	// B83 (LDG-165): land on the Sentire Ledger home, not the Desktop app page. Frappe's own
+	// start-up routing can overrule a set_route made while the first page loads, so the browser
+	// is sent to the home page's address and the notice is shown there.
+	const KEY = "ph_modules_notice";
+	function go_home(what) {
 		const home = (frappe.boot.ph_cas_branding || {}).home || {};
-		if (home.page) frappe.set_route(home.page);
-		else frappe.set_route("");
+		if (!home.page) {
+			notice(what);
+			frappe.set_route("");
+			return;
+		}
+		try {
+			sessionStorage.setItem(KEY, what);
+		} catch (e) {
+			notice(what);
+		}
+		window.location.replace("/desk/" + home.page);
+	}
+
+	function pending_notice() {
+		let what = null;
+		try {
+			what = sessionStorage.getItem(KEY);
+			sessionStorage.removeItem(KEY);
+		} catch (e) {
+			return;
+		}
+		if (what) notice(what);
 	}
 
 	// Stop before the page renders, so Frappe's own "Not found" never shows for a hidden doctype
@@ -67,10 +89,7 @@ frappe.provide("ph_cas.modules");
 			const route = this.current_route || [];
 			const what = M.blocked(route) || M.blocked_slug(route);
 			if (what) {
-				notice(what);
-				this.current_route = [""];
-				frappe.views.pageview && frappe.views.pageview.show("");
-				setTimeout(go_home, 0);
+				go_home(what);
 				return;
 			}
 			return render.apply(this, arguments);
@@ -98,6 +117,7 @@ frappe.provide("ph_cas.modules");
 		patch_onboarding();
 		frappe.router.on("change", guard);
 		guard();
+		pending_notice();
 	});
 	patch_onboarding();
 })();

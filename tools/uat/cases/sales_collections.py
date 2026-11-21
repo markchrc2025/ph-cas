@@ -55,7 +55,7 @@ CASES = [
     case("LDG-SL-010", "Payment Entry", I, "A collection pays the rest of the invoice", "Staff A", "LDG-SL-009 done",
          ["Open LDG-SL-003 > Create > Payment; Mode of Payment Cash; Reference No UAT-SL-010; Submit"],
          "None",
-         ["Paid Amount 2,240.00", "LDG-SL-003 status Paid; Outstanding 0.00"], "P1", "LDG-SL-009", "IRREVERSIBLE: posts a collection"),
+         ["Paid Amount 2,240.00", "LDG-SL-003: Outstanding 0.00; status \"Credit Note Issued\" (ERPNext shows this status, not Paid, for an invoice that has a credit note)"], "P1", "LDG-SL-009", "IRREVERSIBLE: posts a collection"),
     case("LDG-SL-011", "Sales Invoice / Payment Entry", I, "A top withholding agent's invoice shows the tax it withholds, and the net payment books it", "Accountant A", "Customer UAT-PN-001 Pasig Corp. (top withholding agent) exists, from the paid-now workbook",
          ["Issue an invoice: UAT-PN-001 Pasig Corp., one service item at 10,000.00, Manual invoice number UAT-SL-011; Save",
           "Open the section \"Tax withheld by the customer\" and note its figures; Submit",
