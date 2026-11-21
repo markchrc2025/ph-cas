@@ -34,7 +34,7 @@ class TestB24Books2(IntegrationTestCase):
         self.assertEqual(row["doc_type"], "Invoice")
         total = [r for r in rows if r.get("is_total_row")][0]
         self.assertEqual(flt(total["ph_vat_amount"]), flt(sum(flt(r.get("ph_vat_amount")) for r in rows if r.get("name")), 2))
-        self.assertIn("TIES TO THE LEDGER", rows[-1]["particulars"])
+        self.assertIn("TIES TO THE LEDGER", rows[-1]["customer_name"])
 
     def test_credit_note_appears_negative(self):
         si = _invoice([(_item("_PH VATable", "VATable"), 1, 1000, {})], submit=True)
@@ -57,7 +57,7 @@ class TestB24Books2(IntegrationTestCase):
         self.assertEqual(flt(row["input_vat"]), 2400)
         self.assertEqual(row["ph_ewt_atc"], "WC010")
         self.assertEqual(flt(row["ph_ewt_amount"]), 2000)
-        self.assertIn("TIES TO THE LEDGER", rows[-1]["particulars"])
+        self.assertIn("TIES TO THE LEDGER", rows[-1]["supplier_name"])
 
     def test_inventory_book(self):
         item = ensure_stock_item()
@@ -67,5 +67,5 @@ class TestB24Books2(IntegrationTestCase):
         cols, rows = inv(self.f)
         row = [r for r in rows if r.get("item_code") == item and r.get("warehouse") == wh][0]
         self.assertGreaterEqual(flt(row["in_qty"]), 5)
-        self.assertEqual(flt(row["closing_qty"]), flt(row["opening_qty"] + row["in_qty"] - row["out_qty"]))
+        self.assertEqual(flt(row["closing_qty"]), flt(row["opening_qty"] + row["in_qty"] - row["out_qty"] + row["count_qty"]))
         self.assertEqual(flt(row["closing_value"]), flt(row["closing_qty"] * row["valuation_rate"], 2))

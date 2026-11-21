@@ -89,6 +89,21 @@ def limits() -> dict:
     }
 
 
+def is_provider(user: str | None = None) -> bool:
+    user = user or frappe.session.user
+    if user == "Administrator":
+        return True
+    return bool(frappe.db.get_value("User", user, STAFF_FIELD)) if frappe.db.has_column("User", STAFF_FIELD) else False
+
+
+def user_query(user=None, doctype=None):
+    """B82 (LDG-170): the client's own people only. The Administrator and the provider's
+    staff see every user; everyone else's User list leaves out system and provider accounts."""
+    if is_provider(user):
+        return ""
+    return "(`tabUser`.name not in ('Administrator', 'Guest') and ifnull(`tabUser`.{0}, 0) = 0)".format(STAFF_FIELD)
+
+
 def _counted_users(exclude: str | None = None) -> int:
     filters = {"enabled": 1, "user_type": "System User", "name": ["not in", EXEMPT_USERS], STAFF_FIELD: 0}
     if exclude:
@@ -129,10 +144,11 @@ def _refuse(what: str, limit: int, tier: str):
 
 def validate_user(doc, method=None):
     """doc_events['User'].validate"""
-    if doc.get(STAFF_FIELD) and not doc.is_new():
-        before = doc.get_doc_before_save()
-        if before and not before.get(STAFF_FIELD) and "System Manager" not in frappe.get_roles():
-            frappe.throw(_("Only a System Manager may mark a user as provider staff."), frappe.PermissionError)
+    before = None if doc.is_new() else doc.get_doc_before_save()
+    changed = bool(doc.get(STAFF_FIELD)) != bool(before.get(STAFF_FIELD) if before else 0)
+    if changed and not (frappe.flags.in_install or frappe.flags.in_migrate or frappe.flags.in_test) and not is_provider():
+        # B82 (LDG-170): the provider's box is the provider's; a client's Owner cannot tick or clear it
+        frappe.throw(_("Only the provider marks a user as provider staff."), frappe.PermissionError)
     if frappe.flags.in_install or frappe.flags.in_migrate:
         return
     lim = limits()
@@ -206,7 +222,7 @@ def my_plan() -> dict:
     u = usage()
     rows = []
     for key, label, used in (("max_users", _("Users"), u["users"]), ("max_companies", _("Companies"), u["companies"]),
-                             ("max_branches", _("Branches"), u["branches"]), ("monthly_invoice_limit", _("Invoices this month"), u["invoices_this_month"])):
+                             ("max_branches", _("Branches besides the head office"), u["branches"]), ("monthly_invoice_limit", _("Invoices this month"), u["invoices_this_month"])):
         lim = u[key]
         rows.append({"label": label, "used": used, "limit": lim or None, "near": bool(lim and used >= 0.8 * lim)})
     status = check_subscription_status()

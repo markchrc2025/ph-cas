@@ -6,6 +6,7 @@ from frappe import _
 from frappe.utils import add_days, flt
 
 from ph_cas.books.common import gl_rows, party_name, voucher_kind, voucher_serial
+from ph_cas.books.common import check_company
 
 
 def opening(company, account, start) -> float:
@@ -19,6 +20,7 @@ def opening(company, account, start) -> float:
 
 def execute(filters=None):
     f = frappe._dict(filters or {})
+    check_company(f.get("company"))
     columns = [
         {"fieldname": "account", "label": _("Account"), "fieldtype": "Link", "options": "Account", "width": 240},
         {"fieldname": "posting_date", "label": _("Date"), "fieldtype": "Date", "width": 95},
@@ -41,4 +43,9 @@ def execute(filters=None):
             rows.append({"account": account, "posting_date": g.posting_date, "reference": voucher_serial(g.voucher_type, g.voucher_no, cache), "document": voucher_kind(g.voucher_type, g.voucher_no, cache), "particulars": " ".join(x for x in [party_name(g.party_type, g.party, pcache), (g.remarks or "").replace("\n", " ")[:120]] if x), "debit": flt(g.debit), "credit": flt(g.credit), "balance": bal})
         ledger_close = flt(opening(f.company, account, add_days(f.to_date, 1)), 2)
         rows.append({"account": account, "particulars": _("Closing balance") + (" " + _("(ties)") if ledger_close == bal else " " + _("(DOES NOT TIE)")), "balance": bal, "is_closing": 1})
+    # B82 (UAT LDG-219): the grand total of the period's debits and credits, which must be equal
+    td = flt(sum(flt(g.debit) for g in entries), 2)
+    tc = flt(sum(flt(g.credit) for g in entries), 2)
+    if not f.get("account"):
+        rows.append({"account": _("GRAND TOTAL"), "particulars": _("Debits equal credits") if td == tc else _("DEBITS AND CREDITS DIFFER"), "debit": td, "credit": tc, "is_total_row": 1})
     return columns, rows

@@ -181,3 +181,30 @@ def _summary_item(code="PH-EOD-SALES"):
     if not frappe.db.exists("Item", code):
         frappe.get_doc({"doctype": "Item", "item_code": code, "item_name": "End-of-day sales summary", "item_group": frappe.db.get_value("Item Group", {"is_group": 0}, "name"), "stock_uom": "Nos", "is_stock_item": 0, "ph_vat_class": "VATable"}).insert(ignore_permissions=True)
     return code
+
+
+def default_return_outstanding(doc, method=None):
+    """Sales Invoice before_validate (B82, UAT LDG-197): a new credit note against an invoice that
+    is still unpaid reduces that invoice's balance, which is what an accountant expects. ERPNext
+    ticks "Update Outstanding for Self" by default, so the credit note kept its own balance and the
+    invoice stayed fully due. The tick stays for a credit note against a paid invoice (a refund),
+    and the user may still change it after the first save."""
+    if not (doc.get("is_return") and doc.get("return_against") and doc.is_new() and doc.meta.has_field("update_outstanding_for_self")):
+        return
+    outstanding = frappe.db.get_value(doc.doctype, doc.return_against, "outstanding_amount") or 0
+    if outstanding > 0:
+        doc.update_outstanding_for_self = 0
+
+
+def validate_journal_balanced(doc, method=None):
+    """Journal Entry validate (B82, UAT LDG-208): an entry whose debits and credits differ is
+    refused when it is saved, not only when it is submitted, so no unbalanced draft is kept."""
+    debit = sum(flt(r.debit) for r in doc.get("accounts") or [])
+    credit = sum(flt(r.credit) for r in doc.get("accounts") or [])
+    if doc.get("accounts") and abs(flt(debit, 2) - flt(credit, 2)) >= 0.005:
+        frappe.throw(
+            _("Total debit {0} and total credit {1} are not equal (difference {2}). A journal entry is saved only when it balances.").format(
+                frappe.format_value(debit, {"fieldtype": "Currency"}), frappe.format_value(credit, {"fieldtype": "Currency"}),
+                frappe.format_value(abs(debit - credit), {"fieldtype": "Currency"})),
+            title=_("Debit and credit are not equal"),
+        )

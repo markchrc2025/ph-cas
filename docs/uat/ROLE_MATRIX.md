@@ -1,4 +1,4 @@
-# Sentire Ledger role sets and permission matrix (B79)
+# Sentire Ledger role sets and permission matrix (B79, B82)
 
 Every client user gets exactly one role set (User > Role Profiles). The sets are kept by `ph_cas/setup/roles.py` and re-applied on every migrate. Bookkeeper was renamed Accountant and Cashier was renamed Staff in B79; users who held the old names moved with them.
 
@@ -50,7 +50,8 @@ Y = allowed, N = refused, R = read only. "Enforced by" names where the rule live
 
 Notes:
 
-- Row 8: an issued invoice is never cancelled by anyone; it is reversed with a credit note. A draft can be deleted by whoever made it.
+- Row 8: an issued invoice is never cancelled by anyone; it is reversed with a credit note. The form has no Cancel button and says why; the server refuses a cancel sent any other way. A draft can be deleted by whoever made it.
+- B82: Staff's lists of bills, journals, suppliers and BIR returns are empty and their menus are hidden; collections stay. A new form a role cannot save shows a note and no Save button. Every role set has Prepared Report User.
 - Row 13: Sales invoices, collections and stock documents always carry today's date, for every role.
 - Row 24: Staff opens only the counter's reports (`STAFF_REPORTS` in `roles.py`): PH Cash Position, Sales Register, Sales by item, Accounts Receivable and its summary, Stock Balance, Projected quantity. Any other report, by menu or by URL, is refused.
 - A switched-off module hides its menus and reports for every role, Owner and Administrator included. Nothing is deleted, and turning the module on restores everything. A System Manager sees which modules are off on the Home page and the Reports page.

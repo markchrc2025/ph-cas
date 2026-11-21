@@ -14,7 +14,7 @@ CASES = [
      "Test Scenario": "Owner adds a walk-in customer, a withholding customer and a service item",
      "Role": "Owner A", "Preconditions": "None",
      "Test Steps": "1. Selling > Customer > + Add Customer for each customer in Test Data; Save\n2. Stock > Item > + Add Item: Item Code, Item Name, Item Group Services, Maintain Stock off, VAT class VATable, Standard Selling Rate; Save",
-     "Test Data": "Customer 1: UAT-PN-001 Juan Dela Cruz; Payee type Individual; Last name DELA CRUZ; First name JUAN; VAT status Non-VAT\nCustomer 2: UAT-PN-001 Pasig Corp.; Non-individual; TIN 000-777-801; branch 00000; VAT status VAT; Top withholding agent ticked\nItem: UAT-PN-001-SVC; UAT-PN-001 Repair service; rate 1,000.00",
+     "Test Data": "Customer 1: UAT-PN-001 Juan Dela Cruz; Payee type Individual; Last name DELA CRUZ; First name JUAN; VAT status Non-VAT\nCustomer 2: UAT-PN-001 Pasig Corp.; Non-individual; TIN 000-777-801; branch 00000; VAT status VAT; Top withholding agent ticked; address 12 Ortigas Ave, Pasig City 1600\nItem: UAT-PN-001-SVC; UAT-PN-001 Repair service; rate 1,000.00",
      "Expected Result": "1. Both customers and the item save\n2. Reload UAT-PN-001 Pasig Corp.: Top withholding agent still ticked",
      "Priority": "P2", "Depends On": "", "Side Effects": "Creates 2 customers and 1 item"},
     {"Case ID": "LDG-PN-002", "Module": "BIR Series / PH Cash Position", "Linked Issue": "LDG-140",

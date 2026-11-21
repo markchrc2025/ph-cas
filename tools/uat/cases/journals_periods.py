@@ -14,7 +14,7 @@ CASES = [
     case("LDG-JP-001", "Journal Entry", I, "An unbalanced entry is refused", "Accountant A", "None",
          ["New Journal Entry, Company " + CO + ", Posting Date T", "Debit Cash - TTC 1,000.00; Credit Sales - TTC 900.00", "Save"],
          "User Remark UAT-JP-001",
-         ["An error that debit and credit are not equal (difference 100.00)", "Not saved"], "P1"),
+         ["Message titled \"Debit and credit are not equal\": \"Total debit 1,000.00 and total credit 900.00 are not equal (difference 100.00). A journal entry is saved only when it balances.\" (the amounts carry the peso sign: ₱ 1,000.00, ₱ 900.00, ₱ 100.00)", "Not saved"], "P1"),
     case("LDG-JP-002", "Journal Entry", I, "No one posts a future date", "Owner A", "None",
          ["New Journal Entry as LDG-JP-001 but balanced at 1,000.00 and Posting Date T+1; Save"],
          "User Remark UAT-JP-002",
