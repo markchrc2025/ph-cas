@@ -176,8 +176,13 @@ def extend_bootinfo(bootinfo):
     }
     if not h["modules"]:
         return
+    prune_boot(bootinfo, h)
 
-    # the dock (module switcher)
+
+def prune_boot(bootinfo, h: dict, every_list: bool = False):
+    """Drop from the boot what h hides: dock entries, sidebar links, workspaces, the search bar
+    and "New ..." lists, and the allowed reports. every_list also clears the read, write and
+    cancel lists (B82, for the Staff role set, so a hidden list opens as Not permitted)."""
     dock = bootinfo.get("dock") or {}
     if isinstance(dock, dict):
         for app, entries in dock.items():
@@ -202,7 +207,10 @@ def extend_bootinfo(bootinfo):
 
     # the search bar and the "New ..." lists
     user = bootinfo.get("user") or {}
-    for key in ("can_read", "can_search", "can_create", "can_get_report"):
+    keys = ("can_read", "can_search", "can_create", "can_get_report")
+    if every_list:
+        keys += ("can_write", "can_submit", "can_cancel", "can_delete", "can_export", "can_import", "can_print", "can_email", "can_select")
+    for key in keys:
         if isinstance(user.get(key), list):
             user[key] = [d for d in user[key] if d not in h["doctypes"]]
     if isinstance(bootinfo.get("allowed_reports"), list):

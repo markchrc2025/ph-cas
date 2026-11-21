@@ -94,4 +94,7 @@ def setup_all():
     from ph_cas.invoicing import paid_now
 
     paid_now.setup()  # B76
+    from ph_cas.setup import ui
+
+    ui.setup()  # B82
     frappe.db.commit()

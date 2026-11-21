@@ -7,10 +7,12 @@ from frappe import _
 from frappe.utils import flt
 
 from ph_cas.books.common import cash_accounts, gl_rows, net_by_account, party_name, party_tin, tie_row, voucher_serial
+from ph_cas.books.common import check_company
 
 
 def execute(filters=None):
     f = frappe._dict(filters or {})
+    check_company(f.get("company"))
     columns = [
         {"fieldname": "posting_date", "label": _("Date"), "fieldtype": "Date", "width": 95},
         {"fieldname": "reference", "label": _("Voucher / Check No."), "fieldtype": "Data", "width": 160},
@@ -43,6 +45,10 @@ def execute(filters=None):
         netted = net_by_account(lines, skip=cash)
         debits = [l for l in netted if flt(l.debit) > 0]
         others = [l for l in netted if flt(l.credit) > 0]  # e.g. tax withheld on the payment
+        if not debits and not others:
+            # B82 (LDG-223): a voucher whose other lines net to nothing (cancelled and reversed
+            # the same day) is still listed, so the TOTAL equals the rows shown
+            rows.append({"posting_date": date, "reference": voucher_serial(vt, vn, cache), "particulars": _("Cancelled and reversed (see the opposite cash book)"), "cash_credit": flt(cash_cr, 2)})
         for i in range(max(len(debits), len(others))):
             first = i == 0
             d = debits[i] if i < len(debits) else None

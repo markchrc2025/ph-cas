@@ -13,7 +13,7 @@ Company C: UAT Bagong Simula Corp. (fresh, for go-live)
 Company D: UAT Bagong Bukas Corp. (fresh, for imports)"""
 
 
-PREPARED_BY = "Claude Code (B79 session), 2026-11-20"
+PREPARED_BY = "Claude Code (B79 session), 2026-11-20; corrected for the retest (B82), 2026-11-21"
 ROLE_MATRIX = "docs/uat/ROLE_MATRIX.md"
 
 
@@ -41,11 +41,14 @@ TODAY = "today's date (the date the run starts), written below as T; the day bef
 
 
 URL = "https://ledger-staging.apps.sentire.solutions"
-REFUSED = "a \"Not Permitted\" message (\"You need the '{p}' permission on {dt} ...\" or \"No permission for {dt}\"); nothing is saved"
+REFUSED = ("a \"Not Permitted\" message or page (\"You need the '{p}' permission on {dt} ...\" or \"No permission for {dt}\"), "
+           "or, on a new form, the orange note \"Your role cannot add new {label} records. Nothing here will be saved. Ask an Accounting Manager or the Owner.\" with no Save button; nothing is saved")
+# B82: the names the app shows for its own doctypes (ph_cas/translations/en.csv)
+LABELS = {"PH Approval Chain": "Approval Chain", "PH 2307 Issued": "2307 Issued", "PH Tax Return": "BIR Return", "PH Modules": "Modules", "PH CAS Settings": "Sentire Ledger Settings"}
 
 
 def refused(dt, p="create"):
-    return REFUSED.format(dt=dt, p=p)
+    return REFUSED.format(dt=dt, p=p, label=LABELS.get(dt, dt))
 
 
 def case(cid, module, issue, scenario, role, pre, steps, data, expected, prio, dep="", side="None"):

@@ -49,7 +49,14 @@ frappe.provide("ph_cas.modules");
 		const what = M.blocked() || M.blocked_slug();
 		if (!what) return;
 		notice(what);
-		frappe.set_route("");
+		go_home();
+	}
+
+	// B82 (LDG-165): land on the Sentire Ledger home, not the Desktop app page
+	function go_home() {
+		const home = (frappe.boot.ph_cas_branding || {}).home || {};
+		if (home.page) frappe.set_route(home.page);
+		else frappe.set_route("");
 	}
 
 	// Stop before the page renders, so Frappe's own "Not found" never shows for a hidden doctype
@@ -63,7 +70,7 @@ frappe.provide("ph_cas.modules");
 				notice(what);
 				this.current_route = [""];
 				frappe.views.pageview && frappe.views.pageview.show("");
-				setTimeout(() => frappe.set_route(""), 0);
+				setTimeout(go_home, 0);
 				return;
 			}
 			return render.apply(this, arguments);

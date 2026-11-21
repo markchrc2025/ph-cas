@@ -93,8 +93,18 @@ def tie_out(book_debit: float, book_credit: float, company, start, end) -> dict:
     return {"book_debit": flt(book_debit, 2), "book_credit": flt(book_credit, 2), "ledger_debit": t["debit"], "ledger_credit": t["credit"], "ties": flt(book_debit, 2) == t["debit"] and flt(book_credit, 2) == t["credit"]}
 
 
-def tie_row(label: str, ties: bool, detail: str = ""):
-    return {"posting_date": None, "reference": label, "particulars": (_("TIES TO THE LEDGER") if ties else _("DOES NOT TIE")) + (f" ({detail})" if detail else ""), "is_tie_row": 1}
+def tie_row(label: str, ties: bool, detail: str = "", label_field: str = "reference", text_field: str = "particulars"):
+    """The tie-out line. label_field and text_field name the report's own columns for the label
+    and the verdict (B82, UAT LDG-181: the Purchase Journal has no reference or particulars
+    column, so its tie-out showed blank)."""
+    return {"posting_date": None, label_field: label, text_field: (_("TIES TO THE LEDGER") if ties else _("DOES NOT TIE")) + (f" ({detail})" if detail else ""), "is_tie_row": 1}
+
+
+def check_company(company):
+    """B82 (UAT LDG-189): a book run for a company the user may not open says so, instead of a
+    blank page."""
+    if company and not frappe.has_permission("Company", "read", company):
+        frappe.throw(_("You do not have permission to access Company: {0}.").format(company), frappe.PermissionError)
 
 
 def standard_filters():

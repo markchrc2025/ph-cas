@@ -98,7 +98,7 @@ class TestB18IncomeTax(IntegrationTestCase):
         from ph_cas.ph_cas.report.ph_book_to_tax_reconciliation.ph_book_to_tax_reconciliation import execute
 
         cols, rows = execute({"company": TEST_COMPANY, "from_date": f"{self.year}-01-01", "to_date": f"{self.year}-12-31"})
-        self.assertEqual(rows[-1]["amount"], 0)
+        self.assertEqual(next(r for r in rows if r["line"].startswith("Unexplained difference"))["amount"], 0)
 
     def test_osd(self):
         _company(ph_deduction_method="OSD (40%)")

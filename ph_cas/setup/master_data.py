@@ -61,7 +61,7 @@ def company_fields():
 def party_fields(prefix_after: str):
     return [
         {"fieldname": "ph_section", "fieldtype": "Section Break", "label": "BIR details (Philippines)", "insert_after": prefix_after},
-        {"fieldname": "ph_tin", "fieldtype": "Data", "label": "TIN (9 digits)", "length": 11, "insert_after": "ph_section"},
+        {"fieldname": "ph_tin", "fieldtype": "Data", "label": "TIN (9 digits)", "length": 11, "insert_after": "ph_section", "in_list_view": 1, "in_standard_filter": 1},
         {"fieldname": "ph_branch_code", "fieldtype": "Data", "label": "Branch code (5 digits)", "default": "00000", "length": 5, "insert_after": "ph_tin"},
         {"fieldname": "ph_registered_name", "fieldtype": "Data", "label": "Registered name (non-individual)", "insert_after": "ph_branch_code"},
         {"fieldname": "ph_payee_type", "fieldtype": "Select", "label": "Payee type", "options": PAYEE_TYPE, "default": "Non-individual", "insert_after": "ph_registered_name"},
@@ -182,6 +182,11 @@ def validate_party(doc, method=None):
         doc.ph_tin = normalize_tin(doc.ph_tin)
         if not doc.get("tax_id"):
             doc.tax_id = doc.ph_tin
+        own = frappe.db.get_value("Company", {"tax_id": doc.ph_tin}, "name")
+        if own and (doc.get("ph_branch_code") or "00000") == (frappe.db.get_value("Company", own, "ph_branch_code") or "00000"):
+            # B82 (LDG-226): a customer or supplier with the business's own TIN is almost always a typing slip
+            frappe.msgprint(_("TIN {0} is the TIN of {1}, this business itself. Check the {2}'s TIN.").format(doc.ph_tin, own, _(doc.doctype)),
+                            title=_("Same TIN as the business"), indicator="orange")
     elif doc.get("tax_id") and TIN_RE.match(doc.tax_id.strip()):
         doc.ph_tin = normalize_tin(doc.tax_id)
     validate_branch(doc.get("ph_branch_code"))

@@ -120,7 +120,7 @@ def go_live_checklist(company: str) -> list[dict]:
                      _("{0}: pick it under Paid from when you record an expense paid by card").format(card) if card else _("Run Set up Philippine company to add it"),
                      f"/app/account/{card}" if card else f"/app/company/{company}"))
 
-    with_profile = frappe.db.sql("select count(distinct parent) from `tabUser Role Profile` where parenttype = 'User'")[0][0] if frappe.db.table_exists("User Role Profile") else 0
+    with_profile = frappe.db.sql("select count(distinct p.parent) from `tabUser Role Profile` p join `tabUser` u on u.name = p.parent where p.parenttype = 'User' and u.enabled = 1")[0][0] if frappe.db.table_exists("User Role Profile") else 0
     out.append(_item("users", _("Users with a role set"), "done" if with_profile else "optional",
                      _("{0} user(s) with Owner, Accounting Manager, Accountant or Staff").format(with_profile) if with_profile else _("Give each user a role set (User > Role Profiles)"), "/app/user"))
 

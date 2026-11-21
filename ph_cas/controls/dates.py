@@ -133,6 +133,16 @@ def validate_accounting_period(doc, method=None):
             continue
         if doctype not in present:
             doc.append("closed_documents", {"document_type": doctype, "closed": 1})
+    # B82 (UAT LDG-211): one row per document type; a second save had listed each one twice
+    seen, unique = set(), []
+    for row in doc.get("closed_documents") or []:
+        dt = _get(row, "document_type")
+        if dt in seen:
+            continue
+        seen.add(dt)
+        unique.append(row)
+    if len(unique) != len(doc.get("closed_documents") or []) and hasattr(doc, "set"):
+        doc.set("closed_documents", unique)
     for row in doc.get("closed_documents") or []:
         if _get(row, "document_type") in POSTED_VOUCHER_TYPES:
             _set(row, "closed", 1)

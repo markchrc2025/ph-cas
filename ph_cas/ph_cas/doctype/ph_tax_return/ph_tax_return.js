@@ -12,7 +12,7 @@ frappe.ui.form.on("PH Tax Return", {
 				frappe.show_alert({ message: __("{0} figures taken from the books", [r.figures]), indicator: "green" });
 			}));
 			if ((frm.doc.__onload || {}).ebir_export) {
-				frm.add_custom_button(__("Export for eBIRForms"), () => call(frm, "export_for_ebirforms", null, (url) => window.open(url)));
+				frm.add_custom_button(__("Export for eBIRForms"), () => call(frm, "export_for_ebirforms", null, (url) => window.open(url)), __("BIR files"));
 			}
 		}
 		if (["1601-EQ", "1604-E"].includes(frm.doc.form)) {
@@ -24,12 +24,14 @@ frappe.ui.form.on("PH Tax Return", {
 					frappe.show_alert(names.length
 						? { message: __("Written: {0}", [names.join(", ")]), indicator: "green" }
 						: { message: __("No payees in this period, so no file."), indicator: "orange" });
-				})
+				}), __("BIR files")
 			);
 		}
 		if (["2550Q", "2551Q", "1701Q", "1702Q", "1701", "1702-RT"].includes(frm.doc.form)) {
 			frm.add_custom_button(__("Generate SAWT (.dat)"), () =>
-				call(frm, "generate_sawt", null, (name) => frappe.show_alert({ message: __("Written: {0}", [name]), indicator: "green" }))
+				call(frm, "generate_sawt", null, (name) => frappe.show_alert(name
+					? { message: __("Written: {0}", [name]), indicator: "green" }
+					: { message: __("No tax was withheld from this business in the period, so no SAWT file is needed."), indicator: "orange" })), __("BIR files")
 			);
 		}
 		if (frm.doc.form === "2550Q") {
@@ -37,7 +39,7 @@ frappe.ui.form.on("PH Tax Return", {
 				call(frm, "generate_slsp", null, (r) => {
 					const tie = (r.tie_out || []).length ? r.tie_out.join("<br>") : __("Totals tie out with the return.");
 					frappe.msgprint({ title: __("SLSP"), message: (r.files || []).join("<br>") + "<hr>" + tie, indicator: (r.tie_out || []).length ? "orange" : "green" });
-				})
+				}), __("BIR files")
 			);
 		}
 		frm.add_custom_button(filed ? __("Clear copy (as filed)") : __("Preview (DRAFT)"), () =>
@@ -46,7 +48,7 @@ frappe.ui.form.on("PH Tax Return", {
 		if (!filed && !frm.doc.confirmation) {
 			frm.add_custom_button(__("Attach BIR confirmation"), () => attach_confirmation(frm));
 		}
-		if (filed && !frm.doc.amended_by) {
+		if (filed && !frm.doc.amended_by && can_file()) {
 			frm.add_custom_button(__("Open amendment"), () =>
 				frappe.prompt(
 					{ fieldname: "reason", fieldtype: "Small Text", label: __("Reason for the amendment"), reqd: 1 },
@@ -59,6 +61,7 @@ frappe.ui.form.on("PH Tax Return", {
 		if (frm.doc.clear_copy) frm.add_custom_button(__("Clear copy"), () => window.open(frm.doc.clear_copy), __("Files"));
 		frm.set_intro("");
 		if (filed) frm.set_intro(__("Filed {0}, reference {1}. A filed return is never changed; a manager opens an amendment.", [frappe.datetime.str_to_user(frm.doc.filed_on), frm.doc.filed_reference || ""]), "green");
+		else if (!can_file()) frm.set_intro(__("You prepare this return. An Accounting Manager or the Owner marks it as filed, after the BIR confirmation is attached."), "blue");
 		else if (frm.doc.status === "Ready") frm.set_intro(__("Nothing missing. Attach the BIR confirmation and submit to mark it filed."), "blue");
 	},
 	data(frm) {
@@ -66,11 +69,22 @@ frappe.ui.form.on("PH Tax Return", {
 	},
 });
 
+// B82 (LDG-214, 215): a saved, unchanged return is called by name, so a filed return opens
+// for every role that may read it and no "modified after you opened it" conflict follows.
+function run(frm, method, args) {
+	if (frm.is_dirty()) return frm.call({ doc: frm.doc, method, args: args || {}, freeze: true });
+	return frappe.call({ method: "run_doc_method", args: { dt: frm.doctype, dn: frm.docname, method, args: JSON.stringify(args || {}) }, freeze: true });
+}
+
 function call(frm, method, args, then) {
-	return frm.call({ doc: frm.doc, method, args: args || {}, freeze: true }).then((r) => {
+	return run(frm, method, args).then((r) => {
 		frm.reload_doc();
 		then && then(r.message);
 	});
+}
+
+function can_file() {
+	return ["Accounts Manager", "Accounting Manager", "System Manager", "Administrator"].some((r) => frappe.user.has_role(r));
 }
 
 function render_needs(frm) {
@@ -142,7 +156,7 @@ function attach_confirmation(frm) {
 function render_inputs(frm) {
 	const $w = frm.fields_dict.inputs_html && frm.fields_dict.inputs_html.$wrapper;
 	if (!$w || frm.is_new()) return;
-	frm.call({ doc: frm.doc, method: "form_spec" }).then((r) => {
+	frappe.call({ method: "run_doc_method", args: { dt: frm.doctype, dn: frm.docname, method: "form_spec" } }).then((r) => {
 		const spec = r.message || {};
 		if (!spec.built) {
 			$w.html(`<div class="text-muted">${__("This form's engine is not built yet.")}</div>`);
@@ -162,7 +176,8 @@ function render_inputs(frm) {
 		};
 		let html = `<table class="table table-bordered table-sm sl-inputs"><thead><tr><th style="width:55%">${__("Item")}</th><th>${__("Value")}</th><th style="width:80px"></th></tr></thead><tbody>`;
 		Object.keys(spec.books || {}).forEach((k) => {
-			if (Array.isArray(spec.books[k])) return;
+			// schedules (lists) and nested groups (objects) are shown below or not at all (LDG-218)
+			if (spec.books[k] !== null && typeof spec.books[k] === "object") return;
 			const typed = data[k] !== spec.books[k];
 			const label = (spec.labels || {})[k] || k;
 			html += `<tr><td>${e(label)} <span class="text-muted small">${__("from the books")}: ${e(spec.books[k])}</span></td><td>${control(k, "money", data[k])}</td><td><span class="indicator-pill ${typed ? "orange" : "blue"}">${typed ? __("typed") : __("books")}</span></td></tr>`;

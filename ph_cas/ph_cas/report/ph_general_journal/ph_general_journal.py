@@ -6,10 +6,12 @@ from frappe import _
 from frappe.utils import flt
 
 from ph_cas.books.common import gl_rows, party_name, tie_out, tie_row, voucher_kind, voucher_serial
+from ph_cas.books.common import check_company
 
 
 def execute(filters=None):
     f = frappe._dict(filters or {})
+    check_company(f.get("company"))
     columns = [
         {"fieldname": "posting_date", "label": _("Date"), "fieldtype": "Date", "width": 95},
         {"fieldname": "reference", "label": _("Reference"), "fieldtype": "Data", "width": 150},

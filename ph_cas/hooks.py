@@ -11,16 +11,16 @@ after_migrate = "ph_cas.setup.install.after_migrate"
 
 before_tests = "ph_cas.tests.setup.before_tests"
 
-doctype_js = {"Company": "public/js/company.js", "Sales Invoice": "public/js/sales_invoice.js", "Payment Entry": "public/js/payment_entry.js", "PH Tutorial Video": "public/js/tutorial_video.js", "PH Modules": "public/js/ph_modules.js"}
+doctype_js = {"Company": "public/js/company.js", "Sales Invoice": "public/js/sales_invoice.js", "Payment Entry": "public/js/payment_entry.js", "PH Tutorial Video": "public/js/tutorial_video.js", "PH Modules": "public/js/ph_modules.js", "User": "public/js/user.js"}
 doctype_list_js = {"PH Tutorial Video": "public/js/tutorial_video_list.js", "Purchase Invoice": "public/js/purchase_invoice_list.js",
                    "Customer": "public/js/customer_list.js", "Supplier": "public/js/supplier_list.js", "Item": "public/js/item_list.js"}
 
 # B38 branding: the product, never the framework, is what users see (ph_cas.branding)
 app_logo_url = "/assets/ph_cas/images/logo.svg"
-app_include_js = ["/assets/ph_cas/js/branding.js", "/assets/ph_cas/js/approvals.js", "/assets/ph_cas/js/tutorials.js", "/assets/ph_cas/js/modules.js", "/assets/ph_cas/js/expense.js", "/assets/ph_cas/js/imports.js", "/assets/ph_cas/js/help.js", "/assets/ph_cas/js/counter.js"]
+app_include_js = ["/assets/ph_cas/js/branding.js", "/assets/ph_cas/js/approvals.js", "/assets/ph_cas/js/tutorials.js", "/assets/ph_cas/js/modules.js", "/assets/ph_cas/js/expense.js", "/assets/ph_cas/js/imports.js", "/assets/ph_cas/js/help.js", "/assets/ph_cas/js/counter.js", "/assets/ph_cas/js/no_rights.js"]
 app_include_css = ["/assets/ph_cas/css/sentire.css"]
 boot_session = "ph_cas.branding.boot_session"
-extend_bootinfo = ["ph_cas.branding.extend_bootinfo", "ph_cas.tutorials.api.extend_bootinfo", "ph_cas.modules.api.extend_bootinfo"]
+extend_bootinfo = ["ph_cas.branding.extend_bootinfo", "ph_cas.tutorials.api.extend_bootinfo", "ph_cas.modules.api.extend_bootinfo", "ph_cas.setup.roles.extend_bootinfo"]
 update_website_context = "ph_cas.branding.website_context"
 website_context = {
     "favicon": "/assets/ph_cas/images/favicon.ico",
@@ -46,13 +46,16 @@ doc_events = {
     "Accounting Period": {"validate": "ph_cas.controls.dates.validate_accounting_period"},
     "Sales Invoice": {
         "before_insert": ["ph_cas.controls.serial.clear_serial_on_copy", "ph_cas.invoicing.rules.refuse_amendment"],
-        "before_validate": ["ph_cas.tax.sc_pwd.before_validate", "ph_cas.tax.vat.before_validate", "ph_cas.invoicing.paid_now.before_validate"],
+        "before_validate": ["ph_cas.tax.sc_pwd.before_validate", "ph_cas.tax.vat.before_validate", "ph_cas.invoicing.paid_now.before_validate", "ph_cas.invoicing.rules.default_return_outstanding"],
         "validate": ["ph_cas.tax.vat.validate", "ph_cas.tax.customer_withholding.validate", "ph_cas.invoicing.paid_now.validate", "ph_cas.invoicing.rules.validate_buyer_details"],
         "before_submit": ["ph_cas.controls.serial.assign_serial", "ph_cas.invoicing.rules.validate_manual_invoice_no", "ph_cas.hosting.tiers.validate_invoice_volume"],
         "before_cancel": "ph_cas.invoicing.rules.refuse_cancel",
     },
+    "Journal Entry": {
+        "validate": "ph_cas.invoicing.rules.validate_journal_balanced",
+    },
     "Purchase Invoice": {
-        "before_validate": ["ph_cas.tax.purchase.before_validate", "ph_cas.tax.reverse_charge.before_validate"],
+        "before_validate": ["ph_cas.tax.purchase.before_validate", "ph_cas.tax.reverse_charge.before_validate", "ph_cas.invoicing.rules.default_return_outstanding"],
         "validate": "ph_cas.tax.purchase.validate",
     },
     "POS Invoice": {
@@ -80,6 +83,15 @@ doc_events = {
     "System Settings": {"validate": "ph_cas.controls.security.validate_system_settings"},
     "Activity Log": {"after_insert": ["ph_cas.controls.security.on_activity_log", "ph_cas.audit.events.on_activity_log"]},
 }
+
+# B82: Staff's lists of the counter-limited doctypes are empty (collections excepted)
+permission_query_conditions = {
+    dt: "ph_cas.setup.roles.counter_query"
+    for dt in ("Purchase Invoice", "Purchase Order", "Purchase Receipt", "Journal Entry", "Supplier", "Payment Entry",
+               "PH Tax Return", "PH 2307 Issued", "PH Alphalist File")
+}
+# B82 (LDG-170): the client's users list leaves out the Administrator and provider staff
+permission_query_conditions["User"] = "ph_cas.hosting.tiers.user_query"
 
 # B79: Staff runs the counter's reports only (ph_cas.setup.roles.STAFF_REPORTS)
 override_whitelisted_methods = {
