@@ -4,7 +4,7 @@ One entry per bundle, newest first. Counts are the test totals on main after the
 
 ## B81 Ledger runs on Sentire Framework (21 Nov 2026)
 - Asked by the owner (20 Nov 2026): build Sentire Framework, Sentire's own framework, and run Ledger on it. Issue LDG-184.
-- Pins: framework from plain Frappe v16.60.2 to Sentire Framework v16.60.2-sentire.1 (github.com/markchrc2025/sentire-framework, commit 947c2c92, based on Frappe v16.60.2). ERPNext stays upstream v16.60.0. bench CLI pinned to 5.31.1 (it renames the cloned sentire-framework folder to apps/frappe). Dockerfile, scripts/bootstrap.sh, VERSIONS.md.
+- Pins: framework from plain Frappe v16.60.2 to Sentire Framework v16.60.2-sentire.1 (github.com/markchrc2025/sentire-framework, release branch release/v16.60.2-sentire.1, commit 0e53f54d; the build checks the exact commit, based on Frappe v16.60.2). ERPNext stays upstream v16.60.0. bench CLI pinned to 5.31.1 (it renames the cloned sentire-framework folder to apps/frappe). Dockerfile, scripts/bootstrap.sh, VERSIONS.md.
 - The framework keeps the `frappe` package and upstream's `__version__`, so ERPNext and ph_cas install unchanged. Its changes (name, logos, no update calls, no product ads, the event format and the TypeScript kit) are listed in the framework's CHANGES-SENTIRE.md.
 - Users still see Sentire Ledger only (B38). The licences line in About, the registration pack and the sworn statement now name "Sentire Framework v16.60.2-sentire.1 (based on Frappe Framework 16.60.2)" (audit.header.framework_label).
 - System Settings "Disable Product Suggestion" is now forced on (no Frappe CRM or Helpdesk ads for System Managers).

@@ -10,13 +10,15 @@
 ARG ASSETS=no-prebuilt-assets
 # B81: Sentire Framework (based on Frappe v16.60.2), immutable tag
 ARG FRAPPE_REPO=https://github.com/markchrc2025/sentire-framework
-ARG FRAPPE_TAG=v16.60.2-sentire.1
+ARG FRAPPE_TAG=release/v16.60.2-sentire.1
+ARG FRAPPE_COMMIT=0e53f54d11f3a0e97b3ff5e4b96337b82e635266
 ARG BENCH_VERSION=5.31.1
 ARG ERPNEXT_TAG=v16.60.0
 
 FROM --platform=$BUILDPLATFORM python:3.14-bookworm AS native-assets-build
 ARG FRAPPE_REPO
 ARG FRAPPE_TAG
+ARG FRAPPE_COMMIT
 ARG BENCH_VERSION
 ARG ERPNEXT_TAG
 ENV DEBIAN_FRONTEND=noninteractive PYTHONUNBUFFERED=1
@@ -31,7 +33,7 @@ RUN yarn config set network-timeout 600000 -g && yarn config set network-concurr
 # bench makes its virtualenv with uv by default; uv crashes (SIGSEGV) when the amd64 image is built
 # on the Oracle Arm runner under QEMU, so the bench is made with python -m venv and pip instead
 ENV BENCH_DISABLE_UV=1
-RUN for i in 1 2 3; do bench init bench --frappe-path ${FRAPPE_REPO} --frappe-branch ${FRAPPE_TAG} --python python3 --skip-redis-config-generation --no-backups --skip-assets && break; rm -rf bench; sleep 10; done; test -d bench
+RUN for i in 1 2 3; do bench init bench --frappe-path ${FRAPPE_REPO} --frappe-branch ${FRAPPE_TAG} --python python3 --skip-redis-config-generation --no-backups --skip-assets && break; rm -rf bench; sleep 10; done; test -d bench && test "$(git -C bench/apps/frappe rev-parse HEAD)" = "${FRAPPE_COMMIT}"
 WORKDIR /home/frappe/bench
 RUN for i in 1 2 3; do bench get-app erpnext https://github.com/frappe/erpnext --branch ${ERPNEXT_TAG} --skip-assets && break; rm -rf apps/erpnext; sed -i '/^erpnext$/d' sites/apps.txt; sleep 10; done; test -d apps/erpnext
 COPY --chown=frappe:frappe . /home/frappe/bench/apps/ph_cas
@@ -74,6 +76,7 @@ RUN set -e; arch="${TARGETARCH:-amd64}"; \
 
 ARG FRAPPE_REPO
 ARG FRAPPE_TAG
+ARG FRAPPE_COMMIT
 ARG BENCH_VERSION
 ARG ERPNEXT_TAG
 RUN useradd -m -s /bin/bash frappe && pip install --no-cache-dir "frappe-bench==${BENCH_VERSION}"
@@ -84,7 +87,7 @@ RUN yarn config set network-timeout 600000 -g && yarn config set network-concurr
 # bench makes its virtualenv with uv by default; uv crashes (SIGSEGV) when the amd64 image is built
 # on the Oracle Arm runner under QEMU, so the bench is made with python -m venv and pip instead
 ENV BENCH_DISABLE_UV=1
-RUN for i in 1 2 3; do bench init bench --frappe-path ${FRAPPE_REPO} --frappe-branch ${FRAPPE_TAG} --python python3 --skip-redis-config-generation --no-backups --skip-assets && break; rm -rf bench; sleep 10; done; test -d bench
+RUN for i in 1 2 3; do bench init bench --frappe-path ${FRAPPE_REPO} --frappe-branch ${FRAPPE_TAG} --python python3 --skip-redis-config-generation --no-backups --skip-assets && break; rm -rf bench; sleep 10; done; test -d bench && test "$(git -C bench/apps/frappe rev-parse HEAD)" = "${FRAPPE_COMMIT}"
 WORKDIR /home/frappe/bench
 RUN for i in 1 2 3; do bench get-app erpnext https://github.com/frappe/erpnext --branch ${ERPNEXT_TAG} --skip-assets && break; rm -rf apps/erpnext; sed -i '/^erpnext$/d' sites/apps.txt; sleep 10; done; test -d apps/erpnext
 
