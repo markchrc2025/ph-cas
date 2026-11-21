@@ -4,7 +4,7 @@ Status: recommended (Claude's recommendation, not yet confirmed) or confirmed (t
 
 | # | Decision | Choice | Status |
 |---|---|---|---|
-| D1 | ERPNext version | Sentire Ledger is built on Frappe and ERPNext 16, pinned (see VERSIONS.md). The platform is never named to users (B38); moving to another platform version is a major version (answer 4) | confirmed 17 Nov 2026 |
+| D1 | ERPNext version | Sentire Ledger is built on Sentire Framework (Sentire's own framework, based on Frappe Framework) and ERPNext 16, pinned (see VERSIONS.md; B81). The platform is never named to users (B38) except in the About licences section and the registration pack; moving to another major platform version (17) is a major version (answer 4); a v16 sync of the framework or ERPNext is a minor enhancement unless the accountant decides otherwise | confirmed 17 Nov 2026 |
 | D2 | Delivery | The firm hosts it, one site per client; no copies on client servers. Enterprise clients get a dedicated server pair that stays in MCRC's account | confirmed 17 Nov 2026 |
 | D3 | Server location | Servers and backups in the Philippines; the provider and place wait for LDG-54 (parked) | recommended |
 | D4 | Invoice numbers | 8 digits, continuous, no yearly reset; one series per document type per branch; plus the manual invoice number typed by the user (answer 2) | confirmed 17 Nov 2026 |

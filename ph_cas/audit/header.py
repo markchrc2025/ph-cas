@@ -27,6 +27,17 @@ def software_version() -> str:
     return ph_cas.__version__
 
 
+def framework_label() -> str:
+    """B81: the framework Ledger runs on. Sentire Framework carries frappe/sentire.py; plain
+    Frappe does not, so the label stays true whichever one the bench was built from."""
+    try:
+        from frappe import sentire
+
+        return f"Sentire Framework {sentire.release()} (based on Frappe Framework {frappe.__version__})"
+    except Exception:
+        return f"Frappe Framework {frappe.__version__}"
+
+
 def platform_version() -> str:
     """The full stack, for the registration pack and the sworn statement, where the BIR is
     told what the system is built on. Not shown on client documents."""
@@ -34,7 +45,7 @@ def platform_version() -> str:
         erp = frappe.get_attr("erpnext.__version__")
     except Exception:
         erp = "?"
-    return f"{ph_cas.__version__} (built on ERPNext {erp}, Frappe Framework {frappe.__version__})"
+    return f"{ph_cas.__version__} (built on ERPNext {erp}, {framework_label()})"
 
 
 def _company_of(doc) -> str | None:

@@ -342,13 +342,15 @@ def extend_bootinfo(bootinfo):
 
 
 def licence_text() -> str:
+    from ph_cas.audit.header import framework_label
+
     try:
         erp = frappe.get_attr("erpnext.__version__")
     except Exception:
         erp = "?"
     return (
-        f"Built on open-source software. ERPNext {erp} (GNU GPL v3) and Frappe Framework "
-        f"{frappe.__version__} (MIT). The ph_cas application is licensed under the GNU GPL v3. "
+        f"Built on open-source software. ERPNext {erp} (GNU GPL v3) and {framework_label()} "
+        f"(MIT). The ph_cas application is licensed under the GNU GPL v3. "
         "Copyright notices are kept in the source code as the licences require."
     )
 
