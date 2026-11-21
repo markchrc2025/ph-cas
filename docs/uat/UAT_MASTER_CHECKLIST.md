@@ -1,28 +1,28 @@
 # Sentire Ledger: full UAT checklist
 
-Build 0.1.0+1d56e40d2b40 (commit 7c16bd8). Made by tools/uat/make_workbooks.py; do not edit by hand.
+Build 0.1.0+5195441c14c2 (commit ee09bd2). Made by tools/uat/make_workbooks.py; do not edit by hand.
 
 Run the workbooks in this order, one UAT chat per workbook ("Run UAT for LDG-n"), on staging restarted once before the first. Later workbooks use data the earlier ones made; never deploy to staging during the run. The role sets and what each may do: [ROLE_MATRIX.md](ROLE_MATRIX.md). How to run: [UAT_RUNNER_GUIDE.md](UAT_RUNNER_GUIDE.md).
 
 | # | Workbook | UAT task | Cases | P1 | HUMAN | Owner A | Accounting Manager A | Accountant A | Staff A | Accountant B |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 1 | [Company setup and modules](setup-company/UAT_LDG_setup-company_0.1.0+1d56e40d2b40.xlsx) | LDG-163 | 8 | 2 | 1 | 6 | 1 | 1 | 0 | 0 |
-| 2 | [Paid in full now, credit card and counter views](paid-now-card-counter/UAT_LDG_paid-now-card-counter_0.1.0+1d56e40d2b40.xlsx) | LDG-148 | 15 | 7 | 0 | 10 | 0 | 1 | 3 | 1 |
-| 3 | [Record an expense](record-expense/UAT_LDG_record-expense_0.1.0+1d56e40d2b40.xlsx) | LDG-144 | 9 | 7 | 0 | 0 | 0 | 7 | 1 | 1 |
-| 4 | [Roles and permissions](roles-permissions/UAT_LDG_roles-permissions_0.1.0+1d56e40d2b40.xlsx) | LDG-154 | 40 | 29 | 0 | 6 | 11 | 15 | 13 | 4 |
-| 5 | [Role homes, counter view and Help menu](role-homes/UAT_LDG_role-homes_0.1.0+1d56e40d2b40.xlsx) | LDG-147 | 10 | 2 | 0 | 4 | 1 | 2 | 3 | 0 |
-| 6 | [Reports page](reports-page/UAT_LDG_reports-page_0.1.0+1d56e40d2b40.xlsx) | LDG-155 | 12 | 7 | 1 | 6 | 1 | 3 | 3 | 0 |
-| 7 | [Sales and collections](sales-collections/UAT_LDG_sales-collections_0.1.0+1d56e40d2b40.xlsx) | LDG-156 | 15 | 9 | 1 | 3 | 1 | 8 | 2 | 1 |
-| 8 | [Masters and stock](masters-stock/UAT_LDG_masters-stock_0.1.0+1d56e40d2b40.xlsx) | LDG-161 | 11 | 7 | 0 | 0 | 2 | 6 | 4 | 1 |
-| 9 | [Purchases and payables](purchases-payables/UAT_LDG_purchases-payables_0.1.0+1d56e40d2b40.xlsx) | LDG-157 | 11 | 7 | 1 | 0 | 1 | 7 | 2 | 1 |
-| 10 | [Approvals](approvals/UAT_LDG_approvals_0.1.0+1d56e40d2b40.xlsx) | LDG-162 | 10 | 6 | 0 | 0 | 5 | 5 | 1 | 0 |
-| 11 | [Journals and periods](journals-periods/UAT_LDG_journals-periods_0.1.0+1d56e40d2b40.xlsx) | LDG-158 | 8 | 4 | 0 | 3 | 2 | 3 | 1 | 0 |
-| 12 | [BIR returns](bir-returns/UAT_LDG_bir-returns_0.1.0+1d56e40d2b40.xlsx) | LDG-159 | 17 | 10 | 0 | 1 | 5 | 10 | 1 | 1 |
-| 13 | [Books and audit](books-audit/UAT_LDG_books-audit_0.1.0+1d56e40d2b40.xlsx) | LDG-160 | 14 | 10 | 2 | 3 | 2 | 8 | 1 | 0 |
-| 14 | [Subsidiary ledgers and cash position](ledgers-cash-position/UAT_LDG_ledgers-cash-position_0.1.0+1d56e40d2b40.xlsx) | LDG-146 | 10 | 7 | 5 | 5 | 0 | 2 | 1 | 2 |
-| 15 | [Import templates and batch edit](import-templates/UAT_LDG_import-templates_0.1.0+1d56e40d2b40.xlsx) | LDG-145 | 16 | 11 | 1 | 6 | 0 | 8 | 1 | 1 |
-| 16 | [Go-live and opening balances](go-live/UAT_LDG_go-live_0.1.0+1d56e40d2b40.xlsx) | LDG-143 | 14 | 10 | 0 | 12 | 0 | 1 | 0 | 1 |
-| 17 | [Print pack for the paper check](paper-check-pack/UAT_LDG_paper-check-pack_0.1.0+1d56e40d2b40.xlsx) | LDG-149 | 7 | 6 | 4 | 5 | 0 | 1 | 0 | 1 |
+| 1 | [Company setup and modules](setup-company/UAT_LDG_setup-company_0.1.0+5195441c14c2.xlsx) | LDG-163 | 8 | 2 | 1 | 6 | 1 | 1 | 0 | 0 |
+| 2 | [Paid in full now, credit card and counter views](paid-now-card-counter/UAT_LDG_paid-now-card-counter_0.1.0+5195441c14c2.xlsx) | LDG-148 | 15 | 7 | 0 | 10 | 0 | 1 | 3 | 1 |
+| 3 | [Record an expense](record-expense/UAT_LDG_record-expense_0.1.0+5195441c14c2.xlsx) | LDG-144 | 9 | 7 | 0 | 0 | 0 | 7 | 1 | 1 |
+| 4 | [Roles and permissions](roles-permissions/UAT_LDG_roles-permissions_0.1.0+5195441c14c2.xlsx) | LDG-154 | 40 | 29 | 0 | 6 | 11 | 15 | 13 | 4 |
+| 5 | [Role homes, counter view and Help menu](role-homes/UAT_LDG_role-homes_0.1.0+5195441c14c2.xlsx) | LDG-147 | 10 | 2 | 0 | 4 | 1 | 2 | 3 | 0 |
+| 6 | [Reports page](reports-page/UAT_LDG_reports-page_0.1.0+5195441c14c2.xlsx) | LDG-155 | 12 | 7 | 1 | 6 | 1 | 3 | 3 | 0 |
+| 7 | [Sales and collections](sales-collections/UAT_LDG_sales-collections_0.1.0+5195441c14c2.xlsx) | LDG-156 | 15 | 9 | 1 | 3 | 1 | 8 | 2 | 1 |
+| 8 | [Masters and stock](masters-stock/UAT_LDG_masters-stock_0.1.0+5195441c14c2.xlsx) | LDG-161 | 11 | 7 | 0 | 0 | 2 | 6 | 4 | 1 |
+| 9 | [Purchases and payables](purchases-payables/UAT_LDG_purchases-payables_0.1.0+5195441c14c2.xlsx) | LDG-157 | 11 | 7 | 1 | 0 | 1 | 7 | 2 | 1 |
+| 10 | [Approvals](approvals/UAT_LDG_approvals_0.1.0+5195441c14c2.xlsx) | LDG-162 | 10 | 6 | 0 | 0 | 5 | 5 | 1 | 0 |
+| 11 | [Journals and periods](journals-periods/UAT_LDG_journals-periods_0.1.0+5195441c14c2.xlsx) | LDG-158 | 8 | 4 | 0 | 3 | 2 | 3 | 1 | 0 |
+| 12 | [BIR returns](bir-returns/UAT_LDG_bir-returns_0.1.0+5195441c14c2.xlsx) | LDG-159 | 17 | 10 | 0 | 1 | 5 | 10 | 1 | 1 |
+| 13 | [Books and audit](books-audit/UAT_LDG_books-audit_0.1.0+5195441c14c2.xlsx) | LDG-160 | 14 | 10 | 2 | 3 | 2 | 8 | 1 | 0 |
+| 14 | [Subsidiary ledgers and cash position](ledgers-cash-position/UAT_LDG_ledgers-cash-position_0.1.0+5195441c14c2.xlsx) | LDG-146 | 10 | 7 | 5 | 5 | 0 | 2 | 1 | 2 |
+| 15 | [Import templates and batch edit](import-templates/UAT_LDG_import-templates_0.1.0+5195441c14c2.xlsx) | LDG-145 | 16 | 11 | 1 | 6 | 0 | 8 | 1 | 1 |
+| 16 | [Go-live and opening balances](go-live/UAT_LDG_go-live_0.1.0+5195441c14c2.xlsx) | LDG-143 | 14 | 10 | 0 | 12 | 0 | 1 | 0 | 1 |
+| 17 | [Print pack for the paper check](paper-check-pack/UAT_LDG_paper-check-pack_0.1.0+5195441c14c2.xlsx) | LDG-149 | 7 | 6 | 4 | 5 | 0 | 1 | 0 | 1 |
 | | **Total** | | **227** | **141** | **16** | **70** | **32** | **88** | **37** | **15** |
 
 Role columns count the cases that sign in as that account (in the Role column or in the steps).
@@ -201,7 +201,7 @@ Role columns count the cases that sign in as that account (in the Role column or
 | LDG-BA-002 | books-audit | P1 | Accountant A | The Sales Journal ties to the Sales Register |
 | LDG-BA-003 | books-audit | P1 | Accountant A | The Purchase Journal ties to the Purchase Register |
 | LDG-BA-004 | books-audit | P1 | Accountant A | The cash books tie to the cash accounts |
-| LDG-BA-005 | books-audit | P2 | Accountant A | The General Journal lists the journal entries only |
+| LDG-BA-005 | books-audit | P2 | Accountant A | The General Journal lists every posting of the day with its accounts |
 | LDG-BA-006 | books-audit | P3 | Accountant A | The Inventory book lists stock movements |
 | LDG-BA-007 | books-audit | P1 | Accountant A | The Accountant downloads the loose-leaf books |
 | LDG-BA-008 | books-audit | P1 | Staff A | Staff cannot download the books |
@@ -244,7 +244,7 @@ Role columns count the cases that sign in as that account (in the Role column or
 | LDG-GL-005 | go-live | P2 | Owner A | Owner adds the customer and supplier that carry old balances |
 | LDG-GL-006 | go-live | P1 | Owner A | Opening balances post on the cut-over day without a back-date reason |
 | LDG-GL-007 | go-live | P1 | Owner A | Opening stock count posts on the cut-over day |
-| LDG-GL-008 | go-live | P1 | Owner A | An old invoice entered as an opening Sales Invoice is refused |
+| LDG-GL-008 | go-live | P1 | Owner A | An old invoice cannot be entered as an opening Sales Invoice |
 | LDG-GL-009 | go-live | P1 | Owner A | The old balances show by customer and supplier |
 | LDG-GL-010 | go-live | P1 | Owner A | An old balance is collected against the opening entry |
 | LDG-GL-011 | go-live | P1 | Owner A | The checklist shows the go-live complete |
