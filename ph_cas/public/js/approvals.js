@@ -74,7 +74,7 @@ const ph_cas_approvals = {
 	},
 	decide(frm, request, decision) {
 		frappe.prompt(
-			{ fieldname: "comment", fieldtype: "Small Text", label: decision === "Rejected" ? __("Reason") : __("Comment (optional)"), reqd: decision === "Rejected" ? 1 : 0 },
+			{ fieldname: "comment", fieldtype: "Small Text", label: decision === "Rejected" ? __("Reason") : __("Comment (optional)") },
 			(v) =>
 				frappe.call({
 					method: "ph_cas.approvals.api.decide",

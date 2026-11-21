@@ -17,7 +17,7 @@ doctype_list_js = {"PH Tutorial Video": "public/js/tutorial_video_list.js", "Pur
 
 # B38 branding: the product, never the framework, is what users see (ph_cas.branding)
 app_logo_url = "/assets/ph_cas/images/logo.svg"
-app_include_js = ["/assets/ph_cas/js/branding.js", "/assets/ph_cas/js/approvals.js", "/assets/ph_cas/js/tutorials.js", "/assets/ph_cas/js/modules.js", "/assets/ph_cas/js/expense.js", "/assets/ph_cas/js/imports.js", "/assets/ph_cas/js/help.js", "/assets/ph_cas/js/counter.js", "/assets/ph_cas/js/no_rights.js"]
+app_include_js = ["/assets/ph_cas/js/branding.js", "/assets/ph_cas/js/approvals.js", "/assets/ph_cas/js/tutorials.js", "/assets/ph_cas/js/modules.js", "/assets/ph_cas/js/expense.js", "/assets/ph_cas/js/imports.js", "/assets/ph_cas/js/help.js", "/assets/ph_cas/js/counter.js", "/assets/ph_cas/js/no_rights.js", "/assets/ph_cas/js/tree_fix.js"]
 app_include_css = ["/assets/ph_cas/css/sentire.css"]
 boot_session = "ph_cas.branding.boot_session"
 extend_bootinfo = ["ph_cas.branding.extend_bootinfo", "ph_cas.tutorials.api.extend_bootinfo", "ph_cas.modules.api.extend_bootinfo", "ph_cas.setup.roles.extend_bootinfo"]
@@ -97,6 +97,9 @@ permission_query_conditions["User"] = "ph_cas.hosting.tiers.user_query"
 override_whitelisted_methods = {
     "frappe.desk.query_report.run": "ph_cas.setup.roles.run_report",
     "frappe.desk.query_report.export_query": "ph_cas.setup.roles.export_report",
+    # B83: a posted voucher or a filed return gets the app's message, not "Cancel it first"
+    "frappe.client.delete": "ph_cas.controls.delete_guard.delete",
+    "frappe.desk.reportview.delete_items": "ph_cas.controls.delete_guard.delete_items",
 }
 
 override_doctype_class = {
