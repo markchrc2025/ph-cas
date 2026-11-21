@@ -69,37 +69,11 @@ def validate_buyer_details(doc, method=None):
         )
 
 
-def refuse_amendment(doc, method=None):
-    """doc_events['Sales Invoice'].before_insert: no amendments of issued invoices (D6)."""
-    if doc.get("amended_from") and not doc.get("is_return"):
-        frappe.throw(
-            _("An issued invoice is never amended. Issue a credit note (decrease) or a new invoice (increase) that refers to {0}.").format(doc.amended_from),
-            PHLockError,
-        )
-
-
-def refuse_cancel(doc, method=None):
-    """doc_events['Sales Invoice'].before_cancel: an issued invoice, credit note or
-    debit note stays issued (D6 as applied to invoices in B21; LDG-96).
-
-    Issued means it carries a BIR serial. It holds for every role, Administrator
-    included; the only escape is the test-site unlock in ph_cas.controls.locks."""
-    from ph_cas.controls.locks import locks_active
-    from ph_cas.controls.serial import SERIAL_FIELD, document_type_of
-
-    if not doc.get(SERIAL_FIELD) or not locks_active():
-        return
-    kind = document_type_of(doc) or "Sales Invoice"
-    if kind == "Sales Invoice":
-        fix = _("Issue a credit note for the full amount (to reverse it) or for the difference, or a debit note or new invoice for an increase.")
-    elif kind == "Credit Note":
-        fix = _("Issue a debit note to reverse it.")
-    else:
-        fix = _("Issue a credit note to reverse it.")
-    frappe.throw(
-        _("{0} {1} (BIR serial {2}) has been issued and cannot be cancelled. {3}").format(_(kind), doc.name, doc.get(SERIAL_FIELD), fix),
-        PHLockError,
-    )
+# B84 (owner, 21 Nov 2026): an issued invoice, credit note, debit note or collection receipt may
+# be cancelled (and reissued by Amend, which takes a new BIR serial), by every role that holds the
+# cancel right, Staff included. A Cancel approval chain, where the business sets one, gates it
+# (ph_cas.approvals.gate.before_cancel). The cancelled document keeps its serial in the series.
+# This replaces D6's "never cancelled" for invoices (B21, LDG-96).
 
 
 def eis_required(company: str) -> bool:

@@ -396,9 +396,13 @@ def s_sales(r: Runner):
             return refused(sales_invoice, co, c_walkin, [(vatable, 1, 100)], manual=used)
         r.step(f"[{co}] a manual invoice number cannot be used twice", manual_no_unique)
 
-        def no_cancel(co=co, state=state):
-            return refused(frappe.get_doc("Sales Invoice", state["si"]).cancel)
-        r.step(f"[{co}] an issued invoice cannot be cancelled", no_cancel)
+        def cancel_keeps_serial(co=co, state=state):
+            # B84: an issued invoice may be cancelled; its serial stays in the series
+            si = sales_invoice(co, c_walkin, [(vatable, 1, 100)])
+            si.cancel()
+            r.expect(frappe.db.get_value("Sales Invoice", si.name, "bir_serial") == si.bir_serial, "serial kept")
+            return f"{si.name} {si.bir_serial} cancelled"
+        r.step(f"[{co}] an issued invoice can be cancelled and keeps its serial", cancel_keeps_serial)
 
         def no_edit(co=co, state=state):
             doc = frappe.get_doc("Sales Invoice", state["si"])

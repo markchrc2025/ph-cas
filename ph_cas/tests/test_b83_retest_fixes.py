@@ -32,8 +32,7 @@ class TestB83RetestFixes(IntegrationTestCase):
         si = make_sales_invoice()
         with self.assertRaises(frappe.ValidationError) as e:
             delete_guard._guard("Sales Invoice", si.name)
-        self.assertIn("has been issued and cannot be deleted", str(e.exception))
-        self.assertNotIn("Cancel", str(e.exception))
+        self.assertIn("has been posted and cannot be deleted", str(e.exception))
 
     def test_draft_passes_the_guard(self):
         si = make_sales_invoice(submit=False)

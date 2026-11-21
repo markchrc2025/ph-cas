@@ -50,7 +50,7 @@ CASES = [
     case("LDG-BA-012", "Audit", I, "Print records count each print", "Owner A", "sales-collections LDG-SL-013 and LDG-SL-014 done (the LDG-SL-003 invoice printed twice)",
          ["Reports page > Audit > Print records; filter Reference = the LDG-SL-003 invoice"], "None", ["Two rows: the original and the reprint, each with user and time"], "P2"),
     case("LDG-BA-013", "Audit", I, "A posted document cannot be deleted by anyone", "Owner A", "sales-collections LDG-SL-003 done (a submitted invoice)",
-         ["Open the LDG-SL-003 invoice; look in the menu (...) for Delete", "Open the Sales Invoice list; tick the LDG-SL-003 invoice; Actions > Delete; confirm"], "None", ["Step 1: the form offers no Delete", "Step 2: the message \"Sales Invoice <name> (BIR serial <serial>) has been issued and cannot be deleted. Correct it with a credit note or a debit note.\"", "It stays in the list, Submitted"], "P1"),
+         ["Open the LDG-SL-003 invoice; look in the menu (...) for Delete", "Open the Sales Invoice list; tick the LDG-SL-003 invoice; Actions > Delete; confirm"], "None", ["Step 1: the form offers no Delete", "Step 2: the message \"Sales Invoice <name> has been posted and cannot be deleted. Cancel it, or correct it with a new document.\"", "It stays in the list, Submitted"], "P1"),
     case("LDG-BA-014", "Company", I, "HUMAN: the year-end e-books pack", "Owner A", "None",
          "HUMAN: 1. Company " + CO + " > Sentire Ledger menu > Year-end e-books (zip); Year: <year of T>\n2. Open the zip and list its files",
          "None", ["The file ebooks_<year>_Tala_Trading_Corporation.zip downloads",

@@ -78,17 +78,6 @@ def refuse_delete(doc, method=None):
             _("{0} rows are permanent. The ledger is never deleted in this system.").format(doc.doctype),
             PHLockError,
         )
-    from ph_cas.controls.serial import SERIAL_FIELD
-
-    if doc.doctype in POSTED_VOUCHER_TYPES and doc.docstatus in (1, 2) and doc.get(SERIAL_FIELD):
-        # B83 (LDG-222): an issued BIR document is never cancelled either, so the message
-        # points to the correction that is allowed
-        frappe.throw(
-            _("{0} {1} (BIR serial {2}) has been issued and cannot be deleted. Correct it with a credit note or a debit note.").format(
-                doc.doctype, doc.name, doc.get(SERIAL_FIELD)
-            ),
-            PHLockError,
-        )
     if doc.doctype in POSTED_VOUCHER_TYPES and doc.docstatus in (1, 2):
         frappe.throw(
             _("{0} {1} has been posted and cannot be deleted. Cancel it, or correct it with a new document.").format(

@@ -294,7 +294,7 @@
    "section": "Selling",
    "title": "Correct an invoice",
    "length": "1:15",
-   "summary": "Issued invoices are never cancelled: a credit or debit note against them",
+   "summary": "Cancel and reissue (the serial stays as cancelled), or a credit or debit note against the invoice",
    "menu_path": "Sales Invoice > Create > Return / Debit Note",
    "ends_on": "Sales Journal showing the invoice and its note",
    "steps": [],

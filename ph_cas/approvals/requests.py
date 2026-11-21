@@ -73,16 +73,19 @@ def _label(doc) -> str:
 
 def open_request(doctype: str, name: str, reason: str = "") -> str:
     doc = frappe.get_doc(doctype, name)
-    if not frappe.has_permission(doctype, "write", doc):
+    change = doc.docstatus == 1
+    cancel = change and doctype != "PH Tax Return"  # B84: a cancellation request
+    if not frappe.has_permission(doctype, "cancel" if cancel else "write", doc):
         frappe.throw(_("Not permitted"), frappe.PermissionError)
     chain = chains.chain_for(doc)
     if chain is None:
+        if cancel:
+            frappe.throw(_("No approval chain applies to cancelling {0}; cancel it as usual.").format(_label(doc)))
         frappe.throw(_("No approval chain applies to {0}; submit it as usual.").format(_label(doc)))
-    change = doc.docstatus == 1
     if doctype == "PH Tax Return" and not change:
         frappe.throw(_("A draft return is filed with its BIR confirmation; the chain gates changes to a filed return."))
-    if change and doctype != "PH Tax Return":
-        frappe.throw(_("{0} is posted; a change after posting is an amendment or a reversing entry.").format(_label(doc)))
+    if cancel and not (reason or "").strip():
+        frappe.throw(_("Give the reason for the cancellation."))
     if change and not (reason or "").strip():
         frappe.throw(_("Give the reason for the change."))
     if latest(doctype, name):
@@ -229,6 +232,11 @@ def _finish(req, doc):
             frappe.flags.ph_approval_amend = doc.name
             doc.open_amendment(req.reason or "Approved change request")
             consume(req.name)
+        else:
+            # B84: an approved cancellation request
+            frappe.flags.ph_approval_cancel = req.name
+            doc.flags.ignore_permissions = True
+            doc.cancel()
     except Exception:
         # the approval stands; the maker fixes the document and submits (the gate
         # consumes the approved request when the document is unchanged)
@@ -239,11 +247,14 @@ def _finish(req, doc):
         frappe.log_error(title=f"Approved {_label(doc)} did not post")
         frappe.flags.ph_approval_submit = None
         frappe.flags.ph_approval_amend = None
+        frappe.flags.ph_approval_cancel = None
         return
     finally:
         frappe.flags.ph_approval_submit = None
         frappe.flags.ph_approval_amend = None
-    _mail([req.requested_by], _("{0} is approved and posted").format(_label(doc)), f"<p>{_label(doc)} went through every step and is posted.</p><p><a href=\"{_link(doc)}\">Open the document</a>.</p>")
+        frappe.flags.ph_approval_cancel = None
+    done = _("cancelled") if doc.docstatus == 2 else _("posted")
+    _mail([req.requested_by], _("{0} is approved and {1}").format(_label(doc), done), f"<p>{_label(doc)} went through every step and is {done}.</p><p><a href=\"{_link(doc)}\">Open the document</a>.</p>")
 
 
 def consume(request: str):
@@ -309,7 +320,7 @@ def status_for(doctype: str, name: str) -> dict:
     chain = chains.chain_for(doc)
     if doctype == "PH Tax Return" and doc.docstatus == 0:
         chain = None
-    out = {"applies": chain is not None, "chain": chain.name if chain else None, "chain_title": chain.title if chain else None, "single_user": chains.single_user_site(), "request": None}
+    out = {"applies": chain is not None, "action": chains.action_for(doc), "chain": chain.name if chain else None, "chain_title": chain.title if chain else None, "single_user": chains.single_user_site(), "request": None}
     req = latest(doctype, name) or latest(doctype, name, ("Rejected", "Withdrawn", "Void", "Consumed"))
     if req is None:
         return out
