@@ -24,7 +24,7 @@ Y = allowed, N = refused, R = read only. "Enforced by" names where the rule live
 | 5 | Chart of accounts and cost centers | Y | Y | R | R | roles.chart_limit | LDG-RP-010..012 |
 | 6 | Account mapping (tax accounts) | Y | Y | N | N | PH Account Mapping perms | LDG-RP-013 |
 | 7 | Sales invoice: create and submit | Y | Y | Y | Y | Accounts User | LDG-RP-014, 015 |
-| 8 | Sales invoice: cancel an issued one | N | N | N | N | invoicing.rules.refuse_cancel (all roles) | LDG-RP-016 |
+| 8 | Sales invoice or collection receipt: cancel an issued one | Y | Y | Y | Y | Accounts User cancel right; a Cancel approval chain gates it where set (B84) | LDG-RP-016, SL-008, AP-011 |
 | 9 | Collection (Payment Entry, Receive) | Y | Y | Y | Y | Accounts User | LDG-RP-017 |
 | 10 | Payment out (Payment Entry, Pay) | Y | Y | Y | N | roles.cashier_limit | LDG-RP-018, 020 |
 | 11 | Bill (Purchase Invoice), Record an expense | Y | Y | Y | N | roles.cashier_limit | LDG-RP-019, 021 |
@@ -50,7 +50,7 @@ Y = allowed, N = refused, R = read only. "Enforced by" names where the rule live
 
 Notes:
 
-- Row 8: an issued invoice is never cancelled by anyone; it is reversed with a credit note. The form has no Cancel button and says why; the server refuses a cancel sent any other way. A draft can be deleted by whoever made it.
+- Row 8 (owner, 21 Nov 2026): an issued invoice or collection receipt may be cancelled; it keeps its BIR serial and a replacement takes the next. Where the business sets a Cancel approval chain, the form shows Request cancellation instead of Cancel. A draft can be deleted by whoever made it; a posted document is never deleted.
 - B82: Staff's lists of bills, journals, suppliers and BIR returns are empty and their menus are hidden; collections stay. A new form a role cannot save shows a note and no Save button. Every role set has Prepared Report User.
 - Row 13: Sales invoices, collections and stock documents always carry today's date, for every role.
 - Row 24: Staff opens only the counter's reports (`STAFF_REPORTS` in `roles.py`): PH Cash Position, Sales Register, Sales by item, Accounts Receivable and its summary, Stock Balance, Projected quantity. Any other report, by menu or by URL, is refused.

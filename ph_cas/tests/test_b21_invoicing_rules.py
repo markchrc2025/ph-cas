@@ -43,13 +43,16 @@ class TestB21InvoicingRules(IntegrationTestCase):
         si = _invoice([(ensure_service_item(), 1, 5000, {})], customer=buyer)
         self.assertTrue(si.name)
 
-    def test_issued_invoice_cannot_be_amended(self):
+    def test_cancelled_invoice_is_reissued_by_amend(self):
+        # B84 (owner, 21 Nov 2026): cancel and reissue; the replacement takes a new serial
         si = _invoice([(ensure_service_item(), 1, 1000, {})], submit=True)
+        si.cancel()
         amended = frappe.copy_doc(si)
         amended.amended_from = si.name
         amended.docstatus = 0
-        with self.assertRaises(PHLockError):
-            amended.insert()
+        amended.ph_manual_invoice_no = None
+        amended.insert()
+        self.assertFalse(amended.bir_serial)
 
     def test_credit_note_still_works_as_the_correction_path(self):
         si = _invoice([(ensure_service_item(), 1, 1000, {})], submit=True)
@@ -61,19 +64,18 @@ class TestB21InvoicingRules(IntegrationTestCase):
         self.assertEqual(cn.return_against, si.name)
         self.assertTrue(cn.bir_serial)
 
-    def test_issued_documents_cannot_be_cancelled_by_any_role(self):
-        """LDG-96: Accounts Manager keeps ERPNext's cancel permission; the refusal holds anyway."""
+    def test_issued_documents_may_be_cancelled_and_keep_their_serials(self):
+        """B84 (owner, 21 Nov 2026), replacing LDG-96: an issued invoice and its credit note
+        may be cancelled; each keeps its BIR serial."""
         si = _invoice([(ensure_service_item(), 1, 1000, {})], submit=True)
         from erpnext.accounts.doctype.sales_invoice.sales_invoice import make_sales_return
 
         cn = make_sales_return(si.name)
         cn.insert()
         cn.submit()
-        for doc in (si, cn):
-            with self.assertRaises(PHLockError) as cm:
-                frappe.get_doc("Sales Invoice", doc.name).cancel()
-            self.assertIn(doc.bir_serial, str(cm.exception))
-            self.assertEqual(frappe.db.get_value("Sales Invoice", doc.name, "docstatus"), 1)
+        for doc in (cn, si):
+            frappe.get_doc("Sales Invoice", doc.name).cancel()
+            self.assertEqual(frappe.db.get_value("Sales Invoice", doc.name, ["docstatus", "bir_serial"]), (2, doc.bir_serial))
 
     def test_end_of_day_invoice(self):
         _set_regime("Non-VAT")

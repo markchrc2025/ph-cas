@@ -46,4 +46,13 @@ CASES = [
           "As Accountant A, new bill: UAT-PU-001 Makati Janitorial Corp.; item UAT-PU-001-JAN, Qty 1, Rate 60,000.00; Supplier invoice no UAT-AP-010; Save; Submit"], "None",
          ["Step 1: saved; reload shows Enabled off", "Step 2: the bill shows Submit (no Request approval) and submits directly; Grand Total 66,000.00"], "P2", "LDG-AP-008",
          "Disables the chain; IRREVERSIBLE: posts a bill"),
+    case("LDG-AP-011", "Approval Chain", I, "A cancellation chain: an issued invoice is cancelled only when approved", "Accounting Manager A", "LDG-AP-001 done; customer UAT-SL-001 Antipolo Builders Inc. and item UAT-SL-001-CEM exist (sales-collections workbook)",
+         ["As Accounting Manager A: new Approval Chain, Title UAT-AP-011 Cancel invoices, Document type Sales Invoice, Action Cancel, Company Tala Trading Corporation, Enabled; step 1 Accounts manager (Role Accounts Manager, Any one, Approver); Save",
+          "As Accountant A: issue an invoice (customer UAT-SL-001 Antipolo Builders Inc., UAT-SL-001-CEM Qty 1, Manual invoice number UAT-AP-011); Submit; look for Cancel",
+          "Click Request cancellation; reason UAT-AP-011 wrong customer",
+          "As Accounting Manager A: open the invoice; Approve",
+          "Open UAT-AP-011 Cancel invoices; untick Enabled; Save"], "None",
+         ["Step 2: no Cancel button; a Request cancellation button shows", "Step 3: the Approval section shows Pending, requested by Accountant A",
+          "Step 4: the invoice is Cancelled, keeping its BIR serial", "Step 5: saved; reload shows Enabled off"],
+         "P1", "LDG-AP-001", "IRREVERSIBLE: issues and cancels a BIR invoice; adds and disables a chain"),
 ]

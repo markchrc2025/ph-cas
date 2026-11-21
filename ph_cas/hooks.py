@@ -33,6 +33,7 @@ doc_events = {
         "before_update_after_submit": "ph_cas.controls.posted_fields.refuse_posted_field_changes",
         "validate": "ph_cas.controls.dates.validate_posting_date",
         "before_submit": "ph_cas.approvals.gate.before_submit",
+        "before_cancel": "ph_cas.approvals.gate.before_cancel",  # B84
         "before_print": ["ph_cas.controls.dates.refuse_draft_print", "ph_cas.invoicing.printing.before_print", "ph_cas.audit.events.on_before_print"],
         "after_insert": "ph_cas.audit.events.on_after_insert",
         "on_update": ["ph_cas.audit.events.on_update", "ph_cas.approvals.gate.on_update"],
@@ -45,11 +46,10 @@ doc_events = {
     "Email Queue": {"before_insert": "ph_cas.qa.uat.redirect_staging_mail"},
     "Accounting Period": {"validate": "ph_cas.controls.dates.validate_accounting_period"},
     "Sales Invoice": {
-        "before_insert": ["ph_cas.controls.serial.clear_serial_on_copy", "ph_cas.invoicing.rules.refuse_amendment"],
+        "before_insert": "ph_cas.controls.serial.clear_serial_on_copy",  # B84: cancel and reissue is allowed again
         "before_validate": ["ph_cas.tax.sc_pwd.before_validate", "ph_cas.tax.vat.before_validate", "ph_cas.invoicing.paid_now.before_validate", "ph_cas.invoicing.rules.default_return_outstanding"],
         "validate": ["ph_cas.tax.vat.validate", "ph_cas.tax.customer_withholding.validate", "ph_cas.invoicing.paid_now.validate", "ph_cas.invoicing.rules.validate_buyer_details"],
         "before_submit": ["ph_cas.controls.serial.assign_serial", "ph_cas.invoicing.rules.validate_manual_invoice_no", "ph_cas.hosting.tiers.validate_invoice_volume"],
-        "before_cancel": "ph_cas.invoicing.rules.refuse_cancel",
     },
     "Journal Entry": {
         "validate": "ph_cas.invoicing.rules.validate_journal_balanced",

@@ -85,8 +85,8 @@ def refuse_posted_field_changes(doc, method=None):
     if refused:
         where, field = refused[0][0], refused[0][1]
         if doc.doctype == "Sales Invoice" and doc.get("bir_serial"):
-            # an issued invoice is never cancelled (controls/cancel): corrections are notes
-            remedy = _("issue a credit note for the full amount or the difference, or a debit note for an increase")
+            # B84: an issued invoice may be cancelled and reissued, or corrected by a note
+            remedy = _("cancel it and reissue, or issue a credit note for the difference, or a debit note for an increase")
         else:
             remedy = _("cancel and reissue, or post an adjusting entry")
         frappe.throw(
