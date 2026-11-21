@@ -24,7 +24,7 @@ class TestB83RetestFixes(IntegrationTestCase):
         je.submit()
         frappe.db.set_value("GL Entry", {"voucher_no": je.name}, "remarks", "")
         _, rows = gj({"company": TEST_COMPANY, "from_date": get_first_day(today()), "to_date": get_last_day(today())})
-        mine = [r for r in rows if r.get("debit") == 123 or r.get("credit") == 123]
+        mine = [r for r in rows if r.get("reference") == je.name]
         self.assertTrue(mine)
         self.assertTrue(all("UAT-B83 remark" in (r.get("particulars") or "") for r in mine))
 
