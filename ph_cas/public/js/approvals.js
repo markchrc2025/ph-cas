@@ -15,7 +15,7 @@ frappe.ui.form.on("*", {
 const ph_cas_approvals = {
 	render(frm, st) {
 		frm.dashboard.parent.find(".sl-approval").remove();
-		if (!st.request && (!st.applies || frm.doc.docstatus === 1)) return;
+		if (!st.request && !st.applies) return;
 		const req = st.request;
 		const open = req && req.status === "Pending";
 		const filed = frm.doc.docstatus === 1;
@@ -25,6 +25,14 @@ const ph_cas_approvals = {
 			} else if (open) {
 				frm.page.clear_primary_action();
 			}
+		}
+		// B84: a Cancel chain: the posted document is cancelled through a request
+		if (st.applies && filed && st.action === "Cancel" && !st.single_user) {
+			frm.page.clear_secondary_action();
+			if (!open)
+				frm.add_custom_button(__("Request cancellation"), () =>
+					frappe.prompt({ fieldname: "reason", fieldtype: "Small Text", label: __("Reason for the cancellation") }, (v) => this.request(frm, v.reason), __("Ask for this document to be cancelled"))
+				);
 		}
 		if (st.applies && filed && frm.doctype === "PH Tax Return" && !frm.doc.amended_by && !open) {
 			frm.add_custom_button(__("Request change"), () =>

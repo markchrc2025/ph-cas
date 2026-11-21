@@ -12,6 +12,7 @@
  "field_order": [
   "title",
   "document_type",
+  "action",
   "company",
   "col",
   "enabled",
@@ -34,6 +35,15 @@
    "reqd": 1,
    "in_list_view": 1,
    "in_standard_filter": 1
+  },
+  {
+   "fieldname": "action",
+   "fieldtype": "Select",
+   "label": "Action",
+   "options": "Submit\nCancel",
+   "default": "Submit",
+   "in_list_view": 1,
+   "description": "Submit: the document posts only after approval. Cancel: a posted document is cancelled only after approval (B84)."
   },
   {
    "fieldname": "company",
@@ -108,7 +118,7 @@
  "states": [],
  "idx": 0,
  "docstatus": 0,
- "modified": "2026-11-12 00:00:00.000000",
+ "modified": "2026-11-22 00:00:00.000000",
  "modified_by": "Administrator",
  "owner": "Administrator",
  "creation": "2026-11-12 00:00:00.000000",

@@ -10,6 +10,13 @@ One entry per bundle, newest first. Counts are the test totals on main after the
 - System Settings "Disable Product Suggestion" is now forced on (no Frappe CRM or Helpdesk ads for System Managers).
 - Docs: docs/LEGAL-FRAMEWORK.md, docs/runbooks/framework-upstream-sync.md. D1 updated.
 - Tests: +10 (test_b81_framework). UAT: tools/uat/cases/framework_branding.py (6 cases), to hand off after the current UAT run.
+## B84 Cancelling issued invoices and receipts, with an optional approval chain (21 Nov 2026)
+- Asked by the owner (21 Nov 2026, answering the retest question on SL-010): all principal and supplementary invoices can be cancelled; Staff can cancel invoices; cancellation can be set with an approval chain. Replaces D6's "never cancelled" (B21, B46, LDG-96).
+- An issued Sales Invoice, credit note or debit note may now be cancelled by any role with the cancel right, Staff included (collection receipts already could). It keeps its BIR serial; Amend makes the replacement, which takes the next serial. The form says so under the title. The delete refusal is the general one again ("Cancel it, or correct it with a new document").
+- Approval chains have an Action: Submit (as before, the default) or Cancel. With an enabled Cancel chain, a posted document's Cancel button gives way to Request cancellation (reason required); the last approval cancels it; a cancel sent any other way is refused ("... needs approval to be cancelled ..."). A filed BIR return keeps its own amendment chain.
+- UAT: RP-016 (Staff cancels an issued invoice), SL-008 (cancel and reissue with the next serial) and the new AP-011 (cancellation chain) replace the never-cancelled cases; BA-013 back to the general message.
+- Tests: +3 (test_b84_cancel); test_b06 and the QA full pass now cancel an issued invoice and check its serial.
+
 ## B83 Fixes from the B82 retest (21 Nov 2026)
 - Asked by the owner (21 Nov 2026): fix every failure of the retest on 0.1.0+5195441c14c2 (78 cases: 63 passed, 9 failed, 3 blocked, 3 human), then retest.
 - Chart of accounts: Frappe 16.60's row menu ran Add Child on the selected node, not on the row clicked, so a new account landed under Expenses; each row action now selects its own row first (tree_fix.js, LDG-230).

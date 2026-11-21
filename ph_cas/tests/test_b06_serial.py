@@ -34,15 +34,19 @@ class TestB06Serial(IntegrationTestCase):
         b = make_sales_invoice().get(SERIAL_FIELD)
         self.assertEqual(int(b), int(a) + 1)
 
-    def test_an_issued_invoice_cannot_be_cancelled_and_keeps_its_number(self):
+    def test_a_cancelled_invoice_keeps_its_number_and_the_replacement_takes_the_next(self):
+        # B84 (owner, 21 Nov 2026): an issued invoice may be cancelled and reissued
         si = make_sales_invoice()
         serial = si.get(SERIAL_FIELD)
-        with self.assertRaises(PHLockError):
-            si.cancel()
-        self.assertEqual(frappe.db.get_value("Sales Invoice", si.name, ["docstatus", SERIAL_FIELD]), (1, serial))
-        # an issued invoice is never amended (B21): the replacement is a new invoice
-        replacement = make_sales_invoice()
-        self.assertEqual(int(replacement.get(SERIAL_FIELD)), int(serial) + 1)
+        si.cancel()
+        self.assertEqual(frappe.db.get_value("Sales Invoice", si.name, ["docstatus", SERIAL_FIELD]), (2, serial))
+        amended = frappe.copy_doc(si)
+        amended.docstatus = 0
+        amended.amended_from = si.name
+        amended.insert()
+        self.assertFalse(amended.get(SERIAL_FIELD))
+        amended.submit()
+        self.assertEqual(int(amended.get(SERIAL_FIELD)), int(serial) + 1)
 
     def test_credit_note_uses_its_own_series(self):
         si = make_sales_invoice()

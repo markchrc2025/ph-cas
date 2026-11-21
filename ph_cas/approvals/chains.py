@@ -34,14 +34,21 @@ def evaluate(condition: str | None, doc) -> bool:
         frappe.throw(_("The approval condition {0} could not be evaluated: {1}").format(cond, e))
 
 
-def chain_for(doc):
+def action_for(doc) -> str:
+    """B84: a posted document (but a filed return, whose chain gates its amendment) is
+    governed by its Cancel chain; anything else by its Submit chain."""
+    return "Cancel" if doc.get("docstatus") == 1 and doc.doctype != "PH Tax Return" else "Submit"
+
+
+def chain_for(doc, action: str | None = None):
     """The enabled chain that applies to this document, or None. A chain for the
     document's company wins over one for every company."""
     if not module_on():
         return None
+    action = action or action_for(doc)
     company = doc.get("company") if hasattr(doc, "get") else None
-    rows = frappe.get_all("PH Approval Chain", {"document_type": doc.doctype, "enabled": 1}, ["name", "company"])
-    rows = [r for r in rows if not r.company or r.company == company]
+    rows = frappe.get_all("PH Approval Chain", {"document_type": doc.doctype, "enabled": 1}, ["name", "company", "action"])
+    rows = [r for r in rows if (r.action or "Submit") == action and (not r.company or r.company == company)]
     rows.sort(key=lambda r: 0 if r.company else 1)
     for r in rows:
         chain = frappe.get_doc("PH Approval Chain", r.name)  # not cached: a chain is read fresh each time

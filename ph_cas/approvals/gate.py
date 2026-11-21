@@ -27,7 +27,7 @@ def before_submit(doc, method=None):
     if frappe.flags.get("ph_approval_submit"):
         requests.consume(frappe.flags.ph_approval_submit)
         return
-    chain = chains.chain_for(doc)
+    chain = chains.chain_for(doc, "Submit")
     if chain is None or chains.single_user_site():
         return
     req = requests.latest(doc.doctype, doc.name, ("Approved",))
@@ -35,6 +35,24 @@ def before_submit(doc, method=None):
         requests.consume(req.name)
         return
     frappe.throw(_("{0} needs approval ({1}). Use Request approval; it posts when the chain approves it.").format(f"{doc.doctype} {doc.name}", chain.title), frappe.ValidationError)
+
+
+def before_cancel(doc, method=None):
+    """B84: a posted document a Cancel chain applies to is cancelled only through an
+    approved request (the engine cancelling it now, or the maker after a failed cancel)."""
+    if _skip(doc) or doc.doctype == "PH Tax Return":
+        return
+    if frappe.flags.get("ph_approval_cancel"):
+        requests.consume(frappe.flags.ph_approval_cancel)
+        return
+    chain = chains.chain_for(doc, "Cancel")
+    if chain is None or chains.single_user_site():
+        return
+    req = requests.latest(doc.doctype, doc.name, ("Approved",))
+    if req is not None and req.fingerprint == requests.fingerprint(doc):
+        requests.consume(req.name)
+        return
+    frappe.throw(_("{0} needs approval to be cancelled ({1}). Use Request cancellation; it is cancelled when the chain approves it.").format(f"{doc.doctype} {doc.name}", chain.title), frappe.ValidationError)
 
 
 def on_update(doc, method=None):
