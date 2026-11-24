@@ -10,6 +10,20 @@ One entry per bundle, newest first. Counts are the test totals on main after the
 - System Settings "Disable Product Suggestion" is now forced on (no Frappe CRM or Helpdesk ads for System Managers).
 - Docs: docs/LEGAL-FRAMEWORK.md, docs/runbooks/framework-upstream-sync.md. D1 updated.
 - Tests: +10 (test_b81_framework). UAT: tools/uat/cases/framework_branding.py (6 cases), to hand off after the current UAT run.
+## B86 Fixes from retest 2 (24 Nov 2026)
+- Retest 2 on 0.1.0+b8680cc281fc: 34 cases, 22 passed, 9 failed, 3 blocked.
+- Cancelling (LDG-235): ERPNext gives Accounts User (the Accountant's and Staff's role) submit but not cancel on Sales Invoice, so B84's rule could not be used. The role sets now get cancel on Sales Invoice and Payment Entry (Custom DocPerm, re-applied on migrate).
+- Approval panel (LDG-236, LDG-237): the panel is drawn at the top of the form itself, not in the form dashboard (which the form can reset or hide after the panel's call returns); its actions (Request cancellation, Approve, Reject, Withdraw request) are buttons in the panel as well as in the toolbar. Reject asks its reason in a dialog that never marks it required, so the server's "Give the reason for the rejection." shows (LDG-233).
+- Switched-off module (LDG-165): the browser goes to the product's workspace address, which the product turns into Home (a page's own address is not /desk/<page> in this desk).
+- Framework branding: the sign-in card shows the Sentire Ledger wordmark and the tab title names the product (LDG-238); the product's About adds the Sentire Framework logo, "Sentire Framework, based on Frappe Framework (MIT)." and the Sentire Framework Version (LDG-239); the apps screen's avatar menu gets Get help and Your plan, and the framework's "Frappe Support" link is taken off it (LDG-240, LDG-242). In this desk Help sits in the menu under the product name at the top of the sidebar; FW-003's steps now say so.
+- UAT pack: FW-004 and FW-005 name the Administrator password (STAGING_ADMIN_PASSWORD, given in the chat; LDG-241); AP-004 and AP-008 no longer ask a reason the bill's Request approval does not take.
+- Tests: +2 (test_b86_retest2_fixes).
+
+## B85 Tutorial uploads in 1 MB requests (24 Nov 2026)
+- Owner's upload on live failed ("Error" on V01 and V02): each 8 MB piece took longer than 60 seconds to send from the owner's connection, and the proxy in front of the site cuts a request at 60 seconds, so every piece was cut and retried until the file failed (the site logs show part 1 of each video sent again about every 62 seconds and never answered).
+- The browser now sends every file in 1 MB requests (five tries each). The site writes a part's chunks into a temporary file in the site's private folder and, at the part's last chunk, sends the 8 MB part to the bucket as before; the file is removed at once. A resent chunk overwrites its place; a resent last chunk after success returns the same part. Captions and thumbnails go the same way. A dropped connection or a server answer now shows its reason in the Status column instead of "Error".
+- Tests: +1 in test_b51 (chunked upload with retries).
+
 ## B84 Cancelling issued invoices and receipts, with an optional approval chain (21 Nov 2026)
 - Asked by the owner (21 Nov 2026, answering the retest question on SL-010): all principal and supplementary invoices can be cancelled; Staff can cancel invoices; cancellation can be set with an approval chain. Replaces D6's "never cancelled" (B21, B46, LDG-96).
 - An issued Sales Invoice, credit note or debit note may now be cancelled by any role with the cancel right, Staff included (collection receipts already could). It keeps its BIR serial; Amend makes the replacement, which takes the next serial. The form says so under the title. The delete refusal is the general one again ("Cancel it, or correct it with a new document").

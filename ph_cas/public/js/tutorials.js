@@ -131,23 +131,47 @@ ph_cas.tutorials.code_of = function (name) {
 
 ph_cas.tutorials.send = async function (url, body, params) {
 	const qs = new URLSearchParams(params).toString();
-	const r = await fetch(`${url}?${qs}`, {
-		method: "POST",
-		headers: { "X-Frappe-CSRF-Token": frappe.csrf_token, "Content-Type": "application/octet-stream" },
-		body,
-		credentials: "same-origin",
-	});
+	let r;
+	try {
+		r = await fetch(`${url}?${qs}`, {
+			method: "POST",
+			headers: { "X-Frappe-CSRF-Token": frappe.csrf_token, "Content-Type": "application/octet-stream" },
+			body,
+			credentials: "same-origin",
+		});
+	} catch (e) {
+		throw new Error(__("The connection dropped while sending ({0}).", [e.message || e]));
+	}
 	const json = await r.json().catch(() => ({}));
 	if (!r.ok) {
-		let msg = r.statusText;
+		let msg = "";
 		try {
 			msg = JSON.parse(JSON.parse(json._server_messages)[0]).message;
 		} catch (e) {
-			msg = json.exception || msg;
+			msg = json.exception || "";
 		}
-		throw new Error(msg);
+		throw new Error(msg || __("The server answered {0} {1}.", [r.status, r.statusText || ""]));
 	}
 	return json.message;
+};
+
+// B85: every request carries at most 1 MB, so a slow uplink never meets the proxy's 60-second
+// limit; the server gathers a part's chunks and sends the 8 MB part to the bucket.
+ph_cas.tutorials.send_piece = async function (url, piece, params, chunk_size) {
+	const n = Math.max(1, Math.ceil(piece.size / chunk_size));
+	for (let c = 0; c < n; c++) {
+		const body = piece.slice(c * chunk_size, Math.min(piece.size, (c + 1) * chunk_size));
+		let tries = 0;
+		for (;;) {
+			try {
+				await ph_cas.tutorials.send(url, body, Object.assign({}, params, { chunk: c, last: c === n - 1 ? 1 : 0 }));
+				break;
+			} catch (e) {
+				if (++tries >= 5) throw e;
+				await new Promise((res) => setTimeout(res, 2000 * tries));
+			}
+		}
+	}
 };
 
 ph_cas.tutorials.upload_file = async function (file, code, kind, progress) {
@@ -155,30 +179,37 @@ ph_cas.tutorials.upload_file = async function (file, code, kind, progress) {
 		frappe.call({ method: `ph_cas.tutorials.api.${method}`, args, freeze: false }).then((r) => r.message);
 	const plan = await call("start_upload", { code, kind, size: file.size });
 	const part_url = "/api/method/ph_cas.tutorials.api.upload_part";
+	const chunk_size = plan.chunk_size || 1048576;
 	if (kind !== "video") {
-		await ph_cas.tutorials.send(part_url, file, { code, kind });
+		await ph_cas.tutorials.send_piece(part_url, file, { code, kind, part: 1 }, chunk_size);
 		progress(1);
 		return;
 	}
 	try {
 		for (let i = 0; i < plan.parts; i++) {
 			const piece = file.slice(i * plan.part_size, Math.min(file.size, (i + 1) * plan.part_size));
-			let tries = 0;
-			for (;;) {
-				try {
-					await ph_cas.tutorials.send(part_url, piece, {
-						code,
-						kind,
-						part: i + 1,
-						upload_id: plan.upload_id,
-					});
-					break;
-				} catch (e) {
-					if (++tries >= 3) throw e;
-					await new Promise((res) => setTimeout(res, 2000 * tries));
+			const n = Math.max(1, Math.ceil(piece.size / chunk_size));
+			for (let c = 0; c < n; c++) {
+				const body = piece.slice(c * chunk_size, Math.min(piece.size, (c + 1) * chunk_size));
+				let tries = 0;
+				for (;;) {
+					try {
+						await ph_cas.tutorials.send(part_url, body, {
+							code,
+							kind,
+							part: i + 1,
+							upload_id: plan.upload_id,
+							chunk: c,
+							last: c === n - 1 ? 1 : 0,
+						});
+						break;
+					} catch (e) {
+						if (++tries >= 5) throw e;
+						await new Promise((res) => setTimeout(res, 2000 * tries));
+					}
 				}
+				progress((i + (c + 1) / n) / plan.parts);
 			}
-			progress((i + 1) / plan.parts);
 		}
 		await call("finish_upload", { code, upload_id: plan.upload_id });
 	} catch (e) {
