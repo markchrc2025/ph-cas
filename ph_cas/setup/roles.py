@@ -115,6 +115,27 @@ def _rename_old_profiles():
             frappe.db.sql("update `tabUser` set role_profile_name=%s where role_profile_name=%s", (new, old))
 
 
+# B84/B86 (owner, 21 Nov 2026): every role set may cancel an issued invoice, credit or debit note
+# and a collection receipt. ERPNext gives Accounts User submit but not cancel on Sales Invoice.
+CANCEL_RIGHTS = (("Sales Invoice", "Accounts User"), ("Payment Entry", "Accounts User"))
+
+
+def grant_cancel():
+    from frappe.permissions import add_permission, update_permission_property
+
+    for doctype, role in CANCEL_RIGHTS:
+        perms = frappe.get_all("Custom DocPerm", filters={"parent": doctype, "role": role, "permlevel": 0}, fields=["name", "cancel"])
+        if not perms:
+            std = frappe.get_all("DocPerm", filters={"parent": doctype, "role": role, "permlevel": 0}, fields=["cancel"])
+            if std and std[0].cancel:
+                continue
+            if not std:
+                add_permission(doctype, role, 0)
+        if not perms or not perms[0].cancel:
+            update_permission_property(doctype, role, 0, "cancel", 1, validate=False)
+            frappe.clear_cache(doctype=doctype)
+
+
 def setup():
     """Idempotent. Written directly rather than through Role Profile.save, whose on_update queues a
     background job and locks the record until it runs (a second migrate then fails); the profile's
@@ -122,6 +143,7 @@ def setup():
     if not frappe.db.exists("Role", CASHIER_ROLE):
         frappe.get_doc({"doctype": "Role", "role_name": CASHIER_ROLE, "desk_access": 1}).insert(ignore_permissions=True)
     _rename_old_profiles()
+    grant_cancel()
     for name, roles in PROFILES.items():
         roles = [r for r in roles if frappe.db.exists("Role", r)]
         if frappe.db.exists("Role Profile", name):

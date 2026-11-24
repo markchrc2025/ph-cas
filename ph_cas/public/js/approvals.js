@@ -2,6 +2,7 @@
 // Request approval, Approve, Reject and Withdraw actions. Server: ph_cas.approvals.api.
 frappe.ui.form.on("*", {
 	refresh(frm) {
+		ph_cas_approvals.clear(frm);
 		if (frm.is_new() || !frm.doc.name || frm.doctype.startsWith("PH Approval")) return;
 		if (frm.doc.docstatus === 2) return;
 		frappe.call({
@@ -13,9 +14,20 @@ frappe.ui.form.on("*", {
 });
 
 const ph_cas_approvals = {
+	// B86 (LDG-236, 237): the panel is drawn at the top of the form's own layout, not in the
+	// dashboard, which Frappe resets or hides after this call can return; its actions are buttons
+	// in the panel as well as in the toolbar.
+	host(frm) {
+		return (frm.layout && frm.layout.wrapper) || frm.$wrapper.find(".form-layout");
+	},
+	clear(frm) {
+		$(this.host(frm)).find(".sl-approval-panel").remove();
+		frm.dashboard && frm.dashboard.parent && frm.dashboard.parent.find(".sl-approval").remove();
+	},
 	render(frm, st) {
-		frm.dashboard.parent.find(".sl-approval").remove();
+		this.clear(frm);
 		if (!st.request && !st.applies) return;
+		const actions = [];
 		const req = st.request;
 		const open = req && req.status === "Pending";
 		const filed = frm.doc.docstatus === 1;
@@ -29,10 +41,11 @@ const ph_cas_approvals = {
 		// B84: a Cancel chain: the posted document is cancelled through a request
 		if (st.applies && filed && st.action === "Cancel" && !st.single_user) {
 			frm.page.clear_secondary_action();
-			if (!open)
-				frm.add_custom_button(__("Request cancellation"), () =>
-					frappe.prompt({ fieldname: "reason", fieldtype: "Small Text", label: __("Reason for the cancellation") }, (v) => this.request(frm, v.reason), __("Ask for this document to be cancelled"))
-				);
+			if (!open) {
+				const ask = () => this.ask_reason(__("Reason for the cancellation"), __("Ask for this document to be cancelled"), (reason) => this.request(frm, reason));
+				frm.add_custom_button(__("Request cancellation"), ask);
+				actions.push([__("Request cancellation"), ask, "btn-primary"]);
+			}
 		}
 		if (st.applies && filed && frm.doctype === "PH Tax Return" && !frm.doc.amended_by && !open) {
 			frm.add_custom_button(__("Request change"), () =>
@@ -40,14 +53,35 @@ const ph_cas_approvals = {
 			);
 		}
 		if (open && req.can_decide) {
-			frm.add_custom_button(__("Approve"), () => this.decide(frm, req.name, "Approved")).addClass("btn-primary");
-			frm.add_custom_button(__("Reject"), () => this.decide(frm, req.name, "Rejected"));
+			const approve = () => this.decide(frm, req.name, "Approved");
+			const reject = () => this.decide(frm, req.name, "Rejected");
+			frm.add_custom_button(__("Approve"), approve).addClass("btn-primary");
+			frm.add_custom_button(__("Reject"), reject);
+			actions.push([__("Approve"), approve, "btn-primary"], [__("Reject"), reject, "btn-default"]);
 		}
 		if (open && req.can_withdraw) {
-			frm.add_custom_button(__("Withdraw request"), () => frappe.call({ method: "ph_cas.approvals.api.withdraw", args: { request: req.name }, callback: () => frm.reload_doc() }));
+			const withdraw = () => frappe.call({ method: "ph_cas.approvals.api.withdraw", args: { request: req.name }, callback: () => frm.reload_doc() });
+			frm.add_custom_button(__("Withdraw request"), withdraw);
+			actions.push([__("Withdraw request"), withdraw, "btn-default"]);
 		}
-		const $body = frm.dashboard.add_section(this.html(st), __("Approval"), "custom sl-approval");
-		frm.dashboard.show();
+		const $panel = $(`<div class="sl-approval-panel form-dashboard-section" style="margin:12px 0;padding:12px 16px;border:1px solid var(--border-color);border-radius:var(--border-radius-md, 8px);background:var(--card-bg)">
+			<div style="font-weight:600;margin-bottom:6px">${__("Approval")}</div>${this.html(st)}<div class="sl-approval-actions"></div></div>`);
+		for (const [label, fn, cls] of actions) {
+			$(`<button class="btn btn-xs ${cls}" style="margin-right:6px">${frappe.utils.escape_html(label)}</button>`).on("click", fn).appendTo($panel.find(".sl-approval-actions"));
+		}
+		$(this.host(frm)).prepend($panel);
+	},
+	// B86 (LDG-233): a prompt that never marks the reason required on the page; the server says
+	// what is missing ("Give the reason for the rejection.")
+	ask_reason(label, title, done, optional) {
+		const d = new frappe.ui.Dialog({ title, fields: [{ fieldname: "reason", fieldtype: "Small Text", label, reqd: 0 }] });
+		d.set_primary_action(__("Submit"), () => {});
+		d.get_primary_btn().off("click").on("click", () => {
+			const v = (d.get_value("reason") || "").trim();
+			d.hide();
+			done(v);
+		});
+		d.show();
 	},
 	html(st) {
 		const req = st.request;
@@ -81,16 +115,16 @@ const ph_cas_approvals = {
 		});
 	},
 	decide(frm, request, decision) {
-		frappe.prompt(
-			{ fieldname: "comment", fieldtype: "Small Text", label: decision === "Rejected" ? __("Reason") : __("Comment (optional)") },
-			(v) =>
+		this.ask_reason(
+			decision === "Rejected" ? __("Reason") : __("Comment (optional)"),
+			decision === "Rejected" ? __("Reject and return to the maker") : __("Approve this step"),
+			(comment) =>
 				frappe.call({
 					method: "ph_cas.approvals.api.decide",
-					args: { request, decision, comment: v.comment || "" },
+					args: { request, decision, comment },
 					freeze: true,
 					callback: () => frm.reload_doc(),
-				}),
-			decision === "Rejected" ? __("Reject and return to the maker") : __("Approve this step")
+				})
 		);
 	},
 };
