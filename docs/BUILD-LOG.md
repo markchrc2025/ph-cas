@@ -10,6 +10,11 @@ One entry per bundle, newest first. Counts are the test totals on main after the
 - System Settings "Disable Product Suggestion" is now forced on (no Frappe CRM or Helpdesk ads for System Managers).
 - Docs: docs/LEGAL-FRAMEWORK.md, docs/runbooks/framework-upstream-sync.md. D1 updated.
 - Tests: +10 (test_b81_framework). UAT: tools/uat/cases/framework_branding.py (6 cases), to hand off after the current UAT run.
+## B85 Tutorial uploads in 1 MB requests (24 Nov 2026)
+- Owner's upload on live failed ("Error" on V01 and V02): each 8 MB piece took longer than 60 seconds to send from the owner's connection, and the proxy in front of the site cuts a request at 60 seconds, so every piece was cut and retried until the file failed (the site logs show part 1 of each video sent again about every 62 seconds and never answered).
+- The browser now sends every file in 1 MB requests (five tries each). The site writes a part's chunks into a temporary file in the site's private folder and, at the part's last chunk, sends the 8 MB part to the bucket as before; the file is removed at once. A resent chunk overwrites its place; a resent last chunk after success returns the same part. Captions and thumbnails go the same way. A dropped connection or a server answer now shows its reason in the Status column instead of "Error".
+- Tests: +1 in test_b51 (chunked upload with retries).
+
 ## B84 Cancelling issued invoices and receipts, with an optional approval chain (21 Nov 2026)
 - Asked by the owner (21 Nov 2026, answering the retest question on SL-010): all principal and supplementary invoices can be cancelled; Staff can cancel invoices; cancellation can be set with an approval chain. Replaces D6's "never cancelled" (B21, B46, LDG-96).
 - An issued Sales Invoice, credit note or debit note may now be cancelled by any role with the cancel right, Staff included (collection receipts already could). It keeps its BIR serial; Amend makes the replacement, which takes the next serial. The form says so under the title. The delete refusal is the general one again ("Cancel it, or correct it with a new document").

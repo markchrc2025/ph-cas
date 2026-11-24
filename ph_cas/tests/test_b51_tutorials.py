@@ -164,6 +164,32 @@ class TestB51Tutorials(IntegrationTestCase):
             self.assertEqual(resp.mimetype, "text/vtt")
             self.assertIn(b"Tax you withhold", resp.get_data())
 
+    def test_upload_in_1mb_chunks_with_a_retry(self):
+        """B85: the browser sends 1 MB chunks; the server gathers each 8 MB part, a resent chunk
+        overwrites its place, and a resent last chunk after success returns the same part."""
+        video = bytes(range(256)) * ((api.PART_SIZE + 3 * api.CHUNK_SIZE + 17) // 256)
+        with patch.object(storage, "is_configured", return_value=True), patch.object(storage, "client", return_value=self.fake):
+            plan = api.start_upload("V35", "video", len(video))
+            self.assertEqual(plan["chunk_size"], api.CHUNK_SIZE)
+            for i in range(plan["parts"]):
+                piece = video[i * plan["part_size"] : (i + 1) * plan["part_size"]]
+                n = -(-len(piece) // api.CHUNK_SIZE)
+                for c in range(n):
+                    chunk = piece[c * api.CHUNK_SIZE : (c + 1) * api.CHUNK_SIZE]
+                    last = int(c == n - 1)
+                    with patch.object(api, "_body", return_value=chunk):
+                        api.upload_part("V35", "video", i + 1, plan["upload_id"], c, last)
+                        if c == 1 or last:  # a retry of the same chunk
+                            out = api.upload_part("V35", "video", i + 1, plan["upload_id"], c, last)
+                    if last:
+                        self.assertEqual(out["etag"], f"etag{i + 1}")
+            api.finish_upload("V35", plan["upload_id"])
+            self.assertEqual(self.fake.objects["tutorials/V35/video.mp4"], video)
+            srt = "1\n00:00:00,000 --> 00:00:02,000\nHi\n".encode()
+            with patch.object(api, "_body", return_value=srt):
+                api.upload_part("V35", "captions", 1, None, 0, 1)
+            self.assertTrue(self.fake.objects["tutorials/V35/captions.vtt"].startswith(b"WEBVTT"))
+
     def test_a_missing_piece_stops_the_upload(self):
         with patch.object(storage, "client", return_value=self.fake):
             plan = api.start_upload("V09", "video", api.PART_SIZE * 2)
