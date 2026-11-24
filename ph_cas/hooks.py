@@ -17,8 +17,21 @@ doctype_list_js = {"PH Tutorial Video": "public/js/tutorial_video_list.js", "Pur
 
 # B38 branding: the product, never the framework, is what users see (ph_cas.branding)
 app_logo_url = "/assets/ph_cas/images/logo.svg"
-app_include_js = ["/assets/ph_cas/js/branding.js", "/assets/ph_cas/js/approvals.js", "/assets/ph_cas/js/tutorials.js", "/assets/ph_cas/js/modules.js", "/assets/ph_cas/js/expense.js", "/assets/ph_cas/js/imports.js", "/assets/ph_cas/js/help.js", "/assets/ph_cas/js/counter.js", "/assets/ph_cas/js/no_rights.js", "/assets/ph_cas/js/tree_fix.js"]
-app_include_css = ["/assets/ph_cas/css/sentire.css"]
+# B87 (LDG-243): each build gets its own script and style addresses, so a browser never keeps the
+# previous build's files (they are cached for a long time and the names alone never change)
+def _build_tag() -> str:
+    import os
+
+    try:
+        with open(os.path.join(os.path.dirname(__file__), "BUILD")) as f:
+            return f.read().strip().split("+")[-1] or "dev"
+    except OSError:
+        return "dev"
+
+
+_V = _build_tag()
+app_include_js = [f"{p}?v={_V}" for p in ["/assets/ph_cas/js/branding.js", "/assets/ph_cas/js/approvals.js", "/assets/ph_cas/js/tutorials.js", "/assets/ph_cas/js/modules.js", "/assets/ph_cas/js/expense.js", "/assets/ph_cas/js/imports.js", "/assets/ph_cas/js/help.js", "/assets/ph_cas/js/counter.js", "/assets/ph_cas/js/no_rights.js", "/assets/ph_cas/js/tree_fix.js"]]
+app_include_css = [f"/assets/ph_cas/css/sentire.css?v={_V}"]
 boot_session = "ph_cas.branding.boot_session"
 extend_bootinfo = ["ph_cas.branding.extend_bootinfo", "ph_cas.tutorials.api.extend_bootinfo", "ph_cas.modules.api.extend_bootinfo", "ph_cas.setup.roles.extend_bootinfo"]
 update_website_context = "ph_cas.branding.website_context"
@@ -47,7 +60,7 @@ doc_events = {
     "Accounting Period": {"validate": "ph_cas.controls.dates.validate_accounting_period"},
     "Sales Invoice": {
         "before_insert": "ph_cas.controls.serial.clear_serial_on_copy",  # B84: cancel and reissue is allowed again
-        "before_validate": ["ph_cas.tax.sc_pwd.before_validate", "ph_cas.tax.vat.before_validate", "ph_cas.invoicing.paid_now.before_validate", "ph_cas.invoicing.rules.default_return_outstanding"],
+        "before_validate": ["ph_cas.approvals.requests.carry_on_submit", "ph_cas.tax.sc_pwd.before_validate", "ph_cas.tax.vat.before_validate", "ph_cas.invoicing.paid_now.before_validate", "ph_cas.invoicing.rules.default_return_outstanding"],
         "validate": ["ph_cas.tax.vat.validate", "ph_cas.tax.customer_withholding.validate", "ph_cas.invoicing.paid_now.validate", "ph_cas.invoicing.rules.validate_buyer_details"],
         "before_submit": ["ph_cas.controls.serial.assign_serial", "ph_cas.invoicing.rules.validate_manual_invoice_no", "ph_cas.hosting.tiers.validate_invoice_volume"],
     },
@@ -55,7 +68,7 @@ doc_events = {
         "validate": "ph_cas.invoicing.rules.validate_journal_balanced",
     },
     "Purchase Invoice": {
-        "before_validate": ["ph_cas.tax.purchase.before_validate", "ph_cas.tax.reverse_charge.before_validate", "ph_cas.invoicing.rules.default_return_outstanding"],
+        "before_validate": ["ph_cas.approvals.requests.carry_on_submit", "ph_cas.tax.purchase.before_validate", "ph_cas.tax.reverse_charge.before_validate", "ph_cas.invoicing.rules.default_return_outstanding"],
         "validate": "ph_cas.tax.purchase.validate",
     },
     "POS Invoice": {
