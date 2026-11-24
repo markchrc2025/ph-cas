@@ -17,7 +17,8 @@ from frappe.utils import cint, get_url_to_form, now_datetime
 from ph_cas.approvals import chains
 from ph_cas.audit.events import record
 
-VOLATILE = {"modified", "modified_by", "creation", "owner", "docstatus", "idx", "name", "parent", "parentfield", "parenttype", "doctype", "__islocal", "__unsaved", "__last_sync_on", "__onload", "_user_tags", "_comments", "_assign", "_liked_by", "amended_from", "workflow_state"}
+# B87: the dates a later-day submit moves (see carry_on_submit) are not part of what was approved
+VOLATILE = {"posting_date", "posting_time", "due_date", "discount_date", "modified", "modified_by", "creation", "owner", "docstatus", "idx", "name", "parent", "parentfield", "parenttype", "doctype", "__islocal", "__unsaved", "__last_sync_on", "__onload", "_user_tags", "_comments", "_assign", "_liked_by", "amended_from", "workflow_state"}
 OPEN = ("Pending", "Approved")
 
 
@@ -218,6 +219,39 @@ def decide(request: str, decision: str, comment: str = "") -> dict:
     return {"status": req.status}
 
 
+def _carry_to_today(doc):
+    """B87 (LDG-244): a draft approved on a later day posts today (ERPNext moves a document's
+    posting date to today when Edit Posting Date is not ticked). Its due dates move by the same
+    number of days, so the terms the maker set are kept and no due date falls before the posting
+    date ("Due Date cannot be before ..."). A date the manager set on purpose is left alone."""
+    from frappe.utils import add_days, date_diff, getdate, nowdate
+
+    if not doc.meta.has_field("posting_date") or not doc.get("posting_date") or doc.get("set_posting_time"):
+        return
+    days = date_diff(nowdate(), doc.posting_date)
+    if days <= 0:
+        return
+    doc.posting_date = nowdate()
+    if doc.meta.has_field("posting_time"):
+        doc.posting_time = frappe.utils.nowtime()
+    if doc.get("due_date"):
+        doc.due_date = add_days(doc.due_date, days)
+    for row in doc.get("payment_schedule") or []:
+        if row.get("due_date"):
+            row.due_date = add_days(row.due_date, days)
+        if row.get("discount_date"):
+            row.discount_date = add_days(row.discount_date, days)
+    if doc.get("bill_date") and doc.get("due_date") and getdate(doc.due_date) < getdate(doc.bill_date):
+        doc.due_date = doc.bill_date
+
+
+def carry_on_submit(doc, method=None):
+    """doc_events before_validate (Sales and Purchase Invoice): a draft from an earlier day that
+    is submitted today, by its maker or by an approval, carries today with its due dates."""
+    if doc.docstatus == 1 and getattr(doc, "_action", None) == "submit":
+        _carry_to_today(doc)
+
+
 def _finish(req, doc):
     req.status = "Approved"
     req.decided_at = now_datetime()
@@ -227,6 +261,7 @@ def _finish(req, doc):
         if doc.docstatus == 0:
             frappe.flags.ph_approval_submit = req.name
             doc.flags.ignore_permissions = True
+            _carry_to_today(doc)
             doc.submit()
         elif req.document_type == "PH Tax Return":
             frappe.flags.ph_approval_amend = doc.name
