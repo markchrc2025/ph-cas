@@ -8,8 +8,11 @@ in `help_for`, which offer it under Help.
 Playback: `play` returns links signed for a few hours. The captions come through this site
 (`captions`), so the player needs nothing from the bucket but the video and its thumbnail.
 
-Upload (System Manager): the browser sends a file in 8 MB pieces to `upload_part`, which passes
-each piece to the bucket as one part of a multipart upload. Nothing is kept on this server.
+Upload (System Manager): the browser sends a file in 1 MB chunks (B85: a request that takes longer
+than the proxy's 60 seconds is cut, which an 8 MB request on a slow uplink did). `upload_part`
+gathers a part's chunks in a temporary file on this server and, at the part's last chunk, passes
+the 8 MB part to the bucket as one part of a multipart upload (or, for captions and thumbnails,
+writes the whole file). The temporary file is removed at once.
 """
 
 import json
@@ -24,6 +27,7 @@ from ph_cas.tutorials import storage
 
 DOCTYPE = "PH Tutorial Video"
 PART_SIZE = 8 * 1024 * 1024
+CHUNK_SIZE = 1024 * 1024  # B85: one request from the browser
 KINDS = {
     "video": ("video.mp4", "video/mp4"),
     "captions": ("captions.vtt", "text/vtt; charset=utf-8"),
@@ -223,27 +227,62 @@ def start_upload(code: str, kind: str, size: int) -> dict:
     if kind == "video":
         upload_id = storage.client().start_multipart(key(code, kind), KINDS[kind][1])
         frappe.cache.set_value(f"ph_tutorial_upload:{upload_id}", {"code": code, "size": size, "etags": {}}, expires_in_sec=6 * 3600)
-        return {"upload_id": upload_id, "part_size": PART_SIZE, "parts": max(1, -(-size // PART_SIZE))}
-    return {"upload_id": None, "part_size": size, "parts": 1}
+        return {"upload_id": upload_id, "part_size": PART_SIZE, "parts": max(1, -(-size // PART_SIZE)), "chunk_size": CHUNK_SIZE}
+    return {"upload_id": None, "part_size": size, "parts": 1, "chunk_size": CHUNK_SIZE}
+
+
+def _spool_path(upload_id: str | None, code: str, kind: str, part: int) -> str:
+    import hashlib
+
+    folder = frappe.get_site_path("private", "tutorial_uploads")
+    os.makedirs(folder, exist_ok=True)
+    tag = hashlib.sha1(f"{upload_id or ''}|{code}|{kind}|{part}|{frappe.session.user}".encode()).hexdigest()
+    return os.path.join(folder, tag)
+
+
+def _gather(code: str, kind: str, part: int, upload_id: str | None, chunk: int | None, last: int | None) -> bytes | None:
+    """B85: write this chunk at its place in the part's temporary file. Returns the whole part at
+    its last chunk, else None. A chunk sent again (a retry) overwrites its own place."""
+    data = _body()
+    if chunk is None:  # one request carries the whole part (older pages, the tests)
+        return data
+    path = _spool_path(upload_id, code, kind, part)
+    with open(path, "r+b" if os.path.exists(path) else "wb") as f:
+        f.seek(int(chunk) * CHUNK_SIZE)
+        f.write(data)
+    if not int(last or 0):
+        return None
+    with open(path, "rb") as f:
+        whole = f.read(int(chunk) * CHUNK_SIZE + len(data))
+    os.remove(path)
+    return whole
 
 
 @frappe.whitelist(methods=["POST"])
-def upload_part(code: str, kind: str, part: int = 1, upload_id: str | None = None) -> dict:
-    """The request body is the raw bytes of one piece of the file."""
+def upload_part(code: str, kind: str, part: int = 1, upload_id: str | None = None, chunk: int | None = None, last: int | None = None) -> dict:
+    """The request body is the raw bytes of one piece of the file: a whole part, or (B85) one
+    1 MB chunk of it, `chunk` counting from 0 and `last` set on its final chunk."""
     _require_uploader()
     code = _clean_code(code)
-    data = _body()
-    if not data:
-        frappe.throw(_("The upload sent no data."))
-    s3 = storage.client()
+    part = int(part)
+    state = None
     if kind == "video":
         state = frappe.cache.get_value(f"ph_tutorial_upload:{upload_id}")
         if not state or state["code"] != code:
             frappe.throw(_("This upload has expired. Start it again."))
-        etag = s3.upload_part(key(code, kind), upload_id, int(part), data)
-        state["etags"][str(int(part))] = etag
+        if int(last or 0) and str(part) in state["etags"]:
+            return {"part": part, "etag": state["etags"][str(part)]}  # the answer to an earlier try was lost
+    data = _gather(code, kind, part, upload_id, chunk, last)
+    if data is None:
+        return {"part": part, "chunk": int(chunk)}
+    if not data:
+        frappe.throw(_("The upload sent no data."))
+    s3 = storage.client()
+    if kind == "video":
+        etag = s3.upload_part(key(code, kind), upload_id, part, data)
+        state["etags"][str(part)] = etag
         frappe.cache.set_value(f"ph_tutorial_upload:{upload_id}", state, expires_in_sec=6 * 3600)
-        return {"part": int(part), "etag": etag}
+        return {"part": part, "etag": etag}
     if kind == "captions":
         data = srt_to_vtt(data.decode("utf-8-sig", errors="replace")).encode("utf-8")
         s3.put(key(code, kind), data, KINDS[kind][1])
