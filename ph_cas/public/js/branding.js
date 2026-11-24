@@ -12,6 +12,13 @@
 		};
 	}
 
+	// B86 (LDG-239): the About of this product also names the framework under it
+	function fw_version() {
+		const v = (frappe.boot.versions && frappe.boot.versions.frappe) || "";
+		const m = /Sentire Framework v?([^ )]+)/.exec(brand().licences || "");
+		return m ? m[1] : v;
+	}
+
 	function show_about() {
 		const b = brand();
 		if (!frappe.ui.misc.ph_about) {
@@ -27,6 +34,13 @@
 					${b.provider ? `<p>${__("Operated by")} ${frappe.utils.escape_html(b.provider)}</p>` : ""}
 					${support}
 					<hr>
+					<div style="display:flex;align-items:center;gap:12px;margin:8px 0">
+						<img src="/assets/frappe/images/frappe-comp-logo.svg" alt="Sentire Framework" style="height:32px">
+						<div>
+							<div class="small">${__("Sentire Framework, based on Frappe Framework (MIT).")}</div>
+							<div class="small"><b>${__("Sentire Framework Version")}</b>: ${frappe.utils.escape_html(fw_version())}</div>
+						</div>
+					</div>
 					<p class="text-muted small">${frappe.utils.escape_html(b.licences)}</p>
 				</div>`);
 		}

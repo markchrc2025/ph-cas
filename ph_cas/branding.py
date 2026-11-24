@@ -368,4 +368,8 @@ def website_context(context):
     context["splash_image"] = ASSETS["logo"]
     context["app_name"] = product
     context["title"] = context.get("title") or product
+    if (getattr(frappe.local, "path", "") or "").strip("/") in ("login", "update-password"):
+        # B86 (LDG-238): the sign-in card shows the product's logo with its name
+        context["logo"] = ASSETS["wordmark"]
+        context["title"] = f"{product}: {context.get('title') or 'Login'}"
     return context

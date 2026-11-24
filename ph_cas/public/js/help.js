@@ -44,3 +44,31 @@ ph_cas.get_help = function () {
 	d.$wrapper.find(".ph-help-copy").on("click", (ev) => { ev.preventDefault(); frappe.utils.copy_to_clipboard(facts); });
 	d.show();
 };
+
+// B86 (LDG-240, LDG-242): in this desk the Help row sits in the menu under the product name at
+// the top of the sidebar; the apps screen's avatar menu gets Get help and Your plan too, and the
+// framework's "Frappe Support" link (an outside support desk) is taken off it.
+$(document).on("desktop_screen", (e, data) => {
+	const desktop = data && data.desktop;
+	if (!desktop || !desktop.desktop_menu_items) return;
+	const add = (item) => {
+		if (!desktop.desktop_menu_items.find((i) => i.label === item.label)) desktop.desktop_menu_items.push(item);
+	};
+	add({ icon: "circle-help", label: __("Get help"), onclick: () => ph_cas.get_help(), order: 35 });
+	add({ icon: "receipt", label: __("Your plan"), onclick: () => ph_cas.show_plan(), order: 36 });
+});
+(function hide_outside_support() {
+	const drop = () =>
+		document.querySelectorAll(".dropdown-menu a, .dropdown-menu button, .dropdown-item, [role=menuitem]").forEach((el) => {
+			if ((el.textContent || "").trim() === __("Frappe Support")) (el.closest("li, [role=menuitem]") || el).remove();
+		});
+	let queued = false;
+	new MutationObserver(() => {
+		if (queued) return;
+		queued = true;
+		requestAnimationFrame(() => {
+			queued = false;
+			drop();
+		});
+	}).observe(document.body || document.documentElement, { childList: true, subtree: true });
+})();

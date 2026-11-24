@@ -67,7 +67,9 @@ frappe.provide("ph_cas.modules");
 		} catch (e) {
 			notice(what);
 		}
-		window.location.replace("/desk/" + home.page);
+		// B86 (LDG-165): the product's workspace address, which branding.js turns into the
+		// home page (a page's own address is not "/desk/<page>" in this desk)
+		window.location.replace(home.workspace_path || "/desk");
 	}
 
 	function pending_notice() {
