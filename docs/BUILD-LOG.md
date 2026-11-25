@@ -10,6 +10,12 @@ One entry per bundle, newest first. Counts are the test totals on main after the
 - System Settings "Disable Product Suggestion" is now forced on (no Frappe CRM or Helpdesk ads for System Managers).
 - Docs: docs/LEGAL-FRAMEWORK.md, docs/runbooks/framework-upstream-sync.md. D1 updated.
 - Tests: +10 (test_b81_framework). UAT: tools/uat/cases/framework_branding.py (6 cases), to hand off after the current UAT run.
+## B90 The 2307 prints clean, with Printed and Issued (25 Nov 2026)
+- Owner (25 Nov 2026): a 2307 is issued to the supplier, not filed, so the "DRAFT, NOT FILED" watermark and the preview line came off. Printing locks the certificate (a draft is saved with the latest bills and submitted first, after a confirmation); the status goes Draft, Printed, Issued (Mark as issued asks the day it was handed over; not before the first print, not in the future), Cancelled. Reprints are counted on the certificate and in the Event Log. A correction is cancel and amend; the amendment records the certificate it replaces.
+- Where the tax came from: each certificate lists every bill and payment that withheld tax in the quarter (document, date, supplier's invoice number, ATC, month, income, tax), linked to the document. Existing certificates get their status and their list by patch.
+- The quarter's batch print from BIR Returns (form 2307) is unchanged.
+- Decision D12. Tests: +3 (test_b90_2307_status).
+
 ## B89 PDFs on the server, and Print prints the PDF (25 Nov 2026)
 - Owner's human test of SL-013 (25 Nov): Download PDF failed with a server error ("Chromium took too long to start": Frappe 16 makes PDFs with Chromium by default, and the image carries wkhtmltopdf, not Chromium). Print opened the browser's own print of the page, so Chrome added the date, title, web address and page numbers to the sheet.
 - Every PDF is now made on the server with wkhtmltopdf (Print Settings and every print format, re-applied on migrate). "Print generated PDF" is on: Print fetches the server's PDF and sends that to the printer dialog, so the sheet carries only the invoice. Prints made this way are counted in PH Print Record as before.
