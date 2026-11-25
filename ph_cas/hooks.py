@@ -42,11 +42,12 @@ website_context = {
 
 doc_events = {
     "*": {
-        "on_trash": "ph_cas.controls.locks.refuse_delete",
+        # B88: refuse_when_read_only first, so an unpaid (read-only) subscription stops every change
+        "on_trash": ["ph_cas.cloud.entitlements.refuse_when_read_only", "ph_cas.controls.locks.refuse_delete"],
         "before_update_after_submit": "ph_cas.controls.posted_fields.refuse_posted_field_changes",
-        "validate": "ph_cas.controls.dates.validate_posting_date",
-        "before_submit": "ph_cas.approvals.gate.before_submit",
-        "before_cancel": "ph_cas.approvals.gate.before_cancel",  # B84
+        "validate": ["ph_cas.cloud.entitlements.refuse_when_read_only", "ph_cas.controls.dates.validate_posting_date"],
+        "before_submit": ["ph_cas.cloud.entitlements.refuse_when_read_only", "ph_cas.approvals.gate.before_submit"],
+        "before_cancel": ["ph_cas.cloud.entitlements.refuse_when_read_only", "ph_cas.approvals.gate.before_cancel"],  # B84
         "before_print": ["ph_cas.controls.dates.refuse_draft_print", "ph_cas.invoicing.printing.before_print", "ph_cas.audit.events.on_before_print"],
         "after_insert": "ph_cas.audit.events.on_after_insert",
         "on_update": ["ph_cas.audit.events.on_update", "ph_cas.approvals.gate.on_update"],
@@ -157,9 +158,15 @@ period_closing_doctypes = [
 on_login = "ph_cas.audit.events.on_login"
 on_logout = "ph_cas.audit.events.on_logout"
 
+# B88: /login is Sentire sign-in (ph_cas.cloud.sso.login); /login?local=1 is the local form. On a site without
+# Sentire Cloud, sso.login sends people straight back to the local form. Keep in step with sso.LOGIN_REDIRECT.
+website_redirects = [
+    {"source": r"login(?!\?(.*&)?local=1)(\?.*)?", "target": "/api/method/ph_cas.cloud.sso.login", "match_with_query_string": True, "forward_query_parameters": True, "redirect_http_status": 302},
+]
+
 scheduler_events = {
-    "daily": ["ph_cas.audit.events.daily_chain_check", "ph_cas.ops.backup.scheduled_daily_backup", "ph_cas.hosting.demo_access.daily_pilot_check", "ph_cas.tutorials.api.daily_refresh"],
-    "hourly": ["ph_cas.ops.monitor.alert_if_needed", "ph_cas.hosting.demo_access.expire_demo_users", "ph_cas.hosting.demo_access.remind_uncontacted_leads"],
+    "daily": ["ph_cas.cloud.usage.report", "ph_cas.audit.events.daily_chain_check", "ph_cas.ops.backup.scheduled_daily_backup", "ph_cas.hosting.demo_access.daily_pilot_check", "ph_cas.tutorials.api.daily_refresh"],
+    "hourly": ["ph_cas.cloud.entitlements.pull", "ph_cas.ops.monitor.alert_if_needed", "ph_cas.hosting.demo_access.expire_demo_users", "ph_cas.hosting.demo_access.remind_uncontacted_leads"],
 }
 
 jinja = {

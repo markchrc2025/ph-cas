@@ -97,4 +97,7 @@ def setup_all():
     from ph_cas.setup import ui
 
     ui.setup()  # B82
+    from ph_cas.cloud import sso
+
+    sso.setup()  # B88
     frappe.db.commit()
