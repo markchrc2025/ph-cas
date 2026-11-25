@@ -10,6 +10,11 @@ One entry per bundle, newest first. Counts are the test totals on main after the
 - System Settings "Disable Product Suggestion" is now forced on (no Frappe CRM or Helpdesk ads for System Managers).
 - Docs: docs/LEGAL-FRAMEWORK.md, docs/runbooks/framework-upstream-sync.md. D1 updated.
 - Tests: +10 (test_b81_framework). UAT: tools/uat/cases/framework_branding.py (6 cases), to hand off after the current UAT run.
+## B89 PDFs on the server, and Print prints the PDF (25 Nov 2026)
+- Owner's human test of SL-013 (25 Nov): Download PDF failed with a server error ("Chromium took too long to start": Frappe 16 makes PDFs with Chromium by default, and the image carries wkhtmltopdf, not Chromium). Print opened the browser's own print of the page, so Chrome added the date, title, web address and page numbers to the sheet.
+- Every PDF is now made on the server with wkhtmltopdf (Print Settings and every print format, re-applied on migrate). "Print generated PDF" is on: Print fetches the server's PDF and sends that to the printer dialog, so the sheet carries only the invoice. Prints made this way are counted in PH Print Record as before.
+- Tests: +1 (test_b89_pdf_printing).
+
 ## B88 Hold Submit until the approval status arrives (25 Nov 2026)
 - Retest 4 noted that a bill showed a plain Submit for 1 to 5 seconds after opening or saving, before it turned into Request approval or Approve (a click got the server's refusal). The boot now lists the document types an enabled chain covers, with their actions; on those forms Submit (or Cancel, on a posted document under a Cancel chain) stays disabled, with "Checking approval...", until the status arrives.
 - Tests: +1 (test_b88_approval_hold).

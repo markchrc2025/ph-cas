@@ -18,3 +18,19 @@ def setup():
         if existing != fmt:
             make_property_setter(doctype, None, "default_print_format", fmt, "Data", for_doctype=True)
     frappe.clear_cache()
+
+
+def force_pdf_printing():
+    """B89: every PDF is made on the server with wkhtmltopdf, and Print sends that PDF to the printer.
+
+    Frappe 16 defaults to the Chromium generator, which the image does not
+    carry, so Download PDF failed with "Chromium took too long to start". The
+    image installs wkhtmltopdf with patched Qt (B78), so every print format and
+    the site default use it. "Print generated PDF" makes the Print button
+    print the server's PDF instead of the browser page, so the browser adds no
+    date, title, address or page-number lines to the sheet."""
+    frappe.db.set_single_value("Print Settings", {"pdf_generator": "wkhtmltopdf", "print_generated_pdf": 1})
+    for name in frappe.get_all("Print Format", filters={"pdf_generator": ["!=", "wkhtmltopdf"]}, pluck="name"):
+        frappe.db.set_value("Print Format", name, "pdf_generator", "wkhtmltopdf", update_modified=False)
+    for name in frappe.get_all("Print Format", filters={"pdf_generator": ["is", "not set"]}, pluck="name"):
+        frappe.db.set_value("Print Format", name, "pdf_generator", "wkhtmltopdf", update_modified=False)

@@ -64,6 +64,7 @@ def setup_all():
     from ph_cas.invoicing import setup as invoicing_setup
 
     invoicing_setup.setup()  # B20
+    invoicing_setup.force_pdf_printing()  # B89
     from ph_cas.invoicing import rules as invoicing_rules
 
     invoicing_rules.setup()  # B21
