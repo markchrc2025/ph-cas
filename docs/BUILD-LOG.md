@@ -10,6 +10,12 @@ One entry per bundle, newest first. Counts are the test totals on main after the
 - System Settings "Disable Product Suggestion" is now forced on (no Frappe CRM or Helpdesk ads for System Managers).
 - Docs: docs/LEGAL-FRAMEWORK.md, docs/runbooks/framework-upstream-sync.md. D1 updated.
 - Tests: +10 (test_b81_framework). UAT: tools/uat/cases/framework_branding.py (6 cases), to hand off after the current UAT run.
+## B91 The Home checklist ticks from the work done (26 Nov 2026)
+- Owner's test (25 Nov 2026): Print your first BIR invoice stayed unticked after the invoice was printed. The steps ticked only when clicked from the checklist itself (Frappe's onboarding flags), and step 1 only because setup marked it.
+- Each step now ticks from the company's records, read every time Home opens, for the company chosen on Home (ph_cas/home/progress.py; rules in D13, approved by the owner 26 Nov 2026). Saving the Modules page by a user records the Choose what you use step (not install or migrate).
+- New UAT workbook get-to-know (LDG-GK-001 to LDG-GK-010), approved by the owner 26 Nov 2026; runs last.
+- Tests: +7 (test_b91_onboarding_progress).
+
 ## B90 The 2307 prints clean, with Printed and Issued (25 Nov 2026)
 - Owner (25 Nov 2026): a 2307 is issued to the supplier, not filed, so the "DRAFT, NOT FILED" watermark and the preview line came off. Printing locks the certificate (a draft is saved with the latest bills and submitted first, after a confirmation); the status goes Draft, Printed, Issued (Mark as issued asks the day it was handed over; not before the first print, not in the future), Cancelled. Reprints are counted on the certificate and in the Event Log. A correction is cancel and amend; the amendment records the certificate it replaces.
 - Where the tax came from: each certificate lists every bill and payment that withheld tax in the quarter (document, date, supplier's invoice number, ATC, month, income, tax), linked to the document. Existing certificates get their status and their list by patch.

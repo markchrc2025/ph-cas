@@ -191,13 +191,15 @@ def _due_dates(company: str, limit: int = 5) -> list[dict]:
     ]
 
 
-def _onboarding() -> dict | None:
+def _onboarding(company: str | None = None) -> dict | None:
     if not frappe.db.exists("Module Onboarding", ONBOARDING):
         return None
     if frappe.db.get_default("ph_home_hide_onboarding", frappe.session.user):
         return None
     doc = frappe.get_doc("Module Onboarding", ONBOARDING)
     from ph_cas.tutorials.api import step_map, uploaded
+
+    from ph_cas.home.progress import step_done
 
     videos, on_server = step_map(), uploaded()
     steps = []
@@ -215,6 +217,9 @@ def _onboarding() -> dict | None:
             route = f"/app/{frappe.scrub(s.reference_document).replace('_', '-')}"
             if s.action == "Create Entry":
                 route += "/new"
+        done = step_done(s.name, company)  # B91: from the work, not the click
+        if done is None:
+            done = bool(s.is_complete or s.is_skipped)
         steps.append(
             {
                 "name": s.name,
@@ -222,7 +227,7 @@ def _onboarding() -> dict | None:
                 "description": s.description,
                 "action_label": s.action_label,
                 "route": route,
-                "done": bool(s.is_complete or s.is_skipped),
+                "done": done,
                 "video": videos.get(s.name) if videos.get(s.name) in on_server else None,
                 "video_length": on_server.get(videos.get(s.name)),
             }
@@ -295,7 +300,7 @@ def get(company: str | None = None, period: str = "month") -> dict:
         "figures": {},
         "monthly": [],
         "due": [],
-        "onboarding": _onboarding() if rs != "Staff" else None,
+        "onboarding": _onboarding(company) if rs != "Staff" else None,
         "approvals": _approvals(),
         "modules_off": _modules_off(),
     }
