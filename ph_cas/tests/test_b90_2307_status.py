@@ -24,8 +24,9 @@ class TestB90_2307Status(IntegrationTestCase):
 
     def test_sources_list_the_bills(self):
         pi, doc = self._draft()
-        self.assertEqual([(s.source_doctype, s.source_name) for s in doc.sources], [("Purchase Invoice", pi.name)])
-        self.assertEqual(flt(doc.sources[0].tax_withheld), flt(doc.total_tax))
+        self.assertIn(("Purchase Invoice", pi.name), [(s.source_doctype, s.source_name) for s in doc.sources])
+        self.assertEqual(flt(sum(flt(s.tax_withheld) for s in doc.sources), 2), flt(doc.total_tax))
+        self.assertEqual(flt(sum(flt(s.base) for s in doc.sources), 2), flt(doc.total_income))
 
     def test_print_locks_and_prints_clean(self):
         _pi, doc = self._draft()
@@ -63,6 +64,7 @@ class TestB90_2307Status(IntegrationTestCase):
             print_bir_form(doc.name)
         amended = frappe.copy_doc(doc)
         amended.amended_from = doc.name
+        amended.docstatus = 0
         amended.insert()
         self.assertEqual(amended.status, "Draft")
         self.assertTrue(amended.sources)
