@@ -33,7 +33,7 @@ _V = _build_tag()
 app_include_js = [f"{p}?v={_V}" for p in ["/assets/ph_cas/js/branding.js", "/assets/ph_cas/js/approvals.js", "/assets/ph_cas/js/tutorials.js", "/assets/ph_cas/js/modules.js", "/assets/ph_cas/js/expense.js", "/assets/ph_cas/js/imports.js", "/assets/ph_cas/js/help.js", "/assets/ph_cas/js/counter.js", "/assets/ph_cas/js/no_rights.js", "/assets/ph_cas/js/tree_fix.js"]]
 app_include_css = [f"/assets/ph_cas/css/sentire.css?v={_V}"]
 boot_session = "ph_cas.branding.boot_session"
-extend_bootinfo = ["ph_cas.branding.extend_bootinfo", "ph_cas.tutorials.api.extend_bootinfo", "ph_cas.modules.api.extend_bootinfo", "ph_cas.setup.roles.extend_bootinfo"]
+extend_bootinfo = ["ph_cas.branding.extend_bootinfo", "ph_cas.tutorials.api.extend_bootinfo", "ph_cas.modules.api.extend_bootinfo", "ph_cas.setup.roles.extend_bootinfo", "ph_cas.approvals.chains.extend_bootinfo"]
 update_website_context = "ph_cas.branding.website_context"
 website_context = {
     "favicon": "/assets/ph_cas/images/favicon.ico",

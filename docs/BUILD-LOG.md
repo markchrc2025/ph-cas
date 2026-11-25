@@ -10,6 +10,10 @@ One entry per bundle, newest first. Counts are the test totals on main after the
 - System Settings "Disable Product Suggestion" is now forced on (no Frappe CRM or Helpdesk ads for System Managers).
 - Docs: docs/LEGAL-FRAMEWORK.md, docs/runbooks/framework-upstream-sync.md. D1 updated.
 - Tests: +10 (test_b81_framework). UAT: tools/uat/cases/framework_branding.py (6 cases), to hand off after the current UAT run.
+## B88 Hold Submit until the approval status arrives (25 Nov 2026)
+- Retest 4 noted that a bill showed a plain Submit for 1 to 5 seconds after opening or saving, before it turned into Request approval or Approve (a click got the server's refusal). The boot now lists the document types an enabled chain covers, with their actions; on those forms Submit (or Cancel, on a posted document under a Cancel chain) stays disabled, with "Checking approval...", until the status arrives.
+- Tests: +1 (test_b88_approval_hold).
+
 ## B87 Fixes from retest 3 (25 Nov 2026)
 - Retest 3 on 0.1.0+742f9d22845a: 20 cases, 16 passed, 1 failed, 3 blocked (AP-010 waits on AP-008; FW-004 and FW-005 wait on the Administrator password).
 - Later-day posting (LDG-244): a draft saved on one day and approved (or submitted) on a later day failed with "Due Date cannot be before Supplier Invoice Date": ERPNext moves the posting date to today, but the due dates stayed. Sales and purchase invoices now carry today on such a submit, with their due dates (and payment schedule) moved by the same number of days; a date set on purpose (Edit Posting Date) is left alone. The dates are no longer part of an approval's fingerprint, so a maker's own submit after a failed post still matches the approval.
