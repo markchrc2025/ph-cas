@@ -10,6 +10,18 @@ One entry per bundle, newest first. Counts are the test totals on main after the
 - System Settings "Disable Product Suggestion" is now forced on (no Frappe CRM or Helpdesk ads for System Managers).
 - Docs: docs/LEGAL-FRAMEWORK.md, docs/runbooks/framework-upstream-sync.md. D1 updated.
 - Tests: +10 (test_b81_framework). UAT: tools/uat/cases/framework_branding.py (6 cases), to hand off after the current UAT run.
+## B88 Sentire Ledger on Sentire Cloud (25 Nov 2026)
+- Owner's go (25 Nov 2026): build Sentire Cloud Phases 0 to 4; Phase 4 is Ledger adopting Sentire Cloud (CLD-16). Only sites with a `sentire_cloud` block in their site config change; every other site keeps its own sign-in and tiers.
+- Sign-in (task 4.2): /login goes to Sentire sign-in (OpenID Connect code flow with PKCE, ES256 ID token checked against Sentire Cloud's keys, nonce, audience, issuer, organization and app access). The Ledger user is linked to the Sentire Account by a new User field (Sentire Account ID) and is created on first sign-in with a role set from the organization role (Owner to Owner, Admin to Accounting Manager, Billing and Member to Staff). /login?local=1 keeps the local form for the site Administrator. On a site without Sentire Cloud, /login goes straight back to the local form.
+- Plan and limits (task 4.3): the entitlement from Sentire Cloud (event account.entitlement.changed, and an hourly pull with Ledger's machine token) writes the tier, limits and paid-until date to PH CAS Settings, so the B32 checks keep working. Older versions are ignored. If Sentire Cloud cannot be reached, the last entitlement stays.
+- Read-only when unpaid: from day 8 of dunning (state READ_ONLY) every change is refused with HTTP 402 and a link to the billing page; reading stays open. The Administrator is exempt for operations.
+- Paywall (task 4.5b): on a Sentire Cloud site, a reached limit (users, companies, branches, invoices a month) answers HTTP 402 PAYMENT_REQUIRED with the upgrade link (Sentire Cloud /upgrade with the feature, organization and return address).
+- Events: signed sentire.event.v1 events from Sentire Cloud (same format as frappe/sentire.py): entitlement changes, member removed (user disabled and signed out), sessions revoked (signed out), member added (re-enabled).
+- Usage (task 4.5): users, companies, branches and invoices this month go to Sentire Cloud daily.
+- Offboarding (task 4.4): Sentire Cloud asks for the export; the B35 export is zipped and offered to the Owner through a signed link valid 30 days, reported with app.export.ready. Creating and deleting a site stay with deploy/ledger-site.sh (bench level); staff mark the site ready and record the deletion certificate in Sentire Cloud.
+- Docs: docs/runbooks/sentire-cloud.md.
+- Tests: +9 (test_b88_cloud).
+
 ## B87 Fixes from retest 3 (25 Nov 2026)
 - Retest 3 on 0.1.0+742f9d22845a: 20 cases, 16 passed, 1 failed, 3 blocked (AP-010 waits on AP-008; FW-004 and FW-005 wait on the Administrator password).
 - Later-day posting (LDG-244): a draft saved on one day and approved (or submitted) on a later day failed with "Due Date cannot be before Supplier Invoice Date": ERPNext moves the posting date to today, but the due dates stayed. Sales and purchase invoices now carry today on such a submit, with their due dates (and payment schedule) moved by the same number of days; a date set on purpose (Edit Posting Date) is left alone. The dates are no longer part of an approval's fingerprint, so a maker's own submit after a failed post still matches the approval.

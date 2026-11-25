@@ -132,7 +132,20 @@ def _modules_on() -> list[str]:
     return modules_on()
 
 
+FEATURE_OF = {"users": "users", "company": "companies", "branches": "branches", "invoices per month": "invoices_per_month"}
+
+
 def _refuse(what: str, limit: int, tier: str):
+    from ph_cas.cloud import config
+
+    if config.enabled():
+        # B88: on Sentire Cloud the limit comes from the plan; the paywall offers the upgrade (HTTP 402).
+        from ph_cas.cloud.entitlements import raise_payment_required
+
+        raise_payment_required(
+            FEATURE_OF.get(str(what), "users"),
+            _("Your {0} plan allows {1} {2}.").format(tier, limit, what),
+        )
     frappe.throw(
         _("Your {0} subscription allows {1} {2}. Ask your provider to add more or move to a higher tier.").format(
             tier, limit, what
