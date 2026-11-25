@@ -17,12 +17,21 @@ class TestB91OnboardingProgress(IntegrationTestCase):
         frappe.set_user("Administrator")
 
     def test_company_setup(self):
+        tin = frappe.db.get_value("Company", TEST_COMPANY, "tax_id")
+        frappe.db.set_value("Company", TEST_COMPANY, "tax_id", "")
+        self.assertFalse(step_done("PH Set Up Company", TEST_COMPANY))
+        frappe.db.set_value("Company", TEST_COMPANY, "tax_id", tin or "000-123-456")
         self.assertTrue(step_done("PH Set Up Company", TEST_COMPANY))
+        frappe.db.set_value("Company", TEST_COMPANY, "tax_id", tin)
         self.assertFalse(step_done("PH Set Up Company", OTHER))
 
     def test_invoice_printed_is_per_company(self):
         si = make_sales_invoice()
-        frappe.get_doc({"doctype": "PH Print Record", "ref_doctype": "Sales Invoice", "ref_name": si.name, "print_no": 1, "copy_type": "original"}).insert(ignore_permissions=True)
+        frappe.flags.ph_print_record_writer = True
+        try:
+            frappe.get_doc({"doctype": "PH Print Record", "ref_doctype": "Sales Invoice", "ref_name": si.name, "print_no": 1, "copy_type": "original"}).insert(ignore_permissions=True)
+        finally:
+            frappe.flags.ph_print_record_writer = False
         self.assertTrue(step_done("PH First BIR Invoice", TEST_COMPANY))
         self.assertFalse(step_done("PH First BIR Invoice", OTHER))
 
