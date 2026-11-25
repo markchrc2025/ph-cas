@@ -5,15 +5,38 @@ frappe.ui.form.on("*", {
 		ph_cas_approvals.clear(frm);
 		if (frm.is_new() || !frm.doc.name || frm.doctype.startsWith("PH Approval")) return;
 		if (frm.doc.docstatus === 2) return;
-		frappe.call({
-			method: "ph_cas.approvals.api.status",
-			args: { doctype: frm.doctype, name: frm.doc.name },
-			callback: (r) => r.message && ph_cas_approvals.render(frm, r.message),
-		});
+		const release = ph_cas_approvals.hold(frm);
+		frappe
+			.call({
+				method: "ph_cas.approvals.api.status",
+				args: { doctype: frm.doctype, name: frm.doc.name },
+				callback: (r) => {
+					release();
+					r.message && ph_cas_approvals.render(frm, r.message);
+				},
+			})
+			.always(release);
 	},
 });
 
 const ph_cas_approvals = {
+	// B88: on a document type an enabled chain covers, Submit (or, on a posted one, Cancel) is held
+	// until the approval status arrives, so it is never clicked in the moment before the form
+	// turns it into Request approval, Approve or Request cancellation.
+	hold(frm) {
+		const actions = ((frappe.boot.ph_cas_chain_doctypes || {})[frm.doctype]) || [];
+		const want = frm.doc.docstatus === 1 ? "Cancel" : "Submit";
+		if (!actions.includes(want)) return () => {};
+		const $btn = want === "Cancel" ? frm.page.btn_secondary : frm.page.btn_primary;
+		if (!$btn || !$btn.length) return () => {};
+		$btn.prop("disabled", true).attr("title", __("Checking approval..."));
+		let done = false;
+		return () => {
+			if (done) return;
+			done = true;
+			$btn.prop("disabled", false).removeAttr("title");
+		};
+	},
 	// B86 (LDG-236, 237): the panel is drawn at the top of the form's own layout, not in the
 	// dashboard, which Frappe resets or hides after this call can return; its actions are buttons
 	// in the panel as well as in the toolbar.
