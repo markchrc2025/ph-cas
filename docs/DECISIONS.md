@@ -18,6 +18,7 @@ Status: recommended (Claude's recommendation, not yet confirmed) or confirmed (t
 | D11 | E-invoicing route | After launch: EIS waits for the BIR's specs (LDG-58), not in release 1 | confirmed 17 Nov 2026 |
 | Payroll | Payroll | Not built into Ledger; compensation figures (1601-C, 1604-C, 2316) come from Sentire Payroll (LDG-119) | confirmed 17 Nov 2026 |
 | D12 | 2307 issued | A 2307 is issued to the supplier, not filed: it prints on the BIR form with no watermark. Printing locks it (a draft is submitted first); its status runs Draft, Printed (first print), Issued (Mark as issued, with the day it was handed over), Cancelled. A correction is a cancel and amend. Each certificate lists the bills and payments its tax came from (B90) | confirmed 25 Nov 2026 |
+| D13 | Home checklist | "Get to know Sentire Ledger" ticks each step from the work done, not from clicking its link: company has a TIN and a BIR Series; the Modules page saved by a user; no tax rule in draft; one of the company's sales invoices printed; a BIR return saved for the company; books exported (loose-leaf, year-end e-books or a book report); the registration pack downloaded. Steps are per company except Modules and tax rules (site settings) (B91) | confirmed 26 Nov 2026 |
 
 ## Loose-leaf books (15 Nov 2026)
 

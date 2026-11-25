@@ -6,3 +6,6 @@ class PHModules(Document):
         from ph_cas.modules.api import after_change
 
         after_change(self)
+        from ph_cas.home.progress import mark_modules_chosen
+
+        mark_modules_chosen()  # B91: the checklist's 'Choose what you use'

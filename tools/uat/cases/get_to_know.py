@@ -1,0 +1,83 @@
+"""UAT cases: the Home checklist "Get to know Sentire Ledger" ticks from the work done (B91, D13)."""
+
+from _common import TODAY, case, cover
+
+SLUG = "get-to-know"
+COVER = cover(
+    "The Home checklist \"Get to know Sentire Ledger\": each step ticks itself when the company has done the work anywhere in Ledger (not when its link is clicked), per company (Companies D, C and B)",
+    "LDG-153",
+    "The tutorial videos on the steps (tutorials workbook); the Dismiss button (role-homes). Dates: " + TODAY + ".",
+)
+D = "UAT Bagong Bukas Corp."
+C = "UAT Bagong Simula Corp."
+I = "LDG-153"
+HOME = "Sidebar Home; in the company box at the top right of Home choose "
+TICK = "the circle before the step shows a green tick and the step title is struck through"
+OPEN = "the circle before the step is empty and the title is not struck through"
+CASES = [
+    case("LDG-GK-001", "Home", I, "Set up the Philippine company is ticked for a company with a TIN and a BIR Series", "Owner A",
+         "Company D has TIN 000-905-203 (Company list) and BIR Series rows (BIR Series list, filter Company " + D + ")",
+         [HOME + D, "Find the step Set up the Philippine company in Get to know Sentire Ledger"], "None",
+         ["Step 2: " + TICK], "P2", "", "None"),
+    case("LDG-GK-002", "Home", I, "Print your first BIR invoice ticks only after an invoice of that company is printed", "Owner A",
+         "No sales invoice of Company D has been printed (Print Records list, no row for a Company D invoice)",
+         [HOME + D + "; look at Print your first BIR invoice",
+          "Sidebar Sales Invoice > + Add: Company " + D + "; Customer: create one named UAT-GK-002 Buyer (TIN 000-905-902, VAT status VAT-registered, address 1 Test St, Pasig City, ZIP 1600); Item Consulting services, Qty 1, Rate 1,000.00; Save; Submit",
+          "Click Print (top right); print or save the PDF from the print window",
+          HOME + D + " again (reload the page)"],
+         "Customer UAT-GK-002 Buyer; 1 x Consulting services at 1,000.00",
+         ["Step 1: " + OPEN, "Step 2: the invoice is Submitted", "Step 3: the print opens", "Step 4: Print your first BIR invoice: " + TICK],
+         "P1", "LDG-GK-001", "Creates, submits and prints a sales invoice of Company D"),
+    case("LDG-GK-003", "Home", I, "Compute your first BIR return ticks after a return is saved for that company", "Accountant A",
+         "No BIR return exists for Company D (BIR Returns list, filter Company " + D + ", no rows)",
+         [HOME + D + "; look at Compute your first BIR return",
+          "Sidebar BIR Returns > + Add: Company " + D + "; Form 2550Q; Period the quarter of T; Save",
+          HOME + D + " again (reload)"],
+         "None",
+         ["Step 1: " + OPEN, "Step 2: the return is saved (Draft)", "Step 3: Compute your first BIR return: " + TICK],
+         "P1", "LDG-GK-001", "Creates a draft 2550Q for Company D"),
+    case("LDG-GK-004", "Home", I, "Export the books ticks after the loose-leaf books are downloaded", "Owner A",
+         "Company D's books were never exported (Event Log: no export row for Company " + D + ")",
+         [HOME + D + "; look at Export the books",
+          "Sidebar Company > " + D + " > the dropdown named after the app (Sentire Ledger (staging)) > Loose-leaf books (Excel / PDF); From 01-01 of T's year; To T; Format pdf; Submit; save the zip",
+          HOME + D + " again (reload)"],
+         "None",
+         ["Step 1: " + OPEN, "Step 2: a zip downloads", "Step 3: Export the books: " + TICK],
+         "P1", "LDG-GK-001", "Downloads a file; writes an export row in the Event Log"),
+    case("LDG-GK-005", "Home", I, "Build the registration pack ticks after the pack is downloaded", "Owner A",
+         "The registration pack was never downloaded for Company D",
+         [HOME + D + "; look at Build the registration pack",
+          "Sidebar Company > " + D + " > Sentire Ledger (staging) > Registration pack (zip); save the zip",
+          HOME + D + " again (reload)"],
+         "None",
+         ["Step 1: " + OPEN, "Step 2: registration_pack_UAT_Bagong_Bukas_Corp.zip downloads", "Step 3: Build the registration pack: " + TICK],
+         "P1", "LDG-GK-001", "Downloads a file; writes an export row in the Event Log"),
+    case("LDG-GK-006", "Home", I, "Choose what you use ticks once the Modules page is saved", "Owner A",
+         "setup-company workbook done (it saves the Modules page)",
+         [HOME + D + "; look at Choose what you use", "Sidebar Modules; change nothing; press Ctrl+S (Cmd+S)", HOME + D + " again (reload)"],
+         "None",
+         ["Step 3: Choose what you use: " + TICK + " (the Modules page is one setting for the whole site, so it is ticked for every company once saved)"],
+         "P2", "", "Saves the Modules page unchanged"),
+    case("LDG-GK-007", "Home", I, "Confirm your tax rules follows the Tax Rules list", "Owner A", "None",
+         ["Sidebar Draft Tax Rules: count the rows", HOME + D + "; look at Confirm your tax rules"],
+         "None",
+         ["If Draft Tax Rules has one or more rows: " + OPEN + ". If it has none: " + TICK + ". (Rules are confirmed only by the accountant's sign-off, outside the app.)"],
+         "P2", "", "None"),
+    case("LDG-GK-008", "Home", I, "Another company's work does not tick this company's steps", "Owner A",
+         "LDG-GK-002 to LDG-GK-005 done; nothing printed, computed or exported for Company C",
+         [HOME + C, "Look at Print your first BIR invoice, Compute your first BIR return, Export the books and Build the registration pack"],
+         "None",
+         ["Step 2: all four steps: " + OPEN + " (Company D's work does not count for Company C)"],
+         "P1", "LDG-GK-005", "None"),
+    case("LDG-GK-009", "Home", I, "Clicking a step's link does not tick it", "Owner A", "LDG-GK-008 done",
+         [HOME + C, "Click New Sales Invoice -> on Print your first BIR invoice; a new invoice opens; leave without saving (sidebar Home)",
+          "Look at Print your first BIR invoice for " + C],
+         "None", ["Step 3: " + OPEN], "P1", "LDG-GK-008", "None"),
+    case("LDG-GK-010", "Home", I, "The other tenant sees only its own progress", "Accountant B",
+         "LDG-GK-002 to LDG-GK-005 done",
+         ["Sign in as Accountant B; sidebar Home", "Open the company box at the top right"],
+         "None",
+         ["Step 1: the checklist shows UAT Company B Corp.'s steps; Print your first BIR invoice, Compute your first BIR return, Export the books and Build the registration pack are not ticked unless Company B did that work",
+          "Step 2: only UAT Company B Corp. is listed (no Company D)"],
+         "P1", "LDG-GK-005", "None"),
+]
