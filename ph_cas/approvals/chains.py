@@ -176,3 +176,16 @@ def install_demo(company: str):
         doc.enabled = 1
         doc.save(ignore_permissions=True)
     frappe.db.set_single_value("PH CAS Settings", "approval_chains_enabled", 1)
+
+
+def extend_bootinfo(bootinfo):
+    """B88: the document types an enabled chain covers, with its actions, so a form can hold
+    Submit or Cancel until it knows whether approval is needed."""
+    out = {}
+    if module_on():
+        for r in frappe.get_all("PH Approval Chain", {"enabled": 1}, ["document_type", "action"]):
+            out.setdefault(r.document_type, [])
+            act = r.action or "Submit"
+            if act not in out[r.document_type]:
+                out[r.document_type].append(act)
+    bootinfo.ph_cas_chain_doctypes = out
