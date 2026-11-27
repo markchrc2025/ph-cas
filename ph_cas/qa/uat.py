@@ -96,8 +96,22 @@ def seed_uat():
             from frappe.utils.password import update_password
 
             update_password(a["email"], password)
+    _uat_tier()
     frappe.db.commit()
     return [a["email"] for a in accounts()]
+
+
+def _uat_tier():
+    """B95: staging runs as a client on Team, paid 30 days ahead, so Help > Your plan > Change
+    plan can be tested (an upgrade to Business applies at once; a downgrade the site does not
+    fit is refused). Users, companies and branches are not limited, so the other workbooks are
+    not stopped by Team's limits. Only on the first seed: a tier the run changed stays."""
+    from frappe.utils import add_days, today
+
+    from ph_cas.hosting.tiers import set_tier
+
+    if (frappe.db.get_single_value("PH CAS Settings", "subscription_tier") or "Internal") == "Internal":
+        set_tier("Team", subscription_until=add_days(today(), 30), max_users=0, max_companies=0, max_branches=0, monthly_invoice_limit=0)
 
 
 @frappe.whitelist()

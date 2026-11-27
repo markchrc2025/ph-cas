@@ -79,4 +79,5 @@ RUN_ORDER = [
     ("paper-check-pack", "Print pack for the paper check"),
     ("framework-branding", "Sentire Framework branding"),
     ("get-to-know", "Get to know Sentire Ledger checklist"),
+    ("plan-and-settings", "Plan and settings"),
 ]
