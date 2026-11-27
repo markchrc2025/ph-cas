@@ -113,6 +113,7 @@ override_whitelisted_methods = {
     # B83: a posted voucher or a filed return gets the app's message, not "Cancel it first"
     "frappe.client.delete": "ph_cas.controls.delete_guard.delete",
     "frappe.desk.reportview.delete_items": "ph_cas.controls.delete_guard.delete_items",
+    "frappe.desk.form.linked_with.get_linked_docs_to_delete": "ph_cas.controls.delete_guard.get_linked_docs_to_delete",  # B94
 }
 
 override_doctype_class = {
