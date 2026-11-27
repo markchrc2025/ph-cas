@@ -12,20 +12,21 @@ Run the workbooks in this order, one UAT chat per workbook ("Run UAT for LDG-n")
 | 4 | [Roles and permissions](roles-permissions/UAT_LDG_roles-permissions_0.1.0+cb9827a95550.xlsx) | LDG-154 | 40 | 29 | 0 | 5 | 11 | 15 | 14 | 4 |
 | 5 | [Role homes, counter view and Help menu](role-homes/UAT_LDG_role-homes_0.1.0+cb9827a95550.xlsx) | LDG-147 | 10 | 2 | 0 | 4 | 1 | 2 | 3 | 0 |
 | 6 | [Reports page](reports-page/UAT_LDG_reports-page_0.1.0+cb9827a95550.xlsx) | LDG-155 | 12 | 7 | 1 | 6 | 1 | 3 | 3 | 0 |
-| 7 | [Sales and collections](sales-collections/UAT_LDG_sales-collections_0.1.0+cb9827a95550.xlsx) | LDG-156 | 15 | 9 | 1 | 2 | 1 | 9 | 2 | 1 |
+| 7 | [Sales and collections](sales-collections/UAT_LDG_sales-collections_0.1.0+59b5edaaee39.xlsx) | LDG-156 | 16 | 10 | 2 | 2 | 1 | 10 | 2 | 1 |
 | 8 | [Masters and stock](masters-stock/UAT_LDG_masters-stock_0.1.0+cb9827a95550.xlsx) | LDG-161 | 11 | 7 | 0 | 0 | 2 | 6 | 4 | 1 |
-| 9 | [Purchases and payables](purchases-payables/UAT_LDG_purchases-payables_0.1.0+cb9827a95550.xlsx) | LDG-157 | 11 | 7 | 1 | 0 | 1 | 7 | 2 | 1 |
+| 9 | [Purchases and payables](purchases-payables/UAT_LDG_purchases-payables_0.1.0+59b5edaaee39.xlsx) | LDG-157 | 14 | 7 | 2 | 0 | 2 | 9 | 2 | 1 |
 | 10 | [Approvals](approvals/UAT_LDG_approvals_0.1.0+cb9827a95550.xlsx) | LDG-162 | 11 | 7 | 0 | 0 | 6 | 7 | 1 | 0 |
-| 11 | [Journals and periods](journals-periods/UAT_LDG_journals-periods_0.1.0+cb9827a95550.xlsx) | LDG-158 | 8 | 4 | 0 | 3 | 2 | 3 | 1 | 0 |
-| 12 | [BIR returns](bir-returns/UAT_LDG_bir-returns_0.1.0+cb9827a95550.xlsx) | LDG-159 | 17 | 10 | 0 | 1 | 5 | 10 | 1 | 1 |
+| 11 | [Journals and periods](journals-periods/UAT_LDG_journals-periods_0.1.0+59b5edaaee39.xlsx) | LDG-158 | 8 | 4 | 0 | 3 | 2 | 3 | 1 | 0 |
+| 12 | [BIR returns](bir-returns/UAT_LDG_bir-returns_0.1.0+59b5edaaee39.xlsx) | LDG-159 | 19 | 11 | 1 | 1 | 5 | 12 | 1 | 1 |
 | 13 | [Books and audit](books-audit/UAT_LDG_books-audit_0.1.0+cb9827a95550.xlsx) | LDG-160 | 14 | 10 | 2 | 3 | 2 | 8 | 1 | 0 |
 | 14 | [Subsidiary ledgers and cash position](ledgers-cash-position/UAT_LDG_ledgers-cash-position_0.1.0+cb9827a95550.xlsx) | LDG-146 | 10 | 7 | 5 | 5 | 0 | 2 | 1 | 2 |
-| 15 | [Import templates and batch edit](import-templates/UAT_LDG_import-templates_0.1.0+cb9827a95550.xlsx) | LDG-145 | 16 | 11 | 1 | 6 | 0 | 8 | 1 | 1 |
+| 15 | [Import templates and batch edit](import-templates/UAT_LDG_import-templates_0.1.0+59b5edaaee39.xlsx) | LDG-145 | 17 | 12 | 1 | 6 | 0 | 9 | 1 | 1 |
 | 16 | [Go-live and opening balances](go-live/UAT_LDG_go-live_0.1.0+cb9827a95550.xlsx) | LDG-143 | 14 | 10 | 0 | 12 | 0 | 1 | 0 | 1 |
 | 17 | [Print pack for the paper check](paper-check-pack/UAT_LDG_paper-check-pack_0.1.0+cb9827a95550.xlsx) | LDG-149 | 7 | 6 | 4 | 5 | 0 | 1 | 0 | 1 |
 | 18 | [Sentire Framework branding](framework-branding/UAT_LDG_framework-branding_0.1.0+cb9827a95550.xlsx) | LDG-184 | 6 | 4 | 0 | 2 | 0 | 0 | 0 | 0 |
 | 19 | [Get to know Sentire Ledger checklist](get-to-know/UAT_LDG_get-to-know_0.1.0+8e95ac63624c.xlsx) | LDG-153 | 10 | 7 | 0 | 8 | 0 | 1 | 0 | 1 |
-| | **Total** | | **244** | **153** | **16** | **78** | **33** | **92** | **38** | **16** |
+| 20 | [Plan and settings](plan-and-settings/UAT_LDG_plan-and-settings_0.1.0+59b5edaaee39.xlsx) | LDG-153 | 7 | 4 | 0 | 6 | 0 | 1 | 0 | 0 |
+| | **Total** | | **258** | **160** | **19** | **84** | **34** | **99** | **38** | **16** |
 
 Role columns count the cases that sign in as that account (in the Role column or in the steps).
 
@@ -139,7 +140,7 @@ Role columns count the cases that sign in as that account (in the Role column or
 | LDG-SL-010 | sales-collections | P1 | Staff A | A collection pays the rest of the invoice |
 | LDG-SL-011 | sales-collections | P1 | Accountant A | A top withholding agent's invoice shows the tax it withholds, and the net payment books it |
 | LDG-SL-012 | sales-collections | P2 | Accountant A | The 200.00 shows in the 2307 received reconciliation |
-| LDG-SL-013 | sales-collections | P1 | Owner A | HUMAN: the printed invoice carries the BIR details |
+| LDG-SL-013 | sales-collections | P1 | Owner A | HUMAN: the printed invoice carries the BIR details and nothing from the browser |
 | LDG-SL-014 | sales-collections | P2 | Owner A | A second print is marked as a reprint |
 | LDG-SL-015 | sales-collections | P1 | Accountant B | Company B's Accountant does not see Company A's sales |
 | LDG-MS-001 | masters-stock | P1 | Accountant A | A TIN that is not 9 digits is refused |
@@ -161,7 +162,7 @@ Role columns count the cases that sign in as that account (in the Role column or
 | LDG-PU-006 | purchases-payables | P1 | Staff A | Staff cannot see the bill button or post a bill |
 | LDG-PU-007 | purchases-payables | P2 | Accountant A | The Accountant can cancel an unpaid bill (bills carry no BIR serial) |
 | LDG-PU-008 | purchases-payables | P1 | Accountant A | The quarter's 2307 for the supplier carries the 400.00 |
-| LDG-PU-009 | purchases-payables | P1 | Accountant A | HUMAN: the 2307 prints on the BIR form |
+| LDG-PU-009 | purchases-payables | P1 | Accountant A | HUMAN: printing locks the 2307 and sends it straight to the printer |
 | LDG-PU-010 | purchases-payables | P2 | Staff A | Staff cannot make a 2307 |
 | LDG-PU-011 | purchases-payables | P1 | Accountant B | Company B cannot open Company A's bill |
 | LDG-AP-001 | approvals | P1 | Accountant A | The Accountant cannot set up a chain |
@@ -181,7 +182,7 @@ Role columns count the cases that sign in as that account (in the Role column or
 | LDG-JP-004 | journals-periods | P2 | Accountant A | A draft journal entry cannot be printed |
 | LDG-JP-005 | journals-periods | P1 | Owner A | Posting into a closed month is refused for every role |
 | LDG-JP-006 | journals-periods | P2 | Accounting Manager A | No role can be exempted from a closed period |
-| LDG-JP-007 | journals-periods | P3 | Staff A | Staff does not see Journal Entry in its menus |
+| LDG-JP-007 | journals-periods | P3 | Staff A | Staff reads journal entries but cannot make one |
 | LDG-JP-008 | journals-periods | P2 | Accountant A | The journal entry shows in the General Journal book |
 | LDG-BR-001 | bir-returns | P1 | Accountant A | The Accountant creates the 2550Q for the last quarter |
 | LDG-BR-002 | bir-returns | P1 | Accountant A | The 2550Q's output VAT ties to the Sales Journal |
@@ -277,3 +278,17 @@ Role columns count the cases that sign in as that account (in the Role column or
 | LDG-GK-008 | get-to-know | P1 | Owner A | Another company's work does not tick this company's steps |
 | LDG-GK-009 | get-to-know | P1 | Owner A | Clicking a step's link does not tick it |
 | LDG-GK-010 | get-to-know | P1 | Accountant B | The other tenant sees only its own progress |
+| LDG-SL-016 | sales-collections | P1 | Accountant A | HUMAN: the customer's 2307 is uploaded from the invoice it covers |
+| LDG-PU-012 | purchases-payables | P2 | Accountant A | Mark the 2307 issued to the supplier |
+| LDG-PU-013 | purchases-payables | P2 | Accountant A | HUMAN: the bill shows its 2307 and prints it |
+| LDG-PU-014 | purchases-payables | P2 | Accounting Manager A | A 2307 is corrected by cancel and amend |
+| LDG-BR-018 | bir-returns | P1 | Accountant A | The annual income tax return warns about a customer 2307 not yet received, and is not blocked by it |
+| LDG-BR-019 | bir-returns | P2 | Accountant A | HUMAN: the customers' 2307s download as one zip with the return |
+| LDG-IM-017 | import-templates | P1 | Accountant A | TINs with or without dashes, with the branch inside, Excel's lost zeros, and the sample row left in |
+| LDG-PS-001 | plan-and-settings | P1 | Owner A | The client does not see the provider's settings |
+| LDG-PS-002 | plan-and-settings | P2 | Owner A | The Owner sets the failed sign-ins limit on Security |
+| LDG-PS-003 | plan-and-settings | P2 | Owner A | Your plan shows Team and offers Change plan |
+| LDG-PS-004 | plan-and-settings | P1 | Accountant A | The Accountant cannot change the plan |
+| LDG-PS-005 | plan-and-settings | P1 | Owner A | The Owner upgrades to Business; it applies at once |
+| LDG-PS-006 | plan-and-settings | P1 | Owner A | A downgrade the site does not fit is refused with what to reduce |
+| LDG-PS-007 | plan-and-settings | P3 | Owner A | Enterprise is not self-service |
