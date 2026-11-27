@@ -1,0 +1,41 @@
+{
+ "actions": [],
+ "creation": "2026-11-27 13:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "issingle": 1,
+ "module": "PH CAS",
+ "name": "PH Security Settings",
+ "owner": "Administrator",
+ "modified": "2026-11-27 13:00:00.000000",
+ "modified_by": "Administrator",
+ "field_order": [
+  "failed_signins_before_deactivation"
+ ],
+ "fields": [
+  {
+   "fieldname": "failed_signins_before_deactivation",
+   "fieldtype": "Int",
+   "label": "Failed sign-ins before the user is deactivated",
+   "default": "5",
+   "reqd": 1,
+   "description": "Counted since the user's last successful sign-in. Reactivation is done by a System Manager and is logged."
+  }
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1
+  },
+  {
+   "role": "Accounting Manager",
+   "read": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "links": []
+}

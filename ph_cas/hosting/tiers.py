@@ -230,3 +230,119 @@ def my_plan() -> dict:
             "subscription_until": u.get("subscription_until"), "pilot_until": u.get("pilot_until"),
             "expired": status["expired"], "pilot_ended": status["pilot_ended"],
             "provider": provider_name(), "support_email": support_email()}
+
+
+# B93 (owner, 27 Nov 2026): the client changes its own tier. An upgrade applies now (the new
+# fee starts that day); a downgrade applies at the end of the paid period, and only if the
+# site already fits the smaller tier. What each tier holds is the provider's (TIERS, and later
+# the Sentire Ledger Tenant Control Portal); Internal and Enterprise are not self-service.
+SELF_SERVICE = ("Solo", "Team", "Business")
+RANK = {"Solo": 1, "Team": 2, "Business": 3, "Enterprise": 4}
+LIMIT_LABELS = {"max_users": "users", "max_companies": "companies", "max_branches": "branches", "monthly_invoice_limit": "invoices this month"}
+
+
+def _can_change():
+    if not (frappe.session.user == "Administrator" or "System Manager" in frappe.get_roles()):
+        frappe.throw(_("Only the Owner can change the plan."), frappe.PermissionError)
+
+
+def _misfits(tier: str) -> list[str]:
+    u, out = usage(), []
+    used = {"max_users": u["users"], "max_companies": u["companies"], "max_branches": u["branches"], "monthly_invoice_limit": u["invoices_this_month"]}
+    for key, lim in TIERS[tier].items():
+        if lim and used[key] > lim:
+            if key == "monthly_invoice_limit":
+                out.append(_("This month has {0} invoices; {1} allows {2}. Downgrade after the month ends.").format(used[key], tier, lim))
+            else:
+                out.append(_("Reduce {0} from {1} to {2} (for example, disable {3}).").format(_(LIMIT_LABELS[key]), used[key], lim, used[key] - lim))
+    return out
+
+
+def _period_end():
+    from frappe.utils import get_last_day
+
+    s = frappe.get_cached_doc("PH CAS Settings")
+    for d in (s.get("subscription_until"), s.get("pilot_until")):
+        if d and getdate(d) >= getdate(today()):
+            return getdate(d)
+    return get_last_day(today())
+
+
+def _tell_provider(subject: str, body: str):
+    from ph_cas.branding import support_email
+
+    to = support_email()
+    if to:
+        frappe.sendmail(recipients=[to], subject=subject, message=body, now=False)
+
+
+@frappe.whitelist()
+def plan_options() -> dict:
+    cur = limits()["tier"]
+    s = frappe.get_cached_doc("PH CAS Settings")
+    opts = []
+    for t in (*SELF_SERVICE, "Enterprise"):
+        kind = "current" if t == cur else ("contact" if t == "Enterprise" or cur in ("Internal", "Enterprise") else ("upgrade" if RANK[t] > RANK.get(cur, 0) else "downgrade"))
+        opts.append({"tier": t, "note": _(TIER_NOTES[t]), "kind": kind, "misfits": _misfits(t) if kind == "downgrade" else []})
+    return {"tier": cur, "options": opts, "scheduled_tier": s.get("scheduled_tier"), "scheduled_tier_on": s.get("scheduled_tier_on"),
+            "can_change": frappe.session.user == "Administrator" or "System Manager" in frappe.get_roles()}
+
+
+@frappe.whitelist()
+def change_tier(tier: str) -> dict:
+    from ph_cas.audit.events import record
+
+    _can_change()
+    cur = limits()["tier"]
+    if tier not in SELF_SERVICE or cur not in SELF_SERVICE:
+        frappe.throw(_("This change of plan is made by the provider. Write to us from Help > Get help."), PHTierError)
+    if tier == cur:
+        frappe.throw(_("You are already on {0}.").format(tier), PHTierError)
+    if RANK[tier] > RANK[cur]:
+        set_tier(tier)
+        frappe.db.set_single_value("PH CAS Settings", {"scheduled_tier": None, "scheduled_tier_on": None})
+        record("plan_change", "PH CAS Settings", "PH CAS Settings", 0, {"from": cur, "to": tier, "when": "now"})
+        _tell_provider(f"Upgrade: {frappe.local.site} {cur} to {tier}", f"{frappe.local.site} upgraded from {cur} to {tier} on {today()} (by {frappe.session.user}). Bill the new fee from today.")
+        return {"tier": tier, "applied": True}
+    bad = _misfits(tier)
+    if bad:
+        frappe.throw("<br>".join([_("{0} does not fit this site yet:").format(tier), *bad]), PHTierError)
+    on = _period_end()
+    frappe.db.set_single_value("PH CAS Settings", {"scheduled_tier": tier, "scheduled_tier_on": on})
+    frappe.clear_cache()
+    record("plan_change", "PH CAS Settings", "PH CAS Settings", 0, {"from": cur, "to": tier, "when": str(on)})
+    _tell_provider(f"Downgrade scheduled: {frappe.local.site} {cur} to {tier}", f"{frappe.local.site} chose to move from {cur} to {tier}; it takes effect on {on} (by {frappe.session.user}).")
+    return {"tier": cur, "scheduled_tier": tier, "scheduled_tier_on": str(on), "applied": False}
+
+
+@frappe.whitelist()
+def cancel_downgrade() -> dict:
+    from ph_cas.audit.events import record
+
+    _can_change()
+    s = frappe.get_cached_doc("PH CAS Settings")
+    if s.get("scheduled_tier"):
+        record("plan_change", "PH CAS Settings", "PH CAS Settings", 0, {"cancelled": s.get("scheduled_tier")})
+    frappe.db.set_single_value("PH CAS Settings", {"scheduled_tier": None, "scheduled_tier_on": None})
+    frappe.clear_cache()
+    return {"ok": True}
+
+
+def apply_scheduled_tier():
+    """Daily: a downgrade whose date has come is applied if the site still fits; otherwise it
+    waits, and the provider is told."""
+    from ph_cas.audit.events import record
+
+    s = frappe.get_single("PH CAS Settings")
+    tier, on = s.get("scheduled_tier"), s.get("scheduled_tier_on")
+    if not tier or not on or getdate(on) > getdate(today()):
+        return
+    bad = _misfits(tier)
+    if bad:
+        _tell_provider(f"Downgrade waiting: {frappe.local.site} to {tier}", "\n".join(bad))
+        return
+    cur = s.subscription_tier
+    set_tier(tier)
+    frappe.db.set_single_value("PH CAS Settings", {"scheduled_tier": None, "scheduled_tier_on": None})
+    record("plan_change", "PH CAS Settings", "PH CAS Settings", 0, {"from": cur, "to": tier, "when": str(on), "applied": True})
+    frappe.db.commit()

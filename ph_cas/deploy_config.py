@@ -143,7 +143,7 @@ def _two_factor():
 def _branding():
     product = _env("PRODUCT_NAME")
     provider = _env("PROVIDER_NAME")
-    if not product and not provider:
+    if not product and not provider and not _env("PROVIDER_TIN"):
         return ""
     if product and frappe.conf.get("ph_staging_site") and "(staging)" not in product:
         product = f"{product} (staging)"  # every screen and test print says it is not the live site
@@ -155,6 +155,13 @@ def _branding():
     if provider and s.get("provider_name") != provider:
         s.provider_name = provider
         changed = True
+    # B93: the provider's details come from the site's environment (Dokploy), not from the client
+    for env, field in (("PROVIDER_TIN", "provider_tin"), ("PROVIDER_ADDRESS", "provider_address"), ("PROVIDER_SIGNATORY", "provider_signatory"),
+                       ("PROVIDER_SIGNATORY_POSITION", "provider_signatory_position"), ("PROVIDER_SIGNATORY_TIN", "provider_signatory_tin")):
+        v = _env(env)
+        if v and s.get(field) != v:
+            s.set(field, v)
+            changed = True
     if changed:
         s.flags.ignore_permissions = True
         s.save()
