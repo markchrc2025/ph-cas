@@ -3,3 +3,4 @@ ph_cas.patches.v0.rename_accounting_manager_role
 
 [post_model_sync]
 ph_cas.patches.v0.b90_2307_status_and_sources
+ph_cas.patches.v0.b93_security_settings

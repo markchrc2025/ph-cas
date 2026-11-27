@@ -15,8 +15,43 @@ ph_cas.show_plan = function () {
 		frappe.msgprint({ title: __("Your plan: {0}", [e(p.tier)]), message:
 			`<p>${e(p.note)}</p><table style="width:100%;margin:8px 0">${rows}</table>`
 			+ (p.modules_on.length ? `<p style="color:var(--text-muted)">${__("Modules on")}: ${p.modules_on.map(e).join(", ")}</p>` : "")
-			+ (dates.length ? `<p>${dates.join("<br>")}</p>` : "") + `<p>${contact}</p>`
+			+ (dates.length ? `<p>${dates.join("<br>")}</p>` : "")
+			+ `<p><a href="#" class="ph-change-plan">${__("Change plan")}</a> &middot; ${contact}</p>`
 			+ `<p style="color:var(--text-muted);font-size:11px">${__("Build")} ${e(frappe.boot.ph_cas_build || "")}</p>` });
+		$(".ph-change-plan").last().on("click", (ev) => { ev.preventDefault(); frappe.hide_msgprint(); ph_cas.change_plan(); });
+	});
+};
+
+// B93: the Owner moves the site up or down a tier. An upgrade applies now; a downgrade at the
+// end of the paid period, and only if the site already fits the smaller tier.
+ph_cas.change_plan = function () {
+	frappe.xcall("ph_cas.hosting.tiers.plan_options").then((p) => {
+		const e = frappe.utils.escape_html;
+		const d = new frappe.ui.Dialog({ title: __("Change plan"), fields: [{ fieldname: "body", fieldtype: "HTML" }] });
+		const verb = { upgrade: __("Upgrade now"), downgrade: __("Downgrade at the end of the paid period") };
+		const rows = p.options.map((o) => {
+			let act = "";
+			if (o.kind === "current") act = `<b>${__("Your plan")}</b>`;
+			else if (o.kind === "contact") act = `<span style="color:var(--text-muted)">${__("Write to us from Help > Get help")}</span>`;
+			else if (!p.can_change) act = `<span style="color:var(--text-muted)">${__("Only the Owner can change the plan")}</span>`;
+			else if (o.misfits.length) act = `<span style="color:var(--orange-600)">${__("Not yet:")}<br>${o.misfits.map(e).join("<br>")}</span>`;
+			else act = `<button class="btn btn-xs btn-${o.kind === "upgrade" ? "primary" : "default"} ph-tier" data-tier="${e(o.tier)}" data-kind="${o.kind}">${verb[o.kind]}</button>`;
+			return `<tr><td style="padding:6px 8px;vertical-align:top"><b>${e(o.tier)}</b><br><span style="color:var(--text-muted)">${e(o.note)}</span></td><td style="padding:6px 8px;vertical-align:top;text-align:right">${act}</td></tr>`;
+		}).join("");
+		const sched = p.scheduled_tier
+			? `<p style="color:var(--orange-600)">${__("Moving to {0} on {1}.", [e(p.scheduled_tier), frappe.datetime.str_to_user(p.scheduled_tier_on)])} ${p.can_change ? `<a href="#" class="ph-cancel-down">${__("Cancel this")}</a>` : ""}</p>` : "";
+		d.fields_dict.body.$wrapper.html(`${sched}<table style="width:100%">${rows}</table>
+			<p style="color:var(--text-muted);font-size:11px">${__("An upgrade applies straight away and its fee starts today. A downgrade applies at the end of the period you have paid for.")}</p>`);
+		d.$wrapper.find(".ph-tier").on("click", function () {
+			const t = $(this).data("tier"), k = $(this).data("kind");
+			const msg = k === "upgrade" ? __("Upgrade to {0} now? The new fee starts today.", [t]) : __("Move down to {0} at the end of the paid period?", [t]);
+			frappe.confirm(msg, () => frappe.xcall("ph_cas.hosting.tiers.change_tier", { tier: t }).then((r) => {
+				d.hide();
+				frappe.show_alert({ message: r.applied ? __("You are now on {0}.", [r.tier]) : __("Moving to {0} on {1}.", [r.scheduled_tier, frappe.datetime.str_to_user(r.scheduled_tier_on)]), indicator: "green" });
+			}));
+		});
+		d.$wrapper.find(".ph-cancel-down").on("click", (ev) => { ev.preventDefault(); frappe.xcall("ph_cas.hosting.tiers.cancel_downgrade").then(() => { d.hide(); ph_cas.change_plan(); }); });
+		d.show();
 	});
 };
 

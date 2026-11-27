@@ -76,7 +76,10 @@ def force_system_settings():
 
 
 def _threshold() -> int:
-    n = frappe.db.get_single_value("PH CAS Settings", "failed_signins_before_deactivation")
+    n = None
+    if frappe.db.exists("DocType", "PH Security Settings"):
+        n = frappe.db.get_single_value("PH Security Settings", "failed_signins_before_deactivation")  # B93
+    n = n or frappe.db.get_single_value("PH CAS Settings", "failed_signins_before_deactivation")
     return int(n or 5)
 
 

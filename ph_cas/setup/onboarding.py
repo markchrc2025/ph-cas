@@ -76,9 +76,9 @@ STEPS = [
         "name": "PH Registration Pack",
         "title": "Build the registration pack",
         "action": "Go to Page",
-        "path": "/app/ph-cas-settings",
-        "action_label": "Open Settings",
-        "description": "PH CAS Settings holds the provider and signatory details printed on the registration documents. From there, **Download registration pack** produces the Annex B answers, sworn statement, specimen prints, books and audit trail for your RDO.",
+        "path": "/app/company",
+        "action_label": "Open Company",
+        "description": "Open your company and choose **Registration pack (zip)** from the Sentire Ledger menu: it produces the Annex B answers, sworn statement, specimen prints, books and audit trail for your RDO.",
         "validate_action": 0,
     },
 ]
@@ -158,7 +158,7 @@ def ensure_workspace():
         ("Tax Return Figures", "DocType", "PH Tax Return Figures"),
         ("2307 Issued", "DocType", "PH 2307 Issued"),
         ("BIR Audit Trail", "Report", "BIR Audit Trail"),
-        ("Settings", "DocType", "PH CAS Settings"),
+        ("Security", "DocType", "PH Security Settings"),
     ]
     links = []
 
