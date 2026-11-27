@@ -53,8 +53,10 @@ class TestB81Framework(IntegrationTestCase):
         label = framework_label()
         self.assertTrue(label.startswith("Sentire Framework v"))
         self.assertIn("based on Frappe Framework", label)
-        self.assertIn(label, platform_version())
-        self.assertIn("ERPNext", platform_version())
+        # B92: the BIR documents name only Sentire Framework
+        self.assertTrue(platform_version().endswith(f"({label.split(' (based on')[0]})"))
+        self.assertNotIn("ERPNext", platform_version())
+        self.assertNotIn("Frappe", platform_version())
 
     def test_licences_line_credits_frappe_under_mit(self):
         text = branding.licence_text()

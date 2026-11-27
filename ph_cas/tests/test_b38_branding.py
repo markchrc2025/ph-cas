@@ -136,7 +136,7 @@ class TestB38Branding(IntegrationTestCase):
     def test_prints_show_product_version_only_and_the_pack_shows_the_platform(self):
         for s in FRAMEWORK:
             self.assertNotIn(s, software_version())
-        self.assertIn("ERPNext", platform_version())
+        self.assertIn("Sentire Framework", platform_version())  # B92: no ERPNext or Frappe on BIR documents
 
     def test_new_system_user_lands_on_the_product_workspace(self):
         email = "b38.user@example.test"
