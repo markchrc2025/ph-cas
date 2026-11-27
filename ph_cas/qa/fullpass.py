@@ -1722,23 +1722,24 @@ def s_imports(r: Runner):
     def template():
         t = I.template_csv("parties")
         lines = t.splitlines()
-        r.expect(lines[0].startswith("Customer or Supplier,Name,Payee type,TIN") and lines[1].startswith("# required") and lines[2].startswith("# e.g."), t[:200])
+        # B94: required columns carry *, then one sample row (skipped on import when left as it is)
+        r.expect(lines[0].startswith("Customer or Supplier *,Name *,Payee type *,TIN,") and lines[1].startswith("Customer,Marikina Builders Inc.") and len(lines) == 2, t[:200])
         for k in I.TEMPLATES:
             I.template_csv(k)
         return f"4 templates; parties header: {lines[0][:90]}..."
-    r.step("templates: header, a help row and an example row, both skipped on import", template)
+    r.step("templates: header with * on required columns and one sample row, skipped on import", template)
 
     def bad_file():
         bad = _csv([P_HEAD,
-                    ["Customer", "QA4 Imp Bad TIN", "Non-individual", "000123456000", "", "", "", "", "", "VAT"],
+                    ["Customer", "QA4 Imp Bad TIN", "Non-individual", "123456", "", "", "", "", "", "VAT"],
                     ["Supplier", "QA4 Imp No Names", "Individual", "000-777-001", "00000", "", "", "", "", "Non-VAT", "", "", "professional"],
                     ["Customer", "QA4 Imp Bad VAT", "Non-individual", "000-777-002", "00000", "", "", "", "", "VAT registered"],
                     ["Customer", "QA4 Imp Cust EWT", "Non-individual", "000-777-003", "00000", "", "", "", "", "VAT", "", "", "rent"],
                     ["Customer", "QA4 Imp Dup", "Non-individual", "000-777-003", "00000", "", "", "", "", "VAT", "", "", ""],
-                    ["Supplier", "QA4 Imp Bad Branch", "Non-individual", "000-777-004", "0001", "", "", "", "", "VAT", "", "", "", "", "", "", "18070"]])
+                    ["Supplier", "QA4 Imp Bad Branch", "Non-individual", "000-777-004", "12A", "", "", "", "", "VAT", "", "", "", "", "", "", "18070"]])
         res = I.check_import("parties", csv_text=bad)
         lines = {e["line"]: " ".join(e["errors"]) for e in res["errors"]}
-        want = {2: "branch code", 3: "last name", 4: "VAT status", 5: "for suppliers", 6: "twice", 7: "5 digits"}
+        want = {2: "has 6 digits", 3: "last name", 4: "VAT status", 5: "for suppliers", 6: "twice", 7: "5 digits"}
         miss = {k: v for k, v in want.items() if v not in lines.get(k, "")}
         r.expect(not res["ok"] and not miss, f"missing {miss}; got {lines}")
         r.expect("Line 2" in refused(I.run_import, "parties", csv_text=bad), "imported")
@@ -1747,11 +1748,11 @@ def s_imports(r: Runner):
     r.step("a bad customer/supplier file is checked line by line and nothing is saved", bad_file)
 
     good = _csv([P_HEAD,
-                 ["# e.g. Customer", "example row, skipped"],
-                 ["Customer", "QA4 Imp Pasig Hardware Inc.", "Non-individual", "000-777-101", "00000", "PASIG HARDWARE INC.", "", "", "", "VAT", "", "yes", "", "", "8 Caruncho Ave", "Pasig City", "1600"],
+                 ["Customer", "Marikina Builders Inc.", "Non-individual", "000-123-456", "0", "MARIKINA BUILDERS INC.", "", "", "", "VAT", "", "", "", "", "12 J.P. Rizal Street, Concepcion Uno", "Marikina City", "1807"],
+                 ["Customer", "QA4 Imp Pasig Hardware Inc.", "Non-individual", "000-777-101", "0", "PASIG HARDWARE INC.", "", "", "", "VAT", "", "yes", "", "", "8 Caruncho Ave", "Pasig City", "1600"],
                  ["Customer", "QA4 Imp Generic Customer", "Non-individual", "000111222", "00000", "", "", "", "", "Non-VAT", "", "", "", "", "", "Makati City", ""],
                  ["Supplier", "QA4 Imp Atty. Reyes", "Individual", "000-777-102", "00000", "", "REYES", "MARIA", "CRUZ", "VAT", "", "", "professional", "yes", "2 Shaw Blvd", "Mandaluyong City", "1550"],
-                 ["Supplier", "QA4 Imp Cebu Tiles Corp.", "Non-individual", "000-777-103", "00000", "", "", "", "", "VAT", "", "", "", "", "", "Cebu City", "6000"]])
+                 ["Supplier", "QA4 Imp Cebu Tiles Corp.", "Non-individual", "00077710300000", "", "", "", "", "", "VAT", "", "", "", "", "", "Cebu City", "6000"]])
 
     def parties():
         res = I.check_import("parties", csv_text=good)
@@ -1762,6 +1763,9 @@ def s_imports(r: Runner):
         c = frappe.get_doc("Customer", "QA4 Imp Pasig Hardware Inc.")
         r.expect((c.ph_tin, c.ph_vat_status, c.ph_top_withholding_agent) == ("000-777-101", "VAT", 1), "customer fields")
         r.expect(frappe.db.get_value("Customer", "QA4 Imp Generic Customer", "ph_tin") == "000-111-222", "walk-in TIN")
+        r.expect(c.ph_branch_code == "00000", f"Excel's 0 branch read as 00000: {c.ph_branch_code}")  # B94
+        r.expect(frappe.db.get_value("Supplier", "QA4 Imp Cebu Tiles Corp.", ["ph_tin", "ph_branch_code"]) == ("000-777-103", "00000"), "14-digit TIN split")  # B94
+        r.expect(not frappe.db.exists("Customer", "Marikina Builders Inc."), "the sample row was imported")  # B94
         return f"created {len(out['created'])}, updated {len(out['updated'])}: TINs formatted, the lawyer is an individual professional over the threshold"
     r.step("import customers and suppliers with their BIR details", parties)
 
