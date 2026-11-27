@@ -26,7 +26,7 @@ class TestB96Retest5(IntegrationTestCase):
         frappe.set_user(_staff())
         self.assertFalse(imports._may_create("Supplier"))
         self.assertTrue(imports._may_create("Customer") == bool(frappe.has_permission("Customer", "create")))
-        r = {"party_type": "Supplier", "name": "B96 Supplier", "payee_type": "Non-individual", "tin": "000-777-961", "vat_status": "VAT"}
+        r = {"_line": 2, "party_type": "Supplier", "name": "B96 Supplier", "payee_type": "Non-individual", "tin": "000-777-961", "vat_status": "VAT"}
         e, _w = imports._check_party(None, r, {})
         self.assertTrue(any("You may not add a supplier" in x for x in e), e)
 
