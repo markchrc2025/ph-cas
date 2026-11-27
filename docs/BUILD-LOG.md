@@ -10,6 +10,10 @@ One entry per bundle, newest first. Counts are the test totals on main after the
 - System Settings "Disable Product Suggestion" is now forced on (no Frappe CRM or Helpdesk ads for System Managers).
 - Docs: docs/LEGAL-FRAMEWORK.md, docs/runbooks/framework-upstream-sync.md. D1 updated.
 - Tests: +10 (test_b81_framework). UAT: tools/uat/cases/framework_branding.py (6 cases), to hand off after the current UAT run.
+## B95 Retest cases for the human-test batch (27 Nov 2026)
+- Owner approved the retest files (27 Nov 2026). New: LDG-SL-016 (customer's 2307 from the invoice), LDG-PU-012 to 014 (Mark as issued, the bill's 2307, cancel and amend), LDG-BR-018 and 019 (income tax return warning and the customers' 2307s zip), LDG-IM-017 (TIN rules, Excel zeros, sample row, company drop-down), workbook plan-and-settings LDG-PS-001 to 007. Changed: LDG-SL-013 and 014 (server PDF print, Download PDF), LDG-PU-009 (lock and direct print), LDG-IM-001 and 002 (template and TIN messages), LDG-JP-007, LDG-IM-015, LDG-BR-005 (B94).
+- Staging seeds itself as a client on Team (paid 30 days ahead, no user, company, branch or invoice limits) so the plan cases can run (ph_cas.qa.uat._uat_tier).
+
 ## B94 Fixes from the owner's human tests of 25 to 27 Nov 2026
 - JP-003: Delete on a posted (or cancelled) voucher's form gave Frappe's "no permission for GL Entry": the form first asks which linked records would be deleted. That lookup now gives the app's message first ("has been posted and cannot be deleted").
 - BR-005 note: Staff (accounting staff) reads bills, journals, suppliers, BIR returns, 2307s and alphalists again, read-only; it makes or changes none of them (collections stay its own). Approval chains stay out of its menus. ROLE_MATRIX, LDG-JP-007 and LDG-IM-015 updated; LDG-BR-005 expects the eBIRForms XML download.
