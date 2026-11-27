@@ -1,22 +1,170 @@
-{"actions": [], "autoname": "format:2307R-{YYYY}-{#####}", "creation": "2026-11-09 04:00:00.000000", "doctype": "DocType", "engine": "InnoDB", "field_order": ["company", "customer", "column_break_1", "period_from", "period_to", "quarter", "section_lines", "lines", "section_totals", "total_base", "total_tax", "column_break_2", "certificate_date", "attachment", "claimed_on", "remarks"], "fields": [
- {"fieldname": "company", "fieldtype": "Link", "label": "Company", "options": "Company", "reqd": 1},
- {"fieldname": "customer", "fieldtype": "Link", "label": "Payor (customer)", "options": "Customer", "reqd": 1, "in_list_view": 1},
- {"fieldname": "column_break_1", "fieldtype": "Column Break"},
- {"fieldname": "period_from", "fieldtype": "Date", "label": "Period from", "reqd": 1, "in_list_view": 1},
- {"fieldname": "period_to", "fieldtype": "Date", "label": "Period to", "reqd": 1},
- {"fieldname": "quarter", "fieldtype": "Data", "label": "Quarter (YYYY-Qn)", "read_only": 1, "in_list_view": 1, "in_standard_filter": 1},
- {"fieldname": "section_lines", "fieldtype": "Section Break", "label": "Certificate lines"},
- {"fieldname": "lines", "fieldtype": "Table", "label": "Lines", "options": "PH 2307 Received Line", "reqd": 1},
- {"fieldname": "section_totals", "fieldtype": "Section Break"},
- {"fieldname": "total_base", "fieldtype": "Currency", "label": "Total base", "read_only": 1},
- {"fieldname": "total_tax", "fieldtype": "Currency", "label": "Total tax withheld", "read_only": 1, "in_list_view": 1},
- {"fieldname": "column_break_2", "fieldtype": "Column Break"},
- {"fieldname": "certificate_date", "fieldtype": "Date", "label": "Certificate date"},
- {"fieldname": "attachment", "fieldtype": "Attach", "label": "Scanned 2307"},
- {"fieldname": "claimed_on", "fieldtype": "Data", "label": "Claimed on return (form and period)", "description": "Filled by the period-end computes when the credit is used."},
- {"fieldname": "remarks", "fieldtype": "Small Text", "label": "Remarks"}
-], "is_submittable": 1, "links": [], "modified": "2026-11-09 04:00:00.000000", "modified_by": "Administrator", "module": "PH CAS", "name": "PH 2307 Received", "owner": "Administrator", "permissions": [
- {"create": 1, "read": 1, "write": 1, "submit": 1, "cancel": 1, "amend": 1, "report": 1, "role": "Accounts Manager"},
- {"create": 1, "read": 1, "write": 1, "submit": 1, "report": 1, "role": "Accounts User"},
- {"create": 1, "read": 1, "write": 1, "submit": 1, "cancel": 1, "amend": 1, "report": 1, "role": "Accounting Manager"}
-], "sort_field": "modified", "sort_order": "DESC", "states": [], "track_changes": 1}
+{
+ "actions": [],
+ "autoname": "format:2307R-{YYYY}-{#####}",
+ "creation": "2026-11-09 04:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "company",
+  "customer",
+  "column_break_1",
+  "period_from",
+  "period_to",
+  "quarter",
+  "section_lines",
+  "lines",
+  "invoices",
+  "section_totals",
+  "total_base",
+  "total_tax",
+  "column_break_2",
+  "certificate_date",
+  "attachment",
+  "claimed_on",
+  "remarks"
+ ],
+ "fields": [
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "label": "Payor (customer)",
+   "options": "Customer",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "period_from",
+   "fieldtype": "Date",
+   "label": "Period from",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "period_to",
+   "fieldtype": "Date",
+   "label": "Period to",
+   "reqd": 1
+  },
+  {
+   "fieldname": "quarter",
+   "fieldtype": "Data",
+   "label": "Quarter (YYYY-Qn)",
+   "read_only": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "section_lines",
+   "fieldtype": "Section Break",
+   "label": "Certificate lines"
+  },
+  {
+   "fieldname": "lines",
+   "fieldtype": "Table",
+   "label": "Lines",
+   "options": "PH 2307 Received Line",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_totals",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "total_base",
+   "fieldtype": "Currency",
+   "label": "Total base",
+   "read_only": 1
+  },
+  {
+   "fieldname": "total_tax",
+   "fieldtype": "Currency",
+   "label": "Total tax withheld",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "certificate_date",
+   "fieldtype": "Date",
+   "label": "Certificate date"
+  },
+  {
+   "fieldname": "attachment",
+   "fieldtype": "Attach",
+   "label": "Scanned 2307"
+  },
+  {
+   "fieldname": "claimed_on",
+   "fieldtype": "Data",
+   "label": "Claimed on return (form and period)",
+   "description": "Filled by the period-end computes when the credit is used."
+  },
+  {
+   "fieldname": "remarks",
+   "fieldtype": "Small Text",
+   "label": "Remarks"
+  },
+  {
+   "fieldname": "invoices",
+   "fieldtype": "Table",
+   "options": "PH 2307 Received Invoice",
+   "label": "Sales invoices it covers",
+   "allow_on_submit": 1
+  }
+ ],
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2026-11-27 14:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "PH CAS",
+ "name": "PH 2307 Received",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "submit": 1,
+   "cancel": 1,
+   "amend": 1,
+   "report": 1,
+   "role": "Accounts Manager"
+  },
+  {
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "submit": 1,
+   "report": 1,
+   "role": "Accounts User"
+  },
+  {
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "submit": 1,
+   "cancel": 1,
+   "amend": 1,
+   "report": 1,
+   "role": "Accounting Manager"
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

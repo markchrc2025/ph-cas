@@ -182,3 +182,36 @@ def mark_issued(name: str, issued_on: str | None = None):
     cert.db_set("status", "Issued", update_modified=False)
     record("2307_issued", "PH 2307 Issued", name, 1, {"issued_on": str(day)})
     return {"status": "Issued", "issued_on": str(day)}
+
+
+@frappe.whitelist()
+def for_document(doctype: str, name: str) -> list[dict]:
+    """B94: the 2307s a bill or a payment is on (from each certificate's Sources)."""
+    if doctype not in ("Purchase Invoice", "Payment Entry"):
+        return []
+    frappe.get_doc(doctype, name).check_permission("read")
+    parents = frappe.get_all("PH 2307 Issued Source", filters={"source_doctype": doctype, "source_name": name, "parenttype": "PH 2307 Issued"}, pluck="parent")
+    out = []
+    for p in sorted(set(parents)):
+        c = frappe.db.get_value("PH 2307 Issued", p, ["name", "status", "quarter", "docstatus"], as_dict=True)
+        if c and c.docstatus < 2:
+            out.append({"name": c.name, "status": "Draft" if c.docstatus == 0 else (c.status or "Printed"), "quarter": c.quarter})
+    return out
+
+
+@frappe.whitelist()
+def make_for_document(doctype: str, name: str) -> str:
+    """B94: the 2307 for the supplier and quarter of a bill or a payment (made, or brought up to date)."""
+    src = frappe.get_doc(doctype, name)
+    src.check_permission("read")
+    supplier = src.get("supplier") if doctype == "Purchase Invoice" else src.get("party")
+    qs, _qe = quarter_bounds(src.posting_date)
+    quarter = f"{qs.year}-Q{(qs.month - 1) // 3 + 1}"
+    issued = frappe.db.get_value("PH 2307 Issued", {"company": src.company, "supplier": supplier, "quarter": quarter, "docstatus": 1}, "name")
+    if issued:
+        frappe.throw(_("{0} is already printed for this supplier and quarter. To add this document, cancel it and amend.").format(issued))
+    generate_quarter(src.company, str(qs))
+    made = frappe.db.get_value("PH 2307 Issued", {"company": src.company, "supplier": supplier, "quarter": quarter, "docstatus": 0}, "name")
+    if not made:
+        frappe.throw(_("Nothing was withheld from {0} in {1}.").format(supplier, quarter))
+    return made

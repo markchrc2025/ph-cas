@@ -112,6 +112,10 @@ class PHTaxReturn(Document):
         warnings = list(out["warnings"])
         if self.form == "2550Q" and self.alphalist_file and not self.is_new():
             warnings += self._slsp_tie_out()
+        from ph_cas.tax import received_2307
+
+        if self.form in received_2307.ITR_FORMS and self.company and self.period_start:
+            warnings += received_2307.warnings_for(self.form, self.company, self._credit_start(), self.period_end)  # B94: never blocks
         self.warnings = "\n".join(warnings)
         self.data = json.dumps(data, default=str)
 
@@ -442,6 +446,27 @@ class PHTaxReturn(Document):
             frappe.throw(_("The {0} has no SAWT.").format(self.form))
         self.check_permission("read")
         return generate(self.company, self.form, str(self.period_start), str(self.period_end))
+
+    def _credit_start(self):
+        """The 2307s a return claims: the quarterly returns are cumulative from the year's start."""
+        from frappe.utils import getdate
+
+        d = getdate(self.period_start)
+        return d.replace(month=1, day=1) if self.form in ("1701Q", "1702Q") else d
+
+    @frappe.whitelist()
+    def download_2307_received(self):
+        """B94: the customers' 2307s the income tax return claims, as one zip (the scans and an index)."""
+        from ph_cas.tax import received_2307
+
+        self.check_permission("read")
+        if self.form not in received_2307.ITR_FORMS:
+            frappe.throw(_("The {0} claims no 2307s from customers.").format(self.form))
+        name, content = received_2307.attachments_zip(self.company, self._credit_start(), self.period_end)
+        f = frappe.get_doc({"doctype": "File", "file_name": name, "attached_to_doctype": self.doctype, "attached_to_name": self.name, "is_private": 1, "content": content})
+        f.flags.ignore_permissions = True
+        f.insert()
+        return f.file_url
 
     @frappe.whitelist()
     def generate_attachment(self):

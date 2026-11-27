@@ -4,13 +4,7 @@
 // B90: printing locks the certificate (a draft is submitted first) and prints it
 // clean; Mark as issued records the day it went to the supplier.
 function ph_print_bir_2307(frm) {
-	const go = () =>
-		frappe
-			.call({ method: "ph_cas.ph_cas.doctype.ph_2307_issued.ph_2307_issued.print_bir_form", args: { name: frm.docname }, freeze: true, freeze_message: __("Filling the BIR 2307") })
-			.then((r) => {
-				frm.reload_doc();
-				r.message && window.open(r.message);
-			});
+	const go = () => ph_cas.print_2307(frm.docname, () => frm.reload_doc());  // B94: straight to the printer dialog
 	if (frm.doc.docstatus === 0) {
 		frappe.confirm(__("Printing locks this 2307: its figures can no longer change. To correct it later, cancel it and amend. Print now?"), () => (frm.is_dirty() ? frm.save().then(go) : go()));
 		return;
