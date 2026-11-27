@@ -25,6 +25,7 @@
 | `PH_VIDEOS_S3_PUBLIC_ENDPOINT` | Optional: the bucket's address as browsers reach it (https://s3.sentire.solutions) when the endpoint above is an internal one. Playback links are signed for this address. |
 | `PH_STAGING`, `STAGING_ADMIN_PASSWORD`, `QA_MCP_SECRET`, `QA_MCP_PORT` | The staging QA site and its connector only (docs/STAGING.md). Never set on the live site or a client site. |
 | `PRODUCT_NAME`, `PROVIDER_NAME`, `SUPPORT_EMAIL` | Branding (B38): the product name goes into PH CAS Settings, System Settings, Website Settings, the Email Account name (so mail arrives from "Sentire Ledger <noreply@...>"), the About dialog and the desk boot; the provider name goes into the email and website footers; the support address becomes a help-menu item. Default `ADMIN_EMAIL` for support. |
+| `PROVIDER_TIN`, `PROVIDER_ADDRESS`, `PROVIDER_SIGNATORY`, `PROVIDER_SIGNATORY_POSITION`, `PROVIDER_SIGNATORY_TIN` | B93: the provider's details for the registration pack and the joint sworn statement, written into PH CAS Settings on every deploy (the client cannot open that page). |
 
 Persist `/var/lib/mysql` and `/home/frappe/bench/sites` as volumes; without them every redeploy reinstalls the site.
 
