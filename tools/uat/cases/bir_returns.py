@@ -31,7 +31,7 @@ CASES = [
          "Attaches .dat files to the return"),
     case("LDG-BR-005", "PH Tax Return", I, "The 2550Q exports for eBIRForms", "Accountant A", "LDG-BR-001 done; contact number filled",
          ["Fill Contact number 09170000005; Save", "Click Export for eBIRForms"],
-         "None", ["A new tab opens the eBIRForms import file", "Reload the return: the export file field now holds a file name and a link to the attached file"], "P2", "LDG-BR-001", "Downloads a file"),
+         "None", ["The eBIRForms file downloads, named <TIN><branch><form>...xml (for example 0001112220002550Qv2024122026Q4.xml); it is for eBIRForms' import and does not display in a browser", "Reload the return: the export file field now holds a file name and a link to the attached file"], "P2", "LDG-BR-001", "Downloads a file"),
     case("LDG-BR-006", "PH Tax Return", I, "The Accountant cannot mark it filed (role)", "Accountant A", "LDG-BR-005 done",
          ["Open the return; look for Submit"], "None",
          ["The form's note reads \"You prepare this return. An Accounting Manager or the Owner marks it as filed, after the BIR confirmation is attached.\"", "There is no Submit button for the Accountant (if one shows, clicking it gives \"Only an Accounting Manager or the Owner marks a return as filed. The Accountant prepares it; ask a manager to submit it.\")"], "P1", "LDG-BR-005", "None (refused)"),

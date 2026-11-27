@@ -35,8 +35,11 @@ CASHIER_ROLE = "Cashier"  # the counter marker role carried by the Staff set
 WIDER = {"System Manager", "Accounting Manager", "Accounts Manager", "Purchase User", "Purchase Manager"}
 COUNTER_LIMITED = ("Purchase Invoice", "Purchase Order", "Purchase Receipt", "Journal Entry", "Supplier", "Payment Entry",
                    "PH Tax Return", "PH 2307 Issued", "PH Alphalist File")  # B79: the BIR returns too
-# B82 (UAT LDG-183, 209, 225, 196, 204): Staff does not even read these; its menus leave them out
-COUNTER_HIDDEN = tuple(d for d in COUNTER_LIMITED if d != "Payment Entry") + ("PH Approval Chain", "PH Approval Request")
+# B82 hid these from Staff altogether; B94 (owner, 27 Nov 2026: "the staff is an accounting staff")
+# lets Staff read the bills, journals, suppliers and BIR returns, without making or changing them.
+# Only the approval set-up stays out of Staff's menus.
+COUNTER_HIDDEN = ("PH Approval Chain", "PH Approval Request")
+READ_ONLY = (None, "read", "report", "export", "print", "email", "select", "share")
 # every role set may read the background ("prepared") reports it runs, such as Stock Balance (UAT LDG-198)
 PREPARED = "Prepared Report User"
 
@@ -61,28 +64,23 @@ PROFILES = {
 
 
 def cashier_limit(doc, ptype=None, user=None, debug=False):
-    """hooks.has_permission for COUNTER_LIMITED: Staff neither reads nor makes them (B82),
-    except a collection (Payment Entry of type Receive), which it makes and reads."""
+    """hooks.has_permission for COUNTER_LIMITED: Staff reads them but makes or changes none (B94),
+    except a collection (Payment Entry of type Receive), which it makes."""
     roles = set(frappe.get_roles(user))
     if CASHIER_ROLE not in roles or roles & WIDER:
         return True
     doctype = doc if isinstance(doc, str) else doc.doctype
+    if ptype in READ_ONLY:
+        return True
     if doctype == "Payment Entry":
-        if ptype in (None, "read", "report", "export", "print", "email", "select", "share"):
-            return isinstance(doc, str) or (doc.get("payment_type") or "Receive") == "Receive"
         return not isinstance(doc, str) and (doc.get("payment_type") or "Receive") == "Receive"
     return False
 
 
 def counter_query(user=None, doctype=None):
-    """hooks.permission_query_conditions for COUNTER_LIMITED: Staff's lists of them are empty,
-    and its Payment Entry list holds collections only."""
-    user = user or frappe.session.user
-    if user == "Administrator" or not counter_limited(user):
-        return ""
-    if doctype == "Payment Entry":
-        return "`tabPayment Entry`.payment_type = 'Receive'"
-    return "1=0"
+    """hooks.permission_query_conditions for COUNTER_LIMITED. B94: Staff reads every list in full
+    (cashier_limit keeps it from making or changing them)."""
+    return ""
 
 
 def extend_bootinfo(bootinfo):
