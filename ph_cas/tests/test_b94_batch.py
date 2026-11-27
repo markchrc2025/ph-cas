@@ -56,7 +56,15 @@ class TestB94Batch(IntegrationTestCase):
         self.assertIn(si.name, [r.name for r in R2.missing(si.company, start, end)])
         self.assertTrue(any(si.name in w for w in R2.warnings_for("1702Q", si.company, start.replace(month=1), end)))
         self.assertEqual(R2.warnings_for("2550Q", si.company, start, end), [])  # VAT return: no 2307 note
-        f = frappe.get_doc({"doctype": "File", "file_name": "b94-2307.pdf", "is_private": 1, "content": b"%PDF-1.4 b94"}).insert(ignore_permissions=True)
+        import io as _io
+
+        from pypdf import PdfWriter
+
+        w = PdfWriter()
+        w.add_blank_page(width=612, height=936)
+        buf = _io.BytesIO()
+        w.write(buf)
+        f = frappe.get_doc({"doctype": "File", "file_name": "b94-2307.pdf", "is_private": 1, "content": buf.getvalue()}).insert(ignore_permissions=True)
         name = R2.record_for_invoice(si.name, f.file_url, "wc160", 10000, 200)
         doc = frappe.get_doc("PH 2307 Received", name)
         self.assertEqual((doc.docstatus, doc.lines[0].atc, doc.total_tax, doc.invoices[0].sales_invoice), (1, "WC160", 200, si.name))
