@@ -84,7 +84,7 @@ CASES = [
           "Step 4: Warnings include \"1 sales invoice(s) with ₱20.00 withheld by customers have no 2307 yet (not claimed until received): <the UAT-BR-018 invoice>\"; the LDG-SL-011 invoice is not listed",
           "The line for creditable tax withheld per BIR Form 2307 includes the 200.00 of LDG-SL-016 and not the 20.00 (no 2307 for it yet)",
           "The return saves; nothing in its needs list asks for the missing 2307"],
-         "P1", "LDG-SL-016", "IRREVERSIBLE: issues an invoice; creates a draft 1702-RT"),
+         "P1", "", "IRREVERSIBLE: issues an invoice; creates a draft 1702-RT"),
     case("LDG-BR-019", "PH Tax Return", I, "HUMAN: the customers' 2307s download as one zip with the return", "Accountant A", "LDG-BR-018 done",
          "HUMAN: 1. On the LDG-BR-018 1702-RT click BIR files > Customers' 2307s (zip)\n2. Open the zip",
          "None",
