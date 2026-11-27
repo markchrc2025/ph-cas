@@ -44,7 +44,8 @@ def modules_chosen(company: str) -> bool:
 
 
 def tax_rules_confirmed(company: str) -> bool:
-    return bool(frappe.db.exists("PH Tax Rule")) and not frappe.db.exists("PH Tax Rule", {"status": "draft"})
+    # B96 (UAT LDG-248): frappe.db.exists without a name never finds a row of a normal doctype
+    return frappe.db.count("PH Tax Rule") > 0 and not frappe.db.count("PH Tax Rule", {"status": "draft"})
 
 
 def invoice_printed(company: str) -> bool:

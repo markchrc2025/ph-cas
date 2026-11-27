@@ -110,6 +110,8 @@ ph_cas.wire_import_list = function (dt) {
 	const base = s.onload;
 	s.onload = function (listview) {
 		base && base.call(this, listview);
+		// B96 (UAT LDG-247): only for a role that may add these records
+		if (!frappe.model.can_create(dt)) return;
 		listview.page.add_inner_button(__("Import from a template"), () => ph_cas.import_dialog({ kind: dt === "Item" ? "items" : "parties" }));
 		listview.page.add_actions_menu_item(__("Batch edit BIR fields"), () => ph_cas.batch_edit(listview), false);
 	};
