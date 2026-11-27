@@ -10,6 +10,12 @@ One entry per bundle, newest first. Counts are the test totals on main after the
 - System Settings "Disable Product Suggestion" is now forced on (no Frappe CRM or Helpdesk ads for System Managers).
 - Docs: docs/LEGAL-FRAMEWORK.md, docs/runbooks/framework-upstream-sync.md. D1 updated.
 - Tests: +10 (test_b81_framework). UAT: tools/uat/cases/framework_branding.py (6 cases), to hand off after the current UAT run.
+## B93 The provider's settings are the provider's; the Owner changes the plan (27 Nov 2026)
+- Owner's test (27 Nov 2026): a client's Owner (System Manager) could open and edit Sentire Ledger Settings: the product name, our firm's details, the subscription tier and limits. Now only the Administrator opens PH CAS Settings and PH Subscription; both left the client's sidebar. The client's failed sign-in threshold moved to a new Security page (PH Security Settings, copied by patch). The checklist's registration pack step opens the Company.
+- Help > Your plan > Change plan (D14): the Owner moves between Solo, Team and Business. An upgrade applies now (new limits at once; the provider is emailed to bill from that day). A downgrade is scheduled for the end of the paid period (paid until, or pilot until, or the month's end), refused with what to reduce while the site does not fit, cancellable, and applied by the daily job. Every change is in the Event Log (plan_change). Enterprise and Internal stay with the provider.
+- Next: the Sentire Ledger Tenant Control Portal, where the provider sets these and defines what each tier holds (plan to the owner first).
+- Tests: +5 (test_b93_provider_settings).
+
 ## B92 The registration pack names the system by its own name (27 Nov 2026)
 - Owner's human test of SU-004 (27 Nov 2026): the Annex C-1 system description, the sworn statement, the custodian letter, the manifest and the conformance report now read "Sentire Ledger version 0.1.0 (Sentire Framework v16.60.2-sentire.1)"; ERPNext and Frappe are no longer named there. Their licence credits stay in Help > About.
 
