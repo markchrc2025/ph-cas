@@ -22,7 +22,7 @@ class TestB82UATFixes(IntegrationTestCase):
 
     def test_staff_lists(self):  # LDG-183, 196, 209, 225
         self.assertEqual(R.counter_query("Administrator", "Purchase Invoice"), "")
-        self.assertIn("Purchase Invoice", R.COUNTER_HIDDEN)
+        self.assertNotIn("Purchase Invoice", R.COUNTER_HIDDEN)  # B94: Staff reads bills
         self.assertNotIn("Payment Entry", R.COUNTER_HIDDEN)
         self.assertIn("Prepared Report User", R.PROFILES[R.ACCOUNTANT])  # LDG-198
 

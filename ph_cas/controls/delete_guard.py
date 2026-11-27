@@ -42,3 +42,14 @@ def delete_items():
     from frappe.desk.reportview import delete_items as original
 
     return original()
+
+
+@frappe.whitelist()
+def get_linked_docs_to_delete(doctype: str, name: str):
+    """B94 (owner's JP-003, 27 Nov 2026): the form's Delete first asks Frappe which linked
+    records would go too; for a posted voucher that lookup hits the ledger rows and answered
+    "no permission for GL Entry". The app's own message comes first now."""
+    _guard(doctype, name)
+    from frappe.desk.form.linked_with import get_linked_docs_to_delete as original
+
+    return original(doctype=doctype, name=name)

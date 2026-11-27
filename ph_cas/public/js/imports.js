@@ -16,7 +16,9 @@ ph_cas.import_dialog = function (opts = {}) {
 		fields: [
 			{ fieldname: "kind", fieldtype: "Select", label: __("What to import"), reqd: 1, default: opts.kind || "parties",
 				options: kinds.map((k) => ({ value: k, label: ph_cas.KIND_LABELS[k] })) },
-			{ fieldname: "company", fieldtype: "Link", options: "Company", label: __("Company"), default: opts.company || frappe.defaults.get_user_default("Company"),
+			// B94 (owner, IM-001): the company is the one being worked in; a choice only among the user's own
+			{ fieldname: "company", fieldtype: "Select", label: __("Company"), reqd: 1, options: [opts.company || frappe.defaults.get_user_default("Company") || ""],
+				default: opts.company || frappe.defaults.get_user_default("Company"),
 				description: __("Opening balances and open items are dated the day before the company's go-live date.") },
 			{ fieldname: "get_template", fieldtype: "Button", label: __("Download the template (CSV, opens in Excel)") },
 			{ fieldname: "file", fieldtype: "Attach", label: __("Filled-in template (CSV or Excel)") },
@@ -26,6 +28,14 @@ ph_cas.import_dialog = function (opts = {}) {
 		primary_action: (v) => run("run_import", v),
 		secondary_action_label: __("Check the file"),
 		secondary_action: () => run("check_import", d.get_values()),
+	});
+	frappe.db.get_list("Company", { fields: ["name"], limit: 100, order_by: "name asc" }).then((rows) => {
+		const names = rows.map((r) => r.name);
+		if (!names.length) return;
+		const cur = d.get_value("company");
+		d.set_df_property("company", "options", names);
+		d.set_value("company", names.includes(cur) ? cur : names[0]);
+		d.set_df_property("company", "read_only", names.length === 1 ? 1 : 0);
 	});
 	d.fields_dict.get_template.$input.on("click", () => {
 		window.open(`/api/method/ph_cas.imports.download_template?kind=${encodeURIComponent(d.get_value("kind"))}`);
