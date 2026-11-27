@@ -95,6 +95,14 @@ def extend_bootinfo(bootinfo):
 
     reports = set(frappe.get_all("Report", pluck="name")) - STAFF_REPORTS
     prune_boot(bootinfo, {"doctypes": set(COUNTER_HIDDEN), "reports": reports, "workspaces": set(), "sidebars": set()}, every_list=True)
+    # B96 (UAT LDG-245): Staff reads these but is offered no Add, Save, Submit, Cancel, Amend,
+    # Delete or Import for them (the server refuses those too, cashier_limit); a collection stays
+    read_only = [d for d in COUNTER_LIMITED if d != "Payment Entry"]
+    u = bootinfo.get("user") or {}
+    for key in ("can_create", "can_write", "can_submit", "can_cancel", "can_delete", "can_import", "can_amend"):
+        if isinstance(u.get(key), list):
+            u[key] = [d for d in u[key] if d not in read_only]
+    bootinfo.ph_cas_read_only = read_only
 
 
 def _rename_old_profiles():

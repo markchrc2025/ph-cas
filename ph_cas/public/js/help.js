@@ -18,7 +18,7 @@ ph_cas.show_plan = function () {
 			+ (dates.length ? `<p>${dates.join("<br>")}</p>` : "")
 			+ `<p><a href="#" class="ph-change-plan">${__("Change plan")}</a> &middot; ${contact}</p>`
 			+ `<p style="color:var(--text-muted);font-size:11px">${__("Build")} ${e(frappe.boot.ph_cas_build || "")}</p>` });
-		$(".ph-change-plan").last().on("click", (ev) => { ev.preventDefault(); frappe.hide_msgprint(); ph_cas.change_plan(); });
+		$(".ph-change-plan").last().on("click", (ev) => { ev.preventDefault(); frappe.hide_msgprint(); setTimeout(() => ph_cas.change_plan(), 400); });  // B96: let Your plan close first
 	});
 };
 

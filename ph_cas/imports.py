@@ -208,6 +208,9 @@ def _check_party(company, r, seen):
     pt = _pick(r.get("party_type"), ["Customer", "Supplier"])
     if not pt:
         e.append(_("Customer or Supplier: write Customer or Supplier"))
+    elif not _may_create(pt):
+        # B96 (UAT LDG-247): a role that may not add suppliers (Staff) cannot add them by import either
+        e.append(_("You may not add a {0}: this line needs a user who can.").format(_(pt).lower()))
     name = r.get("name")
     if not name:
         e.append(_("Name is required"))
@@ -337,7 +340,19 @@ def _check_open_item(company, r, seen):
 CHECKS = {"parties": _check_party, "items": _check_item, "balances": _check_balance, "open_items": _check_open_item}
 
 
+def _may_create(dt: str) -> bool:
+    from ph_cas.setup.roles import COUNTER_LIMITED, cashier_limit
+
+    return bool(frappe.has_permission(dt, "create")) and (dt not in COUNTER_LIMITED or cashier_limit(dt, "create"))
+
+
+KIND_DOCTYPES = {"parties": ("Customer", "Supplier"), "items": ("Item",), "balances": ("Journal Entry",), "open_items": ("Journal Entry",)}
+
+
 def _checked(kind, company, **src):
+    # B96 (UAT LDG-247): only a role that may add these records may import them
+    if not any(_may_create(dt) for dt in KIND_DOCTYPES.get(kind, ())):
+        frappe.throw(_("You may not import these records."), frappe.PermissionError)
     if kind in ("balances", "open_items") and not company:
         frappe.throw(_("Choose the company."))
     rows = _rows(kind, **src)
