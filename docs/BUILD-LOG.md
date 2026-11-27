@@ -10,6 +10,13 @@ One entry per bundle, newest first. Counts are the test totals on main after the
 - System Settings "Disable Product Suggestion" is now forced on (no Frappe CRM or Helpdesk ads for System Managers).
 - Docs: docs/LEGAL-FRAMEWORK.md, docs/runbooks/framework-upstream-sync.md. D1 updated.
 - Tests: +10 (test_b81_framework). UAT: tools/uat/cases/framework_branding.py (6 cases), to hand off after the current UAT run.
+## B96 Fixes from UAT retest 5 (27 to 28 Nov 2026)
+- LDG-245 (JP-007): Staff was offered + Add, Save, Submit, Cancel, Amend and Delete on journals, bills, suppliers and returns (the server refused them; the screens still offered them). Staff's boot no longer lists those doctypes as creatable, writable, submittable, cancellable, deletable or importable, and the forms and lists cut those permissions for them (public/js/read_only.js). Collections stay.
+- LDG-247 (IM-015): Import from a template shows only for a role that may add the records, and the check refuses, per line, a party the user may not add (Staff: suppliers) and refuses the file outright when the user may add none of its kind.
+- LDG-248 (GK-007): "Confirm your tax rules" never ticked: frappe.db.exists without a name finds no row of a normal doctype; now a count.
+- Retest observations: an amended 2307 starts its own print count; Help > Your plan > Change plan opens on the first click.
+- Tests: +2 (test_b96_retest5); test_b91 tax-rules case checks the tick.
+
 ## B95 Retest cases for the human-test batch (27 Nov 2026)
 - Owner approved the retest files (27 Nov 2026). New: LDG-SL-016 (customer's 2307 from the invoice), LDG-PU-012 to 014 (Mark as issued, the bill's 2307, cancel and amend), LDG-BR-018 and 019 (income tax return warning and the customers' 2307s zip), LDG-IM-017 (TIN rules, Excel zeros, sample row, company drop-down), workbook plan-and-settings LDG-PS-001 to 007. Changed: LDG-SL-013 and 014 (server PDF print, Download PDF), LDG-PU-009 (lock and direct print), LDG-IM-001 and 002 (template and TIN messages), LDG-JP-007, LDG-IM-015, LDG-BR-005 (B94).
 - Staging seeds itself as a client on Team (paid 30 days ahead, no user, company, branch or invoice limits) so the plan cases can run (ph_cas.qa.uat._uat_tier).

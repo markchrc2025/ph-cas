@@ -16,7 +16,7 @@ CASES = [
           "Paste " + URL + "/desk/ph-subscription in the address bar; Enter"],
          "None",
          ["Step 1: the sidebar ends with Users, Security, Modules and Tutorial Videos; there is no \"Sentire Ledger Settings\" and no \"Subscriptions\"",
-          "Step 2: Not Permitted (no settings form opens)", "Step 3: Not Permitted"], "P1", "", "None"),
+          "Step 2: Not found or Not Permitted; no settings form opens (owner-approved 28 Nov 2026)", "Step 3: Not found or Not Permitted; no form opens"], "P1", "", "None"),
     case("LDG-PS-002", "PH Security Settings", I, "The Owner sets the failed sign-ins limit on Security", "Owner A", "None",
          ["Sidebar Security", "Set \"Failed sign-ins before the user is deactivated\" to 2; press Ctrl+S (Cmd+S)", "Set it to 5; press Ctrl+S (Cmd+S)"],
          "2, then 5",

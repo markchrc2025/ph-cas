@@ -50,8 +50,15 @@ class TestB91OnboardingProgress(IntegrationTestCase):
         self.assertTrue(step_done("PH Choose Modules", TEST_COMPANY))
 
     def test_tax_rules(self):
-        has_draft = frappe.db.exists("PH Tax Rule", {"status": "draft"})
-        self.assertEqual(step_done("PH Confirm Tax Rules", TEST_COMPANY), not has_draft and bool(frappe.db.exists("PH Tax Rule")))
+        drafts = frappe.get_all("PH Tax Rule", filters={"status": "draft"}, pluck="name")
+        if not frappe.db.count("PH Tax Rule"):
+            self.skipTest("no tax rules on the test site")
+        self.assertEqual(step_done("PH Confirm Tax Rules", TEST_COMPANY), not drafts)
+        # B96 (LDG-248): all confirmed ticks the step
+        frappe.db.set_value("PH Tax Rule", {"status": "draft"}, "status", "confirmed") if drafts else None
+        self.assertTrue(step_done("PH Confirm Tax Rules", TEST_COMPANY))
+        for n in drafts:
+            frappe.db.set_value("PH Tax Rule", n, "status", "draft")
 
     def test_return_computed(self):
         self.assertEqual(step_done("PH Run 2550Q", TEST_COMPANY), bool(frappe.db.exists("PH Tax Return", {"company": TEST_COMPANY, "docstatus": ["<", 2]})))

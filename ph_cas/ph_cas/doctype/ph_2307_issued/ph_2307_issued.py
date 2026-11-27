@@ -24,6 +24,8 @@ class PH2307Issued(Document):
         self.quarter = f"{qs.year}-Q{(qs.month - 1) // 3 + 1}"
         if self.docstatus == 0:
             self.status = "Draft"
+            if self.amended_from:  # B96 (retest 5): an amendment starts its own print history
+                self.print_count, self.printed_on, self.issued_on = 0, None, None
             self.generate()  # a draft always shows the quarter's bills as they stand (QA pass 4)
         self.fill_payee()
         inc = tax = 0.0
