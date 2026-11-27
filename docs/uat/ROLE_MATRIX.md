@@ -7,7 +7,7 @@ Every client user gets exactly one role set (User > Role Profiles). The sets are
 | Owner | The business owner or the firm partner | Everything, including users, modules and system settings |
 | Accounting Manager | The head of accounting | Everything in the books except users, modules and system settings |
 | Accountant | The person who records the business | Records invoices, bills, payments, journals, masters, stock and BIR return drafts; reads the books |
-| Staff | Counter or front-desk staff | Sales invoices, collections and stock issues at the counter |
+| Staff | Accounting staff at the counter | Sales invoices, collections and stock issues; reads bills, journals, suppliers and BIR returns (B94) |
 
 The UAT accounts on staging, one per set: Owner A, Accounting Manager A, Accountant A, Staff A (Company A), and Accountant B (Company B, the other tenant). See `tools/uat/cases/_common.py`.
 
@@ -51,7 +51,7 @@ Y = allowed, N = refused, R = read only. "Enforced by" names where the rule live
 Notes:
 
 - Row 8 (owner, 21 Nov 2026): an issued invoice or collection receipt may be cancelled; it keeps its BIR serial and a replacement takes the next. Where the business sets a Cancel approval chain, the form shows Request cancellation instead of Cancel. A draft can be deleted by whoever made it; a posted document is never deleted.
-- B82: Staff's lists of bills, journals, suppliers and BIR returns are empty and their menus are hidden; collections stay. A new form a role cannot save shows a note and no Save button. Every role set has Prepared Report User.
+- B82 hid bills, journals, suppliers and BIR returns from Staff; B94 (owner, 27 Nov 2026) shows them again, read-only: Staff opens and prints them but makes, changes, submits or cancels none (except collections, which it makes). Approval chains stay hidden. A new form a role cannot save shows a note and no Save button. Every role set has Prepared Report User.
 - Row 13: Sales invoices, collections and stock documents always carry today's date, for every role.
 - Row 24: Staff opens only the counter's reports (`STAFF_REPORTS` in `roles.py`): PH Cash Position, Sales Register, Sales by item, Accounts Receivable and its summary, Stock Balance, Projected quantity. Any other report, by menu or by URL, is refused.
 - A switched-off module hides its menus and reports for every role, Owner and Administrator included. Nothing is deleted, and turning the module on restores everything. A System Manager sees which modules are off on the Home page and the Reports page.

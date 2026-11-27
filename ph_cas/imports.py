@@ -138,7 +138,7 @@ def _rows(kind, rows=None, csv_text=None, file_url=None) -> list[tuple[int, dict
     out = []
     for n, line in enumerate(table[1:], start=2):
         cells = ["" if c is None else str(c).strip() for c in line]
-        if not any(cells) or cells[0].startswith("#"):
+        if not any(cells) or cells[0].startswith("#") or _is_sample(kind, cells):
             continue
         out.append((n, {k: (cells[i] if i < len(cells) else "") for i, k in enumerate(header) if k}))
     return out
@@ -180,6 +180,29 @@ def _account(company, name):
 
 
 # ---- checking ------------------------------------------------------------------------------------
+def _split_tin(r, e):
+    """B94 (owner, IM-001): a TIN is read with or without dashes. 9 digits is the TIN; 12 digits is
+    the TIN and a 3-digit branch; 14 digits is the TIN and a 5-digit branch. Anything else is refused
+    (a TIN missing digits is never accepted). The branch code gets back the leading zeros Excel drops."""
+    br = str(r.get("branch_code") or "").strip()
+    if br.isdigit() and len(br) < 5:
+        br = br.zfill(5)
+    tin = str(r.get("tin") or "").strip()
+    if tin:
+        digits = re.sub(r"\D", "", tin)
+        if len(digits) in (12, 14):
+            own = digits[9:].zfill(5)
+            if br and br != own:
+                e.append(_("TIN {0} carries branch {1}, but the Branch code column says {2}").format(tin, own, br))
+            br = br or own
+            digits = digits[:9]
+        if len(digits) == 9:
+            r["tin"] = normalize_tin(digits)
+        else:
+            e.append(_("TIN {0} has {1} digits; it needs 9 (000-123-456), or 12 or 14 with the branch code. If Excel dropped leading zeros, format the TIN column as Text.").format(tin, len(digits)))
+    r["branch_code"] = br
+
+
 def _check_party(company, r, seen):
     e = []
     pt = _pick(r.get("party_type"), ["Customer", "Supplier"])
@@ -193,14 +216,11 @@ def _check_party(company, r, seen):
         e.append(_("Payee type: Individual or Non-individual"))
     elif payee == "Individual" and not (r.get("last_name") and r.get("first_name")):
         e.append(_("An individual needs a last name and a first name (the alphalists report them separately)"))
+    _split_tin(r, e)
     tin = r.get("tin")
     if tin:
         digits = re.sub(r"\D", "", tin)
-        if len(digits) == 12:
-            e.append(_("TIN {0} carries a branch code: put the 9-digit TIN and the 5-digit branch code in their own columns").format(tin))
-        elif len(digits) != 9:
-            e.append(_("TIN must be 9 digits (000-000-000)"))
-        else:
+        if len(digits) == 9:
             t = normalize_tin(digits)
             key = (pt, t, r.get("branch_code") or "00000")
             if key in seen and t != "000-111-222":
@@ -218,6 +238,8 @@ def _check_party(company, r, seen):
         elif not _pick(cat, _ewt_categories()):
             e.append(_("Withholding category: one of {0}").format(", ".join(_ewt_categories())))
     z = r.get("zip")
+    if z and z.isdigit() and len(z) < 4:
+        z = r["zip"] = z.zfill(4)  # B94: Excel drops leading zeros
     if z and not (z.isdigit() and len(z) == 4):
         e.append(_("ZIP code must be 4 digits"))
     w = []
@@ -492,12 +514,18 @@ def template_csv(kind: str) -> str:
     cols = _columns(kind)
     buf = io.StringIO()
     w = csv.writer(buf)
-    w.writerow([label for _k, label, *_x in cols])
-    w.writerow(["# " + (("required. " if req else "") + help_).strip() for _k, _l, req, help_, _e in cols])
-    ex = [e for *_x, e in cols]
-    ex[0] = "# e.g. " + ex[0]
-    w.writerow(ex)
+    # B94 (owner, IM-001): required columns carry * in the header; one sample row shows the format.
+    # The sample row is skipped on import when it is left as it is.
+    w.writerow([label + (" *" if req else "") for _k, label, req, *_x in cols])
+    w.writerow([e for *_x, e in cols])
     return buf.getvalue()
+
+
+def _is_sample(kind, cells: list[str]) -> bool:
+    ex = [str(e) for *_x, e in _columns(kind)]
+    got = [c for c in cells][: len(ex)] + [""] * max(0, len(ex) - len(cells))
+    key = lambda c: _norm(c).lstrip("0")  # Excel drops leading zeros (00000 becomes 0)
+    return [key(c) for c in got] == [key(c) for c in ex]
 
 
 @frappe.whitelist()

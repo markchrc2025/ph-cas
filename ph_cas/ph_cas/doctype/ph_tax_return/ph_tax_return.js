@@ -34,6 +34,10 @@ frappe.ui.form.on("PH Tax Return", {
 					: { message: __("No tax was withheld from this business in the period, so no SAWT file is needed."), indicator: "orange" })), __("BIR files")
 			);
 		}
+		if (["1701Q", "1702Q", "1701", "1702-RT"].includes(frm.doc.form)) {
+			// B94: the customers' 2307s this return claims, scans and an index, as one zip
+			frm.add_custom_button(__("Customers' 2307s (zip)"), () => call(frm, "download_2307_received", null, (url) => window.open(url)), __("BIR files"));
+		}
 		if (frm.doc.form === "2550Q") {
 			frm.add_custom_button(__("Generate SLSP (.dat)"), () =>
 				call(frm, "generate_slsp", null, (r) => {

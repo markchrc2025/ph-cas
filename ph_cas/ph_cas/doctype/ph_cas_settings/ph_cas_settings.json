@@ -25,6 +25,8 @@
   "subscription_tier",
   "subscription_until",
   "pilot_until",
+  "scheduled_tier",
+  "scheduled_tier_on",
   "subscription_col",
   "max_users",
   "max_companies",
@@ -56,7 +58,7 @@
    "fieldtype": "Int",
    "label": "Failed sign-ins before the user is deactivated",
    "default": "5",
-   "description": "Counted since the user's last successful sign-in. Reactivation is done by a System Manager and is logged."
+   "description": "Counted since the user's last successful sign-in. Reactivation is done by a System Manager and is logged. The client sets this in Security (PH Security Settings); this copy is kept for older sites."
   },
   {
    "fieldname": "audit_section",
@@ -192,29 +194,38 @@
    "fieldtype": "Check",
    "label": "Approval chains",
    "description": "Off: every chain is suspended and documents submit as usual. On: enabled chains gate Submit and Request approval shows on the form."
+  },
+  {
+   "fieldname": "scheduled_tier",
+   "fieldtype": "Data",
+   "label": "Downgrade scheduled to",
+   "read_only": 1,
+   "description": "B93: the tier the client chose to move down to; applied on the date below by the daily job."
+  },
+  {
+   "fieldname": "scheduled_tier_on",
+   "fieldtype": "Date",
+   "label": "Downgrade takes effect on",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 0,
  "issingle": 1,
  "links": [],
- "modified": "2026-11-17 11:00:00.000000",
+ "modified": "2026-11-27 13:00:00.000000",
  "modified_by": "Administrator",
  "module": "PH CAS",
  "name": "PH CAS Settings",
  "owner": "Administrator",
  "permissions": [
   {
+   "role": "Administrator",
+   "read": 1,
+   "write": 1,
    "create": 1,
-   "email": 1,
    "print": 1,
-   "read": 1,
-   "role": "System Manager",
-   "share": 1,
-   "write": 1
-  },
-  {
-   "read": 1,
-   "role": "Accounts Manager"
+   "email": 1,
+   "share": 1
   }
  ],
  "sort_field": "modified",

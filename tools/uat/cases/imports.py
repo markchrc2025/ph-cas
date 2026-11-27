@@ -114,7 +114,7 @@ CASES = [
      "Role": "Staff A", "Preconditions": "None",
      "Test Steps": "1. Sign in as Staff A\n2. Open https://ledger-staging.apps.sentire.solutions/desk/supplier",
      "Test Data": "None",
-     "Expected Result": "1. The Supplier list does not open: a permission message\n2. No import is possible from there",
+     "Expected Result": "1. The Supplier list opens read-only: no + Add Supplier button (B94)\n2. No import is possible from there: the list menu has no Import",
      "Priority": "P2", "Depends On": "", "Side Effects": "None"},
     {"Case ID": "LDG-IM-016", "Module": "Journal Entry", "Linked Issue": "LDG-136",
      "Test Scenario": "Company B's user cannot open Company D's opening entry by its link",

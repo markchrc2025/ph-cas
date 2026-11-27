@@ -24,7 +24,8 @@ Run the workbooks in this order, one UAT chat per workbook ("Run UAT for LDG-n")
 | 16 | [Go-live and opening balances](go-live/UAT_LDG_go-live_0.1.0+cb9827a95550.xlsx) | LDG-143 | 14 | 10 | 0 | 12 | 0 | 1 | 0 | 1 |
 | 17 | [Print pack for the paper check](paper-check-pack/UAT_LDG_paper-check-pack_0.1.0+cb9827a95550.xlsx) | LDG-149 | 7 | 6 | 4 | 5 | 0 | 1 | 0 | 1 |
 | 18 | [Sentire Framework branding](framework-branding/UAT_LDG_framework-branding_0.1.0+cb9827a95550.xlsx) | LDG-184 | 6 | 4 | 0 | 2 | 0 | 0 | 0 | 0 |
-| | **Total** | | **234** | **146** | **16** | **70** | **33** | **91** | **38** | **15** |
+| 19 | [Get to know Sentire Ledger checklist](get-to-know/UAT_LDG_get-to-know_0.1.0+8e95ac63624c.xlsx) | LDG-153 | 10 | 7 | 0 | 8 | 0 | 1 | 0 | 1 |
+| | **Total** | | **244** | **153** | **16** | **78** | **33** | **92** | **38** | **16** |
 
 Role columns count the cases that sign in as that account (in the Role column or in the steps).
 
@@ -266,3 +267,13 @@ Role columns count the cases that sign in as that account (in the Role column or
 | LDG-FW-004 | framework-branding | P1 | Administrator | No update popup after sign-in |
 | LDG-FW-005 | framework-branding | P2 | Administrator | No Frappe product ads in the sidebar |
 | LDG-FW-006 | framework-branding | P2 | Signed out | Website pages carry the Sentire footer |
+| LDG-GK-001 | get-to-know | P2 | Owner A | Set up the Philippine company is ticked for a company with a TIN and a BIR Series |
+| LDG-GK-002 | get-to-know | P1 | Owner A | Print your first BIR invoice ticks only after an invoice of that company is printed |
+| LDG-GK-003 | get-to-know | P1 | Accountant A | Compute your first BIR return ticks after a return is saved for that company |
+| LDG-GK-004 | get-to-know | P1 | Owner A | Export the books ticks after the loose-leaf books are downloaded |
+| LDG-GK-005 | get-to-know | P1 | Owner A | Build the registration pack ticks after the pack is downloaded |
+| LDG-GK-006 | get-to-know | P2 | Owner A | Choose what you use ticks once the Modules page is saved |
+| LDG-GK-007 | get-to-know | P2 | Owner A | Confirm your tax rules follows the Tax Rules list |
+| LDG-GK-008 | get-to-know | P1 | Owner A | Another company's work does not tick this company's steps |
+| LDG-GK-009 | get-to-know | P1 | Owner A | Clicking a step's link does not tick it |
+| LDG-GK-010 | get-to-know | P1 | Accountant B | The other tenant sees only its own progress |

@@ -10,6 +10,38 @@ One entry per bundle, newest first. Counts are the test totals on main after the
 - System Settings "Disable Product Suggestion" is now forced on (no Frappe CRM or Helpdesk ads for System Managers).
 - Docs: docs/LEGAL-FRAMEWORK.md, docs/runbooks/framework-upstream-sync.md. D1 updated.
 - Tests: +10 (test_b81_framework). UAT: tools/uat/cases/framework_branding.py (6 cases), to hand off after the current UAT run.
+## B94 Fixes from the owner's human tests of 25 to 27 Nov 2026
+- JP-003: Delete on a posted (or cancelled) voucher's form gave Frappe's "no permission for GL Entry": the form first asks which linked records would be deleted. That lookup now gives the app's message first ("has been posted and cannot be deleted").
+- BR-005 note: Staff (accounting staff) reads bills, journals, suppliers, BIR returns, 2307s and alphalists again, read-only; it makes or changes none of them (collections stay its own). Approval chains stay out of its menus. ROLE_MATRIX, LDG-JP-007 and LDG-IM-015 updated; LDG-BR-005 expects the eBIRForms XML download.
+- IM-001: the import template marks required columns with * and carries one sample row (skipped on import when left as it is). A TIN is read with or without dashes: 9 digits, or 12 or 14 with the branch code (split into the branch column); one missing digits is refused with its digit count. Branch code and ZIP get back the leading zeros Excel drops. The dialog's company is the one being worked in, a choice only among the user's own companies.
+- LDG-52 and the owner's notes: Print on BIR form sends the 2307 straight to the printer dialog. A bill or a supplier payment shows the 2307 it is on (status, link, Print) or Make the 2307. A sales invoice the customer withheld on shows whether its 2307 came in and has Upload the customer's 2307 (a PH 2307 Received linked to the invoice, with the scan). The income tax returns (1701Q, 1702Q, 1701, 1702-RT) warn, never block, about invoices whose 2307 is missing and scans not attached, and BIR files > Customers' 2307s (zip) bundles the scans with an index.
+- Tests: +5 (test_b94_batch); fullpass imports section updated.
+## B93 The provider's settings are the provider's; the Owner changes the plan (27 Nov 2026)
+- Owner's test (27 Nov 2026): a client's Owner (System Manager) could open and edit Sentire Ledger Settings: the product name, our firm's details, the subscription tier and limits. Now only the Administrator opens PH CAS Settings and PH Subscription; both left the client's sidebar. The client's failed sign-in threshold moved to a new Security page (PH Security Settings, copied by patch). The checklist's registration pack step opens the Company.
+- Help > Your plan > Change plan (D14): the Owner moves between Solo, Team and Business. An upgrade applies now (new limits at once; the provider is emailed to bill from that day). A downgrade is scheduled for the end of the paid period (paid until, or pilot until, or the month's end), refused with what to reduce while the site does not fit, cancellable, and applied by the daily job. Every change is in the Event Log (plan_change). Enterprise and Internal stay with the provider.
+- Next: the Sentire Ledger Tenant Control Portal, where the provider sets these and defines what each tier holds (plan to the owner first).
+- Tests: +5 (test_b93_provider_settings).
+
+## B92 The registration pack names the system by its own name (27 Nov 2026)
+- Owner's human test of SU-004 (27 Nov 2026): the Annex C-1 system description, the sworn statement, the custodian letter, the manifest and the conformance report now read "Sentire Ledger version 0.1.0 (Sentire Framework v16.60.2-sentire.1)"; ERPNext and Frappe are no longer named there. Their licence credits stay in Help > About.
+
+## B91 The Home checklist ticks from the work done (26 Nov 2026)
+- Owner's test (25 Nov 2026): Print your first BIR invoice stayed unticked after the invoice was printed. The steps ticked only when clicked from the checklist itself (Frappe's onboarding flags), and step 1 only because setup marked it.
+- Each step now ticks from the company's records, read every time Home opens, for the company chosen on Home (ph_cas/home/progress.py; rules in D13, approved by the owner 26 Nov 2026). Saving the Modules page by a user records the Choose what you use step (not install or migrate).
+- New UAT workbook get-to-know (LDG-GK-001 to LDG-GK-010), approved by the owner 26 Nov 2026; runs last.
+- Tests: +7 (test_b91_onboarding_progress).
+
+## B90 The 2307 prints clean, with Printed and Issued (25 Nov 2026)
+- Owner (25 Nov 2026): a 2307 is issued to the supplier, not filed, so the "DRAFT, NOT FILED" watermark and the preview line came off. Printing locks the certificate (a draft is saved with the latest bills and submitted first, after a confirmation); the status goes Draft, Printed, Issued (Mark as issued asks the day it was handed over; not before the first print, not in the future), Cancelled. Reprints are counted on the certificate and in the Event Log. A correction is cancel and amend; the amendment records the certificate it replaces.
+- Where the tax came from: each certificate lists every bill and payment that withheld tax in the quarter (document, date, supplier's invoice number, ATC, month, income, tax), linked to the document. Existing certificates get their status and their list by patch.
+- The quarter's batch print from BIR Returns (form 2307) is unchanged.
+- Decision D12. Tests: +3 (test_b90_2307_status).
+
+## B89 PDFs on the server, and Print prints the PDF (25 Nov 2026)
+- Owner's human test of SL-013 (25 Nov): Download PDF failed with a server error ("Chromium took too long to start": Frappe 16 makes PDFs with Chromium by default, and the image carries wkhtmltopdf, not Chromium). Print opened the browser's own print of the page, so Chrome added the date, title, web address and page numbers to the sheet.
+- Every PDF is now made on the server with wkhtmltopdf (Print Settings and every print format, re-applied on migrate). "Print generated PDF" is on: Print fetches the server's PDF and sends that to the printer dialog, so the sheet carries only the invoice. Prints made this way are counted in PH Print Record as before.
+- Tests: +1 (test_b89_pdf_printing).
+
 ## B88 Hold Submit until the approval status arrives (25 Nov 2026)
 - Retest 4 noted that a bill showed a plain Submit for 1 to 5 seconds after opening or saving, before it turned into Request approval or Approve (a click got the server's refusal). The boot now lists the document types an enabled chain covers, with their actions; on those forms Submit (or Cancel, on a posted document under a Cancel chain) stays disabled, with "Checking approval...", until the status arrives.
 - Tests: +1 (test_b88_approval_hold).

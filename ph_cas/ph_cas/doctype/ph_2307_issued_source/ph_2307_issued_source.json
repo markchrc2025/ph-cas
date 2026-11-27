@@ -1,0 +1,94 @@
+{
+ "actions": [],
+ "creation": "2026-11-25 17:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 0,
+ "engine": "InnoDB",
+ "istable": 1,
+ "field_order": [
+  "source_doctype",
+  "source_name",
+  "posting_date",
+  "reference",
+  "atc",
+  "month",
+  "base",
+  "tax_withheld"
+ ],
+ "fields": [
+  {
+   "fieldname": "source_doctype",
+   "fieldtype": "Link",
+   "label": "Type",
+   "options": "DocType",
+   "in_list_view": 1,
+   "columns": 2,
+   "read_only": 1
+  },
+  {
+   "fieldname": "source_name",
+   "fieldtype": "Dynamic Link",
+   "label": "Document",
+   "options": "source_doctype",
+   "in_list_view": 1,
+   "columns": 2,
+   "read_only": 1
+  },
+  {
+   "fieldname": "posting_date",
+   "fieldtype": "Date",
+   "label": "Date",
+   "in_list_view": 1,
+   "columns": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "reference",
+   "fieldtype": "Data",
+   "label": "Supplier's invoice no.",
+   "in_list_view": 1,
+   "columns": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "atc",
+   "fieldtype": "Data",
+   "label": "ATC",
+   "in_list_view": 1,
+   "columns": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "month",
+   "fieldtype": "Int",
+   "label": "Month of the quarter",
+   "read_only": 1
+  },
+  {
+   "fieldname": "base",
+   "fieldtype": "Currency",
+   "label": "Income payment",
+   "in_list_view": 1,
+   "columns": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "tax_withheld",
+   "fieldtype": "Currency",
+   "label": "Tax withheld",
+   "in_list_view": 1,
+   "columns": 1,
+   "read_only": 1
+  }
+ ],
+ "links": [],
+ "modified": "2026-11-25 17:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "PH CAS",
+ "name": "PH 2307 Issued Source",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
