@@ -10,6 +10,9 @@ One entry per bundle, newest first. Counts are the test totals on main after the
 - System Settings "Disable Product Suggestion" is now forced on (no Frappe CRM or Helpdesk ads for System Managers).
 - Docs: docs/LEGAL-FRAMEWORK.md, docs/runbooks/framework-upstream-sync.md. D1 updated.
 - Tests: +10 (test_b81_framework). UAT: tools/uat/cases/framework_branding.py (6 cases), to hand off after the current UAT run.
+## B92 The registration pack names the system by its own name (27 Nov 2026)
+- Owner's human test of SU-004 (27 Nov 2026): the Annex C-1 system description, the sworn statement, the custodian letter, the manifest and the conformance report now read "Sentire Ledger version 0.1.0 (Sentire Framework v16.60.2-sentire.1)"; ERPNext and Frappe are no longer named there. Their licence credits stay in Help > About.
+
 ## B91 The Home checklist ticks from the work done (26 Nov 2026)
 - Owner's test (25 Nov 2026): Print your first BIR invoice stayed unticked after the invoice was printed. The steps ticked only when clicked from the checklist itself (Frappe's onboarding flags), and step 1 only because setup marked it.
 - Each step now ticks from the company's records, read every time Home opens, for the company chosen on Home (ph_cas/home/progress.py; rules in D13, approved by the owner 26 Nov 2026). Saving the Modules page by a user records the Choose what you use step (not install or migrate).

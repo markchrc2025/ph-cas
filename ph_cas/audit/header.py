@@ -38,14 +38,22 @@ def framework_label() -> str:
         return f"Frappe Framework {frappe.__version__}"
 
 
-def platform_version() -> str:
-    """The full stack, for the registration pack and the sworn statement, where the BIR is
-    told what the system is built on. Not shown on client documents."""
+def framework_short() -> str:
+    """B92: the framework by its own name only, as the registration documents print it."""
     try:
-        erp = frappe.get_attr("erpnext.__version__")
+        from frappe import sentire
+
+        return f"Sentire Framework {sentire.release()}"
     except Exception:
-        erp = "?"
-    return f"{ph_cas.__version__} (built on ERPNext {erp}, {framework_label()})"
+        return f"Frappe Framework {frappe.__version__}"
+
+
+def platform_version() -> str:
+    """The version line for the registration pack and the sworn statement.
+
+    B92 (owner, 27 Nov 2026): "0.1.0 (Sentire Framework v16.60.2-sentire.1)" only; the
+    ERPNext and Frappe credits stay in Help > About (the licences), not on BIR documents."""
+    return f"{ph_cas.__version__} ({framework_short()})"
 
 
 def _company_of(doc) -> str | None:
