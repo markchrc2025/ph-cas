@@ -10,6 +10,13 @@ One entry per bundle, newest first. Counts are the test totals on main after the
 - System Settings "Disable Product Suggestion" is now forced on (no Frappe CRM or Helpdesk ads for System Managers).
 - Docs: docs/LEGAL-FRAMEWORK.md, docs/runbooks/framework-upstream-sync.md. D1 updated.
 - Tests: +10 (test_b81_framework). UAT: tools/uat/cases/framework_branding.py (6 cases), to hand off after the current UAT run.
+## B97 Fixes from UAT retest 6 (28 Nov 2026)
+- LDG-183 (regression from B94): Staff, which now reads the Purchase Invoice list, was offered Record an expense. The button shows only for a role that may post bills, and record_expense refuses Staff with "Your role may not post bills or expenses."
+- LDG-250: Help > Your plan > Change plan opens on the first click (it opens over Your plan; closing Your plan first closed it too).
+- LDG-251: an amended 2307 shows Status Draft and Times printed 0 as soon as it opens, before its first save.
+- Administrator's staging password is ADMIN_PASSWORD (Dokploy); STAGING_ADMIN_PASSWORD is the QA admin's. FW-004 and FW-005 use ADMIN_PASSWORD.
+- Tests: +1 (test_b97_retest6).
+
 ## B96 Fixes from UAT retest 5 (27 to 28 Nov 2026)
 - LDG-245 (JP-007): Staff was offered + Add, Save, Submit, Cancel, Amend and Delete on journals, bills, suppliers and returns (the server refused them; the screens still offered them). Staff's boot no longer lists those doctypes as creatable, writable, submittable, cancellable, deletable or importable, and the forms and lists cut those permissions for them (public/js/read_only.js). Collections stay.
 - LDG-247 (IM-015): Import from a template shows only for a role that may add the records, and the check refuses, per line, a party the user may not add (Staff: suppliers) and refuses the file outright when the user may add none of its kind.

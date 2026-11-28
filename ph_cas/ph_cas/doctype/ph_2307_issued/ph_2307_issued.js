@@ -25,6 +25,15 @@ function ph_mark_2307_issued(frm) {
 }
 
 frappe.ui.form.on("PH 2307 Issued", {
+	onload(frm) {
+		// B97 (LDG-251): an amendment shows its own fresh print history before its first save
+		if (frm.is_new() && frm.doc.amended_from) {
+			frm.doc.status = "Draft";
+			frm.doc.print_count = 0;
+			frm.doc.printed_on = null;
+			frm.doc.issued_on = null;
+		}
+	},
 	refresh(frm) {
 		if (frm.is_new()) return;
 		frm.print_doc = () => ph_print_bir_2307(frm);
