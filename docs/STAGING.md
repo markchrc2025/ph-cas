@@ -92,3 +92,11 @@ Email is deliberately absent; mails stay unsent on staging.
 2. Merge the PR's branch into `staging` (`git checkout staging && git merge <branch> && git push`). Dokploy deploys it; the site is rebuilt from nothing (about 10 minutes).
 3. Test through the QA connector or the screens.
 4. Merge the PR into `main` once it passes. When `main` moves on, merge `main` into `staging`.
+
+## One build at a time (since 28 Nov 2026)
+
+The server cannot build two Ledger images at once: on 28 Nov two B97 staging builds died at the same vite step ("rendering chunks") while PH CAS Site built from `main` in parallel, and Dokploy marked both cancelled. So:
+
+- PH CAS Site (ledger.sentire.solutions, branch `main`) has Auto Deploy OFF. Merging to `main` builds nothing.
+- Ledger Staging keeps Auto Deploy on (branch `staging`).
+- Order: push `staging`, wait until its deployment is done, then deploy PH CAS Site by hand (Dokploy connector `deploy`). Never start one while the other is building, and check that no other heavy build (Payroll) is running first.
