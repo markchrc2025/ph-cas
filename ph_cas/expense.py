@@ -76,6 +76,10 @@ def _figures(pi) -> dict:
 def preview_expense(**kwargs) -> dict:
     kwargs.pop("cmd", None)
     frappe.has_permission("Purchase Invoice", "create", throw=True)
+    from ph_cas.setup.roles import cashier_limit
+
+    if not cashier_limit("Purchase Invoice", "create"):  # B97: Staff reads bills, posts none
+        frappe.throw(_("Your role may not post bills or expenses."), frappe.PermissionError)
     pi = _build(**kwargs)
     pi.set_missing_values()
     pi.run_method("before_validate")
@@ -87,6 +91,10 @@ def preview_expense(**kwargs) -> dict:
 def record_expense(**kwargs) -> dict:
     kwargs.pop("cmd", None)
     frappe.has_permission("Purchase Invoice", "create", throw=True)
+    from ph_cas.setup.roles import cashier_limit
+
+    if not cashier_limit("Purchase Invoice", "create"):  # B97: Staff reads bills, posts none
+        frappe.throw(_("Your role may not post bills or expenses."), frappe.PermissionError)
     pi = _build(**kwargs)
     pi.insert()
     pi.paid_amount = pi.base_paid_amount = flt(pi.get("rounded_total") or pi.grand_total, 2)

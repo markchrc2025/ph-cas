@@ -25,7 +25,7 @@ CASES = [
          ["Open the menu under the product name at the top of the sidebar (Sentire Ledger) > Help > Get help; also open the apps screen (" + URL + "/desk), click the avatar at the top right and look for Get help"],
          "None",
          ["The build shown in Get help matches the build on this workbook's Cover", "The avatar menu on the apps screen offers Get help and Your plan, and no \"Frappe Support\""], "P1"),
-    case("LDG-FW-004", "Desk", I, "No update popup after sign-in", "Administrator", "Administrator sign-in: user Administrator, password STAGING_ADMIN_PASSWORD from the Ledger Staging app's Environment in Dokploy (the owner gives it in the chat, never in a file)",
+    case("LDG-FW-004", "Desk", I, "No update popup after sign-in", "Administrator", "Administrator sign-in: user Administrator, password ADMIN_PASSWORD (not STAGING_ADMIN_PASSWORD, which is qa.admin's) from the Ledger Staging app's Environment in Dokploy (the owner gives it in the chat, never in a file)",
          ["Sign in as Administrator", "Wait 10 seconds on Home"],
          "None",
          ["No \"New updates are available\" dialog appears"], "P1"),

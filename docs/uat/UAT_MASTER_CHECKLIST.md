@@ -12,20 +12,20 @@ Run the workbooks in this order, one UAT chat per workbook ("Run UAT for LDG-n")
 | 4 | [Roles and permissions](roles-permissions/UAT_LDG_roles-permissions_0.1.0+cb9827a95550.xlsx) | LDG-154 | 40 | 29 | 0 | 5 | 11 | 15 | 14 | 4 |
 | 5 | [Role homes, counter view and Help menu](role-homes/UAT_LDG_role-homes_0.1.0+cb9827a95550.xlsx) | LDG-147 | 10 | 2 | 0 | 4 | 1 | 2 | 3 | 0 |
 | 6 | [Reports page](reports-page/UAT_LDG_reports-page_0.1.0+cb9827a95550.xlsx) | LDG-155 | 12 | 7 | 1 | 6 | 1 | 3 | 3 | 0 |
-| 7 | [Sales and collections](sales-collections/UAT_LDG_sales-collections_0.1.0+59b5edaaee39.xlsx) | LDG-156 | 16 | 10 | 2 | 2 | 1 | 10 | 2 | 1 |
+| 7 | [Sales and collections](sales-collections/UAT_LDG_sales-collections_0.1.0+a06e212f8700.xlsx) | LDG-156 | 16 | 10 | 2 | 2 | 1 | 10 | 2 | 1 |
 | 8 | [Masters and stock](masters-stock/UAT_LDG_masters-stock_0.1.0+cb9827a95550.xlsx) | LDG-161 | 11 | 7 | 0 | 0 | 2 | 6 | 4 | 1 |
 | 9 | [Purchases and payables](purchases-payables/UAT_LDG_purchases-payables_0.1.0+59b5edaaee39.xlsx) | LDG-157 | 14 | 7 | 2 | 0 | 2 | 9 | 2 | 1 |
 | 10 | [Approvals](approvals/UAT_LDG_approvals_0.1.0+cb9827a95550.xlsx) | LDG-162 | 11 | 7 | 0 | 0 | 6 | 7 | 1 | 0 |
-| 11 | [Journals and periods](journals-periods/UAT_LDG_journals-periods_0.1.0+59b5edaaee39.xlsx) | LDG-158 | 8 | 4 | 0 | 3 | 2 | 3 | 1 | 0 |
-| 12 | [BIR returns](bir-returns/UAT_LDG_bir-returns_0.1.0+59b5edaaee39.xlsx) | LDG-159 | 19 | 11 | 1 | 1 | 5 | 12 | 1 | 1 |
+| 11 | [Journals and periods](journals-periods/UAT_LDG_journals-periods_0.1.0+a06e212f8700.xlsx) | LDG-158 | 8 | 4 | 0 | 3 | 2 | 3 | 1 | 0 |
+| 12 | [BIR returns](bir-returns/UAT_LDG_bir-returns_0.1.0+a06e212f8700.xlsx) | LDG-159 | 19 | 11 | 1 | 1 | 5 | 12 | 1 | 1 |
 | 13 | [Books and audit](books-audit/UAT_LDG_books-audit_0.1.0+cb9827a95550.xlsx) | LDG-160 | 14 | 10 | 2 | 3 | 2 | 8 | 1 | 0 |
 | 14 | [Subsidiary ledgers and cash position](ledgers-cash-position/UAT_LDG_ledgers-cash-position_0.1.0+cb9827a95550.xlsx) | LDG-146 | 10 | 7 | 5 | 5 | 0 | 2 | 1 | 2 |
-| 15 | [Import templates and batch edit](import-templates/UAT_LDG_import-templates_0.1.0+59b5edaaee39.xlsx) | LDG-145 | 17 | 12 | 1 | 6 | 0 | 9 | 1 | 1 |
+| 15 | [Import templates and batch edit](import-templates/UAT_LDG_import-templates_0.1.0+a06e212f8700.xlsx) | LDG-145 | 17 | 12 | 1 | 6 | 0 | 9 | 1 | 1 |
 | 16 | [Go-live and opening balances](go-live/UAT_LDG_go-live_0.1.0+cb9827a95550.xlsx) | LDG-143 | 14 | 10 | 0 | 12 | 0 | 1 | 0 | 1 |
 | 17 | [Print pack for the paper check](paper-check-pack/UAT_LDG_paper-check-pack_0.1.0+cb9827a95550.xlsx) | LDG-149 | 7 | 6 | 4 | 5 | 0 | 1 | 0 | 1 |
-| 18 | [Sentire Framework branding](framework-branding/UAT_LDG_framework-branding_0.1.0+cb9827a95550.xlsx) | LDG-184 | 6 | 4 | 0 | 2 | 0 | 0 | 0 | 0 |
-| 19 | [Get to know Sentire Ledger checklist](get-to-know/UAT_LDG_get-to-know_0.1.0+8e95ac63624c.xlsx) | LDG-153 | 10 | 7 | 0 | 8 | 0 | 1 | 0 | 1 |
-| 20 | [Plan and settings](plan-and-settings/UAT_LDG_plan-and-settings_0.1.0+59b5edaaee39.xlsx) | LDG-153 | 7 | 4 | 0 | 6 | 0 | 1 | 0 | 0 |
+| 18 | [Sentire Framework branding](framework-branding/UAT_LDG_framework-branding_0.1.0+a06e212f8700.xlsx) | LDG-184 | 6 | 4 | 0 | 2 | 0 | 0 | 0 | 0 |
+| 19 | [Get to know Sentire Ledger checklist](get-to-know/UAT_LDG_get-to-know_0.1.0+a06e212f8700.xlsx) | LDG-153 | 10 | 7 | 0 | 8 | 0 | 1 | 0 | 1 |
+| 20 | [Plan and settings](plan-and-settings/UAT_LDG_plan-and-settings_0.1.0+a06e212f8700.xlsx) | LDG-153 | 7 | 4 | 0 | 6 | 0 | 1 | 0 | 0 |
 | | **Total** | | **258** | **160** | **19** | **84** | **34** | **99** | **38** | **16** |
 
 Role columns count the cases that sign in as that account (in the Role column or in the steps).
