@@ -71,7 +71,7 @@ CASES = [
     case("LDG-PU-014", "PH 2307 Issued", I, "A 2307 is corrected by cancel and amend", "Accounting Manager A", "LDG-PU-013 done",
          ["Open the LDG-PU-008 2307; click Cancel; confirm", "Click Amend", "On the new 2307 click Print on BIR form; Yes; close the printer window"],
          "None",
-         ["Step 1: status Cancelled (grey); no print button", "Step 2: a new 2307 opens as Draft with \"Amended from\" the cancelled one",
+         ["Step 1: status Cancelled (grey); no print button", "Step 2: a new 2307 opens as Draft with \"Amended from\" the cancelled one, Status Draft and Times printed 0 before it is saved",
           "Step 3: the new 2307 is Printed; its \"Replaces\" field names the cancelled one"],
          "P2", "LDG-PU-013", "Cancels the 2307 and issues a corrected one"),
 ]
